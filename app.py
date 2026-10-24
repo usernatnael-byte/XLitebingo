@@ -1,0 +1,128 @@
+import os
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+import firebase_admin
+from firebase_admin import credentials, db as rtdb
+from game_engine import GameEngine
+
+app = Flask(__name__)
+CORS(app)
+
+# Firebase Realtime Database ማስጀመር
+if not firebase_admin._apps:
+    cred = credentials.Certificate("firebase_key.json")
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': 'https://litebingo-513a9-default-rtdb.firebaseio.com/'
+    })
+
+# Wallet Bridge ለ Game Engine
+class RTDBWallet:
+    def recover_unsettled(self):
+        return 0
+
+    def get_balance(self, uid):
+        user_data = rtdb.reference(f"users/{uid}").get() or {}
+        return float(user_data.get("balance", 0.0))
+
+    def begin_round(self, rid, snapshot):
+        pass
+
+    def charge(self, uid, amount, rid, cartels=1):
+        ref = rtdb.reference(f"users/{uid}")
+        data = ref.get() or {}
+        current = float(data.get("balance", 0.0))
+        if current < amount:
+            return None
+        new_balance = current - amount
+        ref.update({"balance": new_balance})
+        return new_balance
+
+    def refund(self, uid, rid):
+        pass
+
+    def start_drawing(self, rid, tickets):
+        pass
+
+    def settle(self, rid, payouts):
+        for uid, prize in payouts.items():
+            ref = rtdb.reference(f"users/{uid}")
+            data = ref.get() or {}
+            current = float(data.get("balance", 0.0))
+            ref.update({"balance": current + prize})
+
+    def cancel_round(self, rid, uids):
+        pass
+
+    def profile(self, uid):
+        return rtdb.reference(f"users/{uid}").get() or {}
+
+wallet_instance = RTDBWallet()
+engine = GameEngine(wallet=wallet_instance)
+engine.start()
+
+# 🟢 ዌብ አፑን (index.html) ለማሳየት የሚያስችል ራውት
+@app.route('/')
+def serve_index():
+    return send_from_directory('.', 'index.html')
+
+# API Endpoints
+@app.route('/api/user-data', methods=['GET'])
+def get_user_data():
+    user_id = request.args.get('userId', 'test_user')
+    data = rtdb.reference(f"users/{user_id}").get() or {}
+    return jsonify({
+        "status": "success",
+        "balance": data.get("balance", 0.0),
+        "bonus": data.get("bonus", 0.0),
+        "phone_number": data.get("phone_number", ""),
+        "total_games_played": data.get("total_games_played", 0),
+        "total_winnings": data.get("total_winnings", 0.0),
+        "transactions": data.get("transactions", [])
+    })
+
+@app.route('/api/round', methods=['GET'])
+def get_round():
+    user_id = request.args.get('userId', 'test_user')
+    return jsonify({
+        "status": "success",
+        "balance": wallet_instance.get_balance(user_id),
+        "bonus": 0.0,
+        "state": engine.get_state(user_id)
+    })
+
+@app.route('/api/round/pick', methods=['POST'])
+def pick_cartel():
+    data = request.get_json() or {}
+    user_id = request.args.get('userId', 'test_user')
+    ok, code = engine.pick(user_id, data.get('cartel'))
+    return jsonify({
+        "status": "success" if ok else "fail",
+        "code": code,
+        "balance": wallet_instance.get_balance(user_id),
+        "state": engine.get_state(user_id)
+    })
+
+@app.route('/api/round/unpick', methods=['POST'])
+def unpick_cartel():
+    data = request.get_json() or {}
+    user_id = request.args.get('userId', 'test_user')
+    ok, code = engine.unpick(user_id, data.get('cartel'))
+    return jsonify({
+        "status": "success" if ok else "fail",
+        "code": code,
+        "balance": wallet_instance.get_balance(user_id),
+        "state": engine.get_state(user_id)
+    })
+
+@app.route('/api/leaderboard', methods=['GET'])
+def leaderboard():
+    all_users = rtdb.reference("users").get() or {}
+    players = [
+        {"name": u.get("first_name", "Player"), "cartels": u.get("total_games_played", 0)} 
+        for u in all_users.values()
+    ]
+    players.sort(key=lambda x: x["cartels"], reverse=True)
+    return jsonify({"status": "success", "leaderboard": players[:10]})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
