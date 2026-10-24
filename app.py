@@ -9,37 +9,29 @@ import game_engine
 app = Flask(__name__, template_folder='.', static_folder='.')
 CORS(app)
 
-# Firebase ማስጀመር (Render Env Variable ത്തിലെ ስህተቶችን በራሱ የሚያስተካክል)
+# Firebase ማስተካከል (ባዶ ከሆነ ሰርቨሩ እንዳይወድቅ በ Try-Except ተያዟል)
+db = None
 if not firebase_admin._apps:
     firebase_config = os.environ.get('FIREBASE_CREDENTIALS_JSON')
-    if firebase_config:
+    if firebase_config and firebase_config.strip():
         try:
-            # ሬንደር ሊጨምራቸው የሚችላቸውን ተጨማሪ ኮቴሽኖች እና ክፍተቶች ማጽዳት
             firebase_config = firebase_config.strip()
             if (firebase_config.startswith("'") and firebase_config.endswith("'")) or \
                (firebase_config.startswith('"') and firebase_config.endswith('"')):
                 firebase_config = firebase_config[1:-1]
             
             cred_dict = json.loads(firebase_config)
-            
-            # private_key ውስጥ ያሉት \n በትክክል መስመራቸውን እንዲጠብቁ ማድረግ
             if 'private_key' in cred_dict:
                 cred_dict['private_key'] = cred_dict['private_key'].replace('\\n', '\n')
                 
             cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred)
-            print("Firebase initialized successfully from Environment Variable!")
+            db = firestore.client()
+            print("Firebase initialized successfully!")
         except Exception as e:
-            print(f"Firebase Init Error from Env: {e}")
+            print(f"Firebase Init Warning: {e} (Continuing without DB)")
     else:
-        try:
-            cred = credentials.Certificate("firebase_key.json")
-            firebase_admin.initialize_app(cred)
-            print("Firebase initialized successfully from local file!")
-        except Exception as e:
-            print(f"Firebase Init Error from File: {e}")
-
-db = firestore.client() if firebase_admin._apps else None
+        print("No Firebase Environment Variable found. Running without DB.")
 
 @app.route('/')
 def index():
@@ -49,7 +41,7 @@ def index():
 def status():
     return jsonify({
         "status": "online",
-        "message": "1x Bingo server is running successfully with Firebase & 2-player rule!"
+        "message": "1x Bingo server is running successfully!"
     })
 
 if __name__ == '__main__':
