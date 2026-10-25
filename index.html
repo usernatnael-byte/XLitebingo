@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethio Bingo - Live Multiplayer & Dual Balance</title>
+    <title>Ethio Bingo - Live Multiplayer</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -18,7 +18,6 @@
     <!-- Firebase App, Firestore & Analytics SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 
     <script>
         // Firebase Configuration
@@ -29,62 +28,17 @@
           projectId: "ethio-bingo-app",
           storageBucket: "ethio-bingo-app.firebasestorage.app",
           messagingSenderId: "922073990731",
-          appId: "1:922073990731:web:a96d4d36539bfae0cc6fce",
-          measurementId: "G-EVBKGZW29X"
+          appId: "1:922073990731:web:a96d4d36539bfae0cc6fce"
         };
-
-        // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
-        try {
-            const analytics = firebase.analytics(app);
-        } catch (e) {
-            console.log("Analytics not supported in this environment");
-        }
     </script>
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        bingo: {
-                            b: '#EC4899', // Pink
-                            i: '#8B5CF6', // Purple
-                            n: '#3B82F6', // Blue
-                            g: '#10B981', // Emerald
-                            o: '#F59E0B', // Amber
-                        },
-                        dark: {
-                            base: '#0B0F19',
-                            card: '#161F30',
-                            border: '#2A364F'
-                        }
-                    },
-                    animation: {
-                        'pulse-glow': 'pulseGlow 2s infinite',
-                        'pop-in': 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                        'number-call': 'numberCall 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                    },
-                    keyframes: {
-                        pulseGlow: {
-                            '0%, 100%': { boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)' },
-                            '50%': { boxShadow: '0 0 30px rgba(236, 72, 153, 0.7)' },
-                        },
-                        popIn: {
-                            '0%': { transform: 'scale(0.85)', opacity: '0' },
-                            '100%': { transform: 'scale(1)', opacity: '1' }
-                        },
-                        numberCall: {
-                            '0%': { transform: 'scale(0) rotate(-180deg)', opacity: '0' },
-                            '70%': { transform: 'scale(1.15) rotate(10deg)' },
-                            '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
-                        }
-                    }
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
                 }
             }
         }
@@ -93,8 +47,6 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(11, 15, 25, 0.8); }
         ::-webkit-scrollbar-thumb { background: #2A364F; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
-
         .bg-mesh {
             background-color: #0B0F19;
             background-image: 
@@ -102,14 +54,12 @@
                 radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
                 radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
         }
-
         .glass-panel {
             background: rgba(22, 31, 48, 0.8);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
-
         .dapped-mark { position: relative; }
         .dapped-mark::after {
             content: '';
@@ -117,61 +67,42 @@
             inset: 2px;
             border-radius: 50%;
             background: radial-gradient(circle, rgba(236, 72, 153, 0.95) 0%, rgba(139, 92, 246, 0.95) 100%);
-            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4), 0 0 10px rgba(236, 72, 153, 0.6);
-            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 10;
         }
-        .dapped-mark .tile-text {
-            position: relative;
-            z-index: 20;
-            color: #ffffff !important;
-            font-weight: 900;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.9);
-        }
+        .dapped-mark .tile-text { position: relative; z-index: 20; color: #ffffff !important; font-weight: 900; }
     </style>
 </head>
-<body class="bg-mesh text-slate-100 min-h-screen font-sans flex flex-col justify-between pb-24 selection:bg-purple-500 selection:text-white antialiased">
+<body class="bg-mesh text-slate-100 min-h-screen font-sans flex flex-col justify-between pb-24">
 
-    <!-- TOP HEADER NAVBAR WITH USER PROFILE & DUAL BALANCES -->
+    <!-- TOP NAVBAR -->
     <header class="w-full glass-panel border-b border-slate-800/80 sticky top-0 z-40 px-3 sm:px-4 py-2.5">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
-            
-            <!-- Brand & Telegram User Profile -->
             <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchTab('profile')">
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-pink-500 via-purple-600 to-blue-500 p-0.5 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                    <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-sm text-white">
-                        👤
-                    </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-pink-500 via-purple-600 to-blue-500 p-0.5 flex items-center justify-center shadow-lg">
+                    <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-sm text-white">👤</div>
                 </div>
                 <div>
-                    <h1 id="headerProfileName" class="font-extrabold text-xs sm:text-sm tracking-tight text-white leading-none">
-                        Abebe Kebede
-                    </h1>
-                    <p id="headerProfileHandle" class="text-[9px] sm:text-[10px] text-purple-400 font-mono font-medium mt-0.5">@abebe_bingo</p>
+                    <h1 id="headerProfileName" class="font-extrabold text-xs sm:text-sm text-white leading-none">Telegram Player</h1>
+                    <p id="headerProfileHandle" class="text-[9px] sm:text-[10px] text-purple-400 font-mono mt-0.5">@player</p>
                 </div>
             </div>
 
-            <!-- DUAL BALANCES DISPLAY -->
+            <!-- BALANCES -->
             <div class="flex items-center space-x-2 sm:space-x-3">
-                <div onclick="switchTab('wallet')" class="bg-slate-900/90 hover:bg-slate-800 border border-blue-500/40 px-2.5 sm:px-3 py-1 rounded-xl flex items-center space-x-1.5 cursor-pointer transition shadow-inner">
+                <div onclick="switchTab('wallet')" class="bg-slate-900/90 border border-blue-500/40 px-2.5 py-1 rounded-xl flex items-center space-x-1.5 cursor-pointer">
                     <i class="fa-solid fa-gamepad text-blue-400 text-[11px]"></i>
                     <div class="text-left">
-                        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Play Bal</span>
-                        <span id="navPlayBalance" class="text-xs font-black text-blue-400 font-mono leading-none">500 ETB</span>
+                        <span class="text-[8px] font-bold text-slate-400 block">Play Bal</span>
+                        <span id="navPlayBalance" class="text-xs font-black text-blue-400 font-mono">10 ETB</span>
                     </div>
                 </div>
-
-                <div onclick="switchTab('wallet')" class="bg-slate-900/90 hover:bg-slate-800 border border-emerald-500/40 px-2.5 sm:px-3 py-1 rounded-xl flex items-center space-x-1.5 cursor-pointer transition shadow-inner">
+                <div onclick="switchTab('wallet')" class="bg-slate-900/90 border border-emerald-500/40 px-2.5 py-1 rounded-xl flex items-center space-x-1.5 cursor-pointer">
                     <i class="fa-solid fa-trophy text-amber-400 text-[11px]"></i>
                     <div class="text-left">
-                        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Main Bal</span>
-                        <span id="navMainBalance" class="text-xs font-black text-emerald-400 font-mono leading-none">1,250 ETB</span>
+                        <span class="text-[8px] font-bold text-slate-400 block">Main Bal</span>
+                        <span id="navMainBalance" class="text-xs font-black text-emerald-400 font-mono">0 ETB</span>
                     </div>
                 </div>
-
-                <button id="soundToggleBtn" onclick="toggleSound()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-center text-slate-300 hover:text-white transition hover:border-purple-500/50">
-                    <i id="soundIcon" class="fa-solid fa-volume-high text-xs"></i>
-                </button>
             </div>
         </div>
     </header>
@@ -179,123 +110,93 @@
     <!-- MAIN CONTAINER -->
     <main class="max-w-7xl w-full mx-auto p-3 sm:p-6 flex-grow flex flex-col justify-start">
 
+        <!-- GLOBAL WAITING OVERLAY IF GAME RUNNING -->
+        <div id="gameInProgressOverlay" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-amber-500/40 text-center space-y-4 shadow-2xl">
+                <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl mx-auto flex items-center justify-center text-amber-400 text-2xl">
+                    <i class="fa-solid fa-hourglass-half animate-spin"></i>
+                </div>
+                <h3 class="text-xl font-black text-white">ጨዋታ በመካሄድ ላይ ነው!</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    እባኮት አሁን ጨዋታ ላይ ነን ቀጣይ ጨዋታ እስኪጀመር እዚው ይጠብቁ[span_2](start_span)[span_2](end_span)።
+                </p>
+            </div>
+        </div>
+
         <!-- TAB 1: HOME PAGE -->
         <div id="tabHome" class="w-full space-y-5">
-            <section id="ticketSelectionSection" class="w-full space-y-5 animate-pop-in">
+            <section id="ticketSelectionSection" class="w-full space-y-5">
                 <div class="glass-panel p-5 sm:p-8 rounded-3xl border border-slate-800 text-center relative overflow-hidden shadow-2xl max-w-4xl mx-auto">
-                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl"></div>
-                    <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl"></div>
-
                     <span class="inline-block px-3.5 py-1 bg-purple-500/10 text-purple-300 rounded-full text-xs font-bold mb-2.5 border border-purple-500/20">
-                        🎟️ 1 TICKET = 10 ETB (CHOOSE 1 TO 4 CARDS)
+                        🎟️ 1 TICKET = 10 ETB (CHOOSE 1 TO 4 CARDS)[span_3](start_span)[span_3](end_span)
                     </span>
-                    <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight">Select Bingo Cards</h2>
+                    <h2 class="text-2xl sm:text-4xl font-black text-white">Select Bingo Cards</h2>
                     <p class="text-slate-400 text-xs sm:text-sm mt-1 max-w-lg mx-auto">
-                        Pick up to 4 tickets from 1 to 500. Deductions are made from your <b>Play Balance</b>[span_1](start_span)[span_1](end_span).
+                        የመጀመሪያ ስጦታዎ <b>10 ፕሌይ ብር</b> አለዎት! ካርቴላ በመምረጥ ጀምር[span_4](start_span)[span_4](end_span)።
                     </p>
 
                     <div class="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
-                        <div class="flex items-center space-x-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-2xl shadow-inner">
+                        <div class="flex items-center space-x-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-2xl">
                             <i class="fa-regular fa-clock text-amber-400 text-base animate-spin"></i>
                             <div class="text-left">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Round Starts In</span>
-                                <span id="countdownDisplay" class="font-mono font-black text-lg text-amber-400 leading-none">30s</span>
+                                <span class="text-[9px] font-bold text-slate-400 block">Round Starts In</span>
+                                <span id="countdownDisplay" class="font-mono font-black text-lg text-amber-400">30s</span>
                             </div>
                         </div>
 
-                        <button id="joinMatchBtn" onclick="launchLiveRoomImmediately()" disabled 
-                            class="w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 opacity-50 cursor-not-allowed text-white font-extrabold rounded-2xl shadow-lg transition text-xs sm:text-sm">
+                        <button id="joinMatchBtn" onclick="launchLiveRoomImmediately()" 
+                            class="w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 text-white font-extrabold rounded-2xl shadow-lg text-xs sm:text-sm">
                             <i class="fa-solid fa-play"></i>
                             <span>JOIN LIVE GAME NOW</span>
                         </button>
                     </div>
                 </div>
 
-                <div id="selectionSummaryBar" class="max-w-4xl mx-auto glass-panel p-3.5 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                <div id="selectionSummaryBar" class="max-w-4xl mx-auto glass-panel p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between">
                     <div class="flex items-center space-x-2">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Cards:</span>
+                        <span class="text-xs font-bold text-slate-400 uppercase">Your Cards:</span>
                         <div id="selectedBadgesContainer" class="flex flex-wrap gap-1.5">
                             <span class="text-xs text-slate-500 italic">No tickets selected yet</span>
                         </div>
                     </div>
                     <div class="text-xs text-slate-400">
-                        Selected: <span id="selectedCountText" class="font-bold text-purple-400">0</span>/4 | Total Cost: <span id="totalCostText" class="font-bold text-blue-400 font-mono">0 ETB</span>
+                        Selected: <span id="selectedCountText" class="font-bold text-purple-400">0</span>/4 | Cost: <span id="totalCostText" class="font-bold text-blue-400 font-mono">0 ETB</span>
                     </div>
                 </div>
 
-                <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-magnifying-glass text-slate-500 absolute left-3.5 top-3 text-xs"></i>
-                        <input type="number" id="ticketSearchInput" min="1" max="500" placeholder="Jump to ticket # (1-500)..." oninput="filterTickets()"
-                            class="w-full bg-slate-900/80 border border-slate-800 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500">
-                    </div>
-                    <button onclick="selectRandomTickets()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-bold text-purple-400 transition flex items-center space-x-1.5 shrink-0">
-                        <i class="fa-solid fa-shuffle text-xs"></i>
-                        <span>Quick Pick 4</span>
-                    </button>
-                </div>
-
-                <div class="max-w-4xl mx-auto glass-panel p-3.5 rounded-3xl border border-slate-800/80">
+                <div class="max-w-4xl mx-auto glass-panel p-3.5 rounded-3xl border border-slate-800">
                     <div id="ticketsGrid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-1.5 max-h-[360px] overflow-y-auto pr-1.5"></div>
                 </div>
             </section>
 
             <!-- LIVE BINGO ROOM -->
-            <section id="liveBingoRoomSection" class="hidden w-full space-y-5 animate-pop-in">
+            <section id="liveBingoRoomSection" class="hidden w-full space-y-5">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div class="lg:col-span-2 glass-panel p-4 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
-                        <div class="flex items-center space-x-3.5 w-full sm:w-auto justify-center sm:justify-start">
-                            <div id="currentCallBall" class="w-20 h-20 sm:w-22 sm:h-22 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-amber-500 p-1 flex items-center justify-center shadow-xl">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-amber-500 p-1 flex items-center justify-center">
                                 <div class="w-full h-full bg-slate-950 rounded-full flex flex-col items-center justify-center text-center">
-                                    <span id="currentLetter" class="text-xs font-black text-purple-400 tracking-widest leading-none">READY</span>
-                                    <span id="currentNumber" class="text-2xl sm:text-3xl font-black text-white leading-none mt-0.5">--</span>
+                                    <span id="currentLetter" class="text-xs font-black text-purple-400">READY</span>
+                                    <span id="currentNumber" class="text-2xl font-black text-white mt-0.5">--</span>
                                 </div>
                             </div>
                             <div>
-                                <span class="text-[9px] uppercase font-extrabold tracking-widest text-slate-400 block">Current Draw</span>
-                                <h3 id="currentCallText" class="text-base sm:text-lg font-bold text-white">Starting Draw...</h3>
+                                <span class="text-[9px] uppercase font-extrabold text-slate-400 block">Current Draw</span>
+                                <h3 id="currentCallText" class="text-base font-bold text-white">Starting Draw...</h3>
                                 <p class="text-xs text-slate-400 mt-0.5">Drawn: <span id="totalCalledCount" class="text-amber-400 font-bold">0</span> / 75</p>
-                            </div>
-                        </div>
-
-                        <div class="w-full sm:w-auto flex-1 max-w-xs">
-                            <span class="text-[9px] uppercase font-semibold text-slate-400 block mb-1 text-center sm:text-left">Recent Draws</span>
-                            <div id="recentCallsTray" class="flex items-center justify-center sm:justify-start space-x-1.5 overflow-x-auto py-1">
-                                <span class="text-xs text-slate-500 italic">No numbers called yet</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="glass-panel p-4 rounded-3xl border border-slate-800 flex flex-col justify-between space-y-3 shadow-xl">
-                        <div class="bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-emerald-500/10 p-3 rounded-2xl border border-amber-500/30 flex items-center justify-between">
+                    <div class="glass-panel p-4 rounded-3xl border border-slate-800 flex flex-col justify-between space-y-3">
+                        <div class="bg-gradient-to-r from-amber-500/10 to-emerald-500/10 p-3 rounded-2xl border border-amber-500/30 flex items-center justify-between">
                             <div>
-                                <span class="text-[9px] font-extrabold uppercase tracking-wider text-amber-400 block">Round Prize Pool (ደራሽ)[span_2](start_span)[span_2](end_span)</span>
+                                <span class="text-[9px] font-extrabold uppercase text-amber-400 block">Prize Pool (ደራሽ)[span_5](start_span)[span_5](end_span)</span>
                                 <span id="livePrizePoolText" class="text-xl font-black text-emerald-400 font-mono">1,800 ETB</span>
                             </div>
-                            <div class="text-right">
-                                <span class="text-[9px] text-slate-400 block">Active Tickets</span>
-                                <span id="liveActiveTicketsCount" class="text-xs font-bold text-purple-300">90 Cards</span>
-                            </div>
                         </div>
-
-                        <div class="flex items-center justify-between space-x-2">
-                            <div class="flex items-center space-x-2">
-                                <i id="modeIcon" class="fa-solid fa-robot text-emerald-400 text-sm"></i>
-                                <div>
-                                    <span class="text-xs font-bold text-white block">Auto Select</span>
-                                    <span id="modeSubtext" class="text-[9px] text-slate-400 block">Auto-dabs numbers[span_3](start_span)[span_3](end_span)</span>
-                                </div>
-                            </div>
-
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="modeToggleCheckbox" checked onchange="toggleGameMode()" class="sr-only peer">
-                                <div class="w-10 h-5.5 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-emerald-500"></div>
-                            </label>
-                        </div>
-
-                        <button id="claimBingoBtn" onclick="claimBingoManual()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 via-pink-500 to-purple-600 text-white font-black text-sm tracking-wider rounded-xl shadow-lg transition flex items-center justify-center space-x-2 border border-amber-300/30">
-                            <i class="fa-solid fa-trophy text-amber-300"></i>
-                            <span>CLAIM BINGO!</span>
+                        <button id="claimBingoBtn" onclick="claimBingoManual()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-purple-600 text-white font-black text-sm rounded-xl">
+                            CLAIM BINGO!
                         </button>
                     </div>
                 </div>
@@ -304,225 +205,152 @@
             </section>
         </div>
 
-        <!-- TAB 2: LEADERBOARD -->
-        <div id="tabLeaderboard" class="hidden w-full max-w-4xl mx-auto space-y-5 animate-pop-in">
-            <div class="glass-panel p-5 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
-                <div>
-                    <h2 class="text-xl sm:text-2xl font-black text-white flex items-center space-x-2">
-                        <i class="fa-solid fa-trophy text-amber-400"></i>
-                        <span>ቶፕ ሊደርቦርድ (Top Leaderboard)</span>
-                    </h2>
-                </div>
-                <div class="bg-slate-900 p-1 rounded-2xl border border-slate-800 flex items-center space-x-1">
-                    <button id="tfDailyBtn" onclick="setTimeframe('daily')" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-md">የዛሬ (Daily)</button>
-                    <button id="tfWeeklyBtn" onclick="setTimeframe('weekly')" class="px-4 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white">የዚህ ሳምንት (Weekly)</button>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-center space-x-2 bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800/80">
-                <button id="lbPlayersBtn" onclick="setLeaderboardCategory('players')" class="flex-1 py-2 rounded-xl text-xs font-extrabold bg-purple-600/30 border border-purple-500/50 text-white shadow-sm flex items-center justify-center space-x-1.5">🎮 ቶፕ ተጫዋቾች</button>
-                <button id="lbWinnersBtn" onclick="setLeaderboardCategory('winners')" class="flex-1 py-2 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white flex items-center justify-center space-x-1.5">🏆 ቶፕ አሸናፊዎች</button>
-                <button id="lbInvitersBtn" onclick="setLeaderboardCategory('inviters')" class="flex-1 py-2 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white flex items-center justify-center space-x-1.5">👥 ቶፕ ጋባዦች</button>
-            </div>
-
-            <div id="podiumContainer" class="grid grid-cols-3 gap-2 sm:gap-4 items-end pt-4"></div>
-
-            <div class="glass-panel p-4 rounded-3xl border border-slate-800 shadow-xl space-y-2">
-                <div id="rankingsListContainer" class="space-y-1.5"></div>
-            </div>
-        </div>
-
         <!-- TAB 3: WALLET -->
-        <div id="tabWallet" class="hidden w-full max-w-4xl mx-auto space-y-5 animate-pop-in">
+        <div id="tabWallet" class="hidden w-full max-w-4xl mx-auto space-y-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="glass-panel p-5 rounded-3xl border border-blue-500/30 relative overflow-hidden shadow-xl">
-                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-1">Play Balance (ለጨዋታ መቁረጫ)[span_4](start_span)[span_4](end_span)</span>
-                    <h2 id="walletPlayBalanceMain" class="text-3xl font-black text-blue-400 font-mono tracking-tight">500.00 ETB</h2>
-                    <button onclick="openDepositModal('Play')" class="mt-4 px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow-md transition">Top Up Play Balance</button>
+                <div class="glass-panel p-5 rounded-3xl border border-blue-500/30">
+                    <span class="text-[10px] font-bold text-blue-400 uppercase block mb-1">Play Balance (ለጨዋታ)[span_6](start_span)[span_6](end_span)</span>
+                    <h2 id="walletPlayBalanceMain" class="text-3xl font-black text-blue-400 font-mono">10.00 ETB</h2>
+                    <button onclick="openDepositModal()" class="mt-4 px-4 py-2 bg-blue-600 text-white text-xs rounded-xl font-bold">
+                        <i class="fa-solid fa-plus-circle mr-1"></i> Telebirr Deposit
+                    </button>
                 </div>
-
-                <div class="glass-panel p-5 rounded-3xl border border-emerald-500/30 relative overflow-hidden shadow-xl">
-                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">Main Balance (አሸናፊነት)[span_5](start_span)[span_5](end_span)</span>
-                    <h2 id="walletMainBalanceMain" class="text-3xl font-black text-emerald-400 font-mono tracking-tight">1,250.00 ETB</h2>
-                    <div class="mt-4 flex items-center space-x-2">
-                        <button onclick="openDepositModal('Main')" class="px-4 py-2 bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl shadow-md transition">Deposit</button>
-                        <button onclick="openWithdrawModal()" class="px-4 py-2 bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition">Withdraw</button>
-                    </div>
+                <div class="glass-panel p-5 rounded-3xl border border-emerald-500/30">
+                    <span class="text-[10px] font-bold text-emerald-400 uppercase block mb-1">Main Balance (አሸናፊነት)[span_7](start_span)[span_7](end_span)</span>
+                    <h2 id="walletMainBalanceMain" class="text-3xl font-black text-emerald-400 font-mono">0.00 ETB</h2>
                 </div>
-            </div>
-
-            <div class="glass-panel p-5 rounded-3xl border border-slate-800 shadow-xl space-y-3">
-                <h3 class="text-sm font-bold text-white">Recent Wallet Transactions</h3>
-                <div id="transactionHistoryList" class="space-y-2"></div>
             </div>
         </div>
 
-        <!-- TAB 4: PROFILE & AFFILIATE -->
-        <div id="tabProfile" class="hidden w-full max-w-4xl mx-auto space-y-5 animate-pop-in">
-            <div class="glass-panel p-5 rounded-3xl border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
-                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-amber-500 p-1 shrink-0 shadow-lg">
-                    <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-2xl font-black text-white">👤</div>
-                </div>
-                <div class="flex-1">
-                    <h2 id="profileName" class="text-lg sm:text-xl font-black text-white">Abebe Kebede</h2>
-                    <p id="profileHandle" class="text-xs text-purple-400 font-mono">@abebe_bingo • ID: #84920</p>
-                    <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-[10px] font-bold mt-2 inline-block">VERIFIED TELEGRAM PLAYER</span>
+        <!-- TAB 4: PROFILE -->
+        <div id="tabProfile" class="hidden w-full max-w-4xl mx-auto space-y-5">
+            <div class="glass-panel p-5 rounded-3xl border border-slate-800 shadow-xl flex items-center space-x-4">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-amber-500 flex items-center justify-center text-2xl">👤</div>
+                <div>
+                    <h2 id="profileName" class="text-lg font-black text-white">Telegram Player</h2>
+                    <p id="profileHandle" class="text-xs text-purple-400 font-mono">@player</p>
                 </div>
             </div>
 
-            <div class="glass-panel p-5 rounded-3xl border border-amber-500/30 bg-gradient-to-r from-amber-500/5 to-pink-500/5 space-y-3">
-                <h3 class="text-sm font-extrabold text-white">የኩፖን/ፕሮሞ ኮድ ማስገቢያ (Claim Coupon Code)[span_6](start_span)[span_6](end_span)</h3>
+            <div class="glass-panel p-5 rounded-3xl border border-purple-500/40 space-y-3">
+                <h3 class="text-sm font-extrabold text-white">የጓደኛ ማጣቀሻ ሊንክ (Invite Friends)</h3>
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="promoCodeInput" placeholder="Enter coupon code..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-white uppercase font-mono font-bold focus:outline-none focus:border-amber-500">
-                    <button onclick="claimPromoCode()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-pink-500 text-slate-950 font-black text-xs rounded-xl shadow-md">CLAIM BONUS</button>
+                    <input type="text" id="inviteLinkInput" readonly class="flex-1 bg-slate-900 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-purple-300 font-mono font-bold">
+                    <button onclick="copyInviteLink()" class="px-5 py-2.5 bg-purple-600 text-white font-black text-xs rounded-xl">Copy</button>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- BOTTOM NAVIGATION BAR -->
-    <nav class="fixed bottom-0 inset-x-0 glass-panel border-t border-slate-800/80 z-40 px-4 py-2">
+    <!-- TELEBIRR DEPOSIT MODAL -->
+    <div id="depositModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-blue-500/40 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-extrabold text-white text-sm">Telebirr Deposit</h3>
+                <button onclick="closeDepositModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <textarea id="depositSmsInput" rows="3" placeholder="Transaction ID ወይም SMS ቴክስት..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs"></textarea>
+            <button onclick="submitDepositRequest()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-black text-xs rounded-xl">
+                ✅ ክፍያ ፈጽሜያለሁ (Submit Payment)[span_8](start_span)[span_8](end_span)
+            </button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="fixed bottom-0 inset-x-0 glass-panel border-t border-slate-800 z-40 px-4 py-2">
         <div class="max-w-md mx-auto flex items-center justify-around">
-            <button id="navHomeBtn" onclick="switchTab('home')" class="flex flex-col items-center space-y-1 text-purple-400 transition"><i class="fa-solid fa-house text-base"></i><span class="text-[10px] font-bold">Home</span></button>
-            <button id="navLeaderboardBtn" onclick="switchTab('leaderboard')" class="flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition"><i class="fa-solid fa-trophy text-base"></i><span class="text-[10px] font-bold">Leaderboard</span></button>
-            <button id="navWalletBtn" onclick="switchTab('wallet')" class="flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition"><i class="fa-solid fa-wallet text-base"></i><span class="text-[10px] font-bold">Wallet</span></button>
-            <button id="navProfileBtn" onclick="switchTab('profile')" class="flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition"><i class="fa-solid fa-user text-base"></i><span class="text-[10px] font-bold">Profile</span></button>
+            <button id="navHomeBtn" onclick="switchTab('home')" class="flex flex-col items-center space-y-1 text-purple-400"><i class="fa-solid fa-house"></i><span class="text-[10px]">Home</span></button>
+            <button id="navLeaderboardBtn" onclick="switchTab('leaderboard')" class="flex flex-col items-center space-y-1 text-slate-500"><i class="fa-solid fa-trophy"></i><span class="text-[10px]">Leaderboard</span></button>
+            <button id="navWalletBtn" onclick="switchTab('wallet')" class="flex flex-col items-center space-y-1 text-slate-500"><i class="fa-solid fa-wallet"></i><span class="text-[10px]">Wallet</span></button>
+            <button id="navProfileBtn" onclick="switchTab('profile')" class="flex flex-col items-center space-y-1 text-slate-500"><i class="fa-solid fa-user"></i><span class="text-[10px]">Profile</span></button>
         </div>
     </nav>
 
-    <!-- MODALS -->
-    <div id="victoryModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-amber-500/40 text-center shadow-2xl relative animate-pop-in">
-            <h3 class="text-2xl font-black text-white mb-1">BINGO WINNER!</h3>
-            <p id="winningTicketNum" class="font-bold text-amber-400 mb-2">Ticket #--</p>
-            <p id="winningPrizeText" class="font-mono font-black text-emerald-400 text-lg mb-4">+1,800 ETB</p>
-            <button onclick="resetToHome()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-pink-500 text-white font-extrabold text-xs rounded-xl">PLAY AGAIN</button>
-        </div>
-    </div>
-
-    <div id="depositModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel max-w-md w-full p-5 rounded-3xl border border-slate-800 space-y-3">
-            <h3 class="font-extrabold text-white text-sm">Deposit Funds</h3>
-            <select id="depositTargetBalance" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-white"><option value="Play">Play Balance</option><option value="Main">Main Balance</option></select>
-            <input type="number" id="depositAmount" min="50" value="200" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-white font-mono font-bold">
-            <button onclick="processDeposit()" class="w-full py-2.5 bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-xl">Confirm & Pay</button>
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT ENGINE & TELEGRAM USER INTEGRATION -->
+    <!-- FIREBASE BACKEND SYNC SCRIPT -->
     <script>
-        // --- TELEGRAM WEBAPP SDK INTEGRATION ---
         const tg = window.Telegram.WebApp;
         tg.ready();
-        
         const tgUser = tg.initDataUnsafe && tg.initDataUnsafe.user;
+        let currentUserTelegramId = "user_guest_" + Math.floor(Math.random() * 100000);
+
+        let state = {
+            playBalance: 10, // ነባሪ የመጀመሪያ ስጦታ (10 ብር)
+            mainBalance: 0,  // ዋና ባላንስ ዜሮ ሆኖ ይጀምራል
+            selectedTickets: [],
+            cardsData: {},
+            countdownSec: 30,
+            countdownTimer: null
+        };
+
         if (tgUser) {
+            currentUserTelegramId = tgUser.id.toString();
             const fullName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || "Telegram Player";
             const username = tgUser.username ? `@${tgUser.username}` : `#ID_${tgUser.id}`;
 
             document.addEventListener("DOMContentLoaded", () => {
-                const headerNameEl = document.getElementById('headerProfileName');
-                if (headerNameEl) headerNameEl.innerText = fullName;
+                document.getElementById('headerProfileName').innerText = fullName;
+                document.getElementById('headerProfileHandle').innerText = username;
+                document.getElementById('profileName').innerText = fullName;
+                document.getElementById('profileHandle').innerText = `${username} • ID: #${tgUser.id}`;
+                document.getElementById('inviteLinkInput').value = `https://t.me/Ethio_BingoBot?start=ref_${currentUserTelegramId}`;
 
-                const headerHandleEl = document.getElementById('headerProfileHandle');
-                if (headerHandleEl) headerHandleEl.innerText = username;
-
-                const profNameEl = document.getElementById('profileName');
-                if (profNameEl) profNameEl.innerText = fullName;
-
-                const profHandleEl = document.getElementById('profileHandle');
-                if (profHandleEl) profHandleEl.innerText = `${username} • ID: #${tgUser.id}`;
+                // ከፋየርቤዝ የተጠቃሚውን ባላንስ መጫን (Fetch from Firebase)
+                loadUserDataFromFirebase(currentUserTelegramId);
             });
         }
 
-        let state = {
-            activeTab: 'home',
-            playBalance: 500,
-            mainBalance: 1250,
-            selectedTickets: [],
-            cardsData: {},
-            countdownSec: 30,
-            countdownTimer: null,
-            liveCallerTimer: null,
-            calledNumbers: [],
-            uncalledNumbers: [],
-            isAutoSelectMode: true,
-            soundEnabled: true,
-            hasGameEnded: false,
-            depositTarget: 'Play',
-            customPromoCode: 'BINGO-NATI',
-            claimedPromoCodes: [],
-            leaderboardTimeframe: 'daily',
-            leaderboardCategory: 'players',
-            stats: { totalPlayed: 42, totalWins: 12, totalWonETB: 3400, totalInvited: 18, invitedDepositsETB: 14200, earnedCommissionETB: 1420 },
-            transactions: [
-                { type: 'Win', target: 'Main', amount: 1800, desc: 'Bingo Winner Ticket #42', date: 'Just now', status: 'Completed' },
-                { type: 'Deposit', target: 'Play', amount: 500, desc: 'Telebirr Topup to Play Bal', date: '2 hrs ago', status: 'Completed' }
-            ],
-            leaderboardData: {
-                daily: {
-                    players: [
-                        { rank: 1, name: 'Sami Kebede', handle: '@sami_bingo', val: '68 Games', sub: '1,420 ETB Won', avatar: '🦁' },
-                        { rank: 2, name: 'Helen Tadesse', handle: '@helen_t', val: '54 Games', sub: '980 ETB Won', avatar: '👑' },
-                        { rank: 3, name: 'Dawit Yohannes', handle: '@dawit_y', val: '49 Games', sub: '850 ETB Won', avatar: '⚡' }
-                    ],
-                    winners: [
-                        { rank: 1, name: 'Helen Tadesse', handle: '@helen_t', val: '4,200 ETB', sub: '12 Victories', avatar: '👑' },
-                        { rank: 2, name: 'Sami Kebede', handle: '@sami_bingo', val: '3,600 ETB', sub: '9 Victories', avatar: '🦁' }
-                    ],
-                    inviters: [
-                        { rank: 1, name: 'Mekdes Zewdu', handle: '@meky_z', val: '24 Invited', sub: '2,400 ETB Earned', avatar: '🚀' }
-                    ]
-                },
-                weekly: {
-                    players: [
-                        { rank: 1, name: 'Sami Kebede', handle: '@sami_bingo', val: '312 Games', sub: '8,400 ETB Won', avatar: '🦁' }
-                    ],
-                    winners: [
-                        { rank: 1, name: 'Sami Kebede', handle: '@sami_bingo', val: '18,500 ETB', sub: '42 Victories', avatar: '🦁' }
-                    ],
-                    inviters: [
-                        { rank: 1, name: 'Mekdes Zewdu', handle: '@meky_z', val: '112 Invited', sub: '11,200 ETB Earned', avatar: '🚀' }
-                    ]
+        function loadUserDataFromFirebase(userId) {
+            const userRef = db.collection("users").doc(userId);
+            userRef.get().then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    state.playBalance = data.playBalance !== undefined ? data.playBalance : 10;
+                    state.mainBalance = data.mainBalance !== undefined ? data.mainBalance : 0;
+                } else {
+                    // አዲስ ተጠቃሚ ከሆነ 10 ብር Play Balance እና 0 Main Balance በዳታቤዝ ይመዝግበዋል
+                    userRef.set({
+                        playBalance: 10,
+                        mainBalance: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    state.playBalance = 10;
+                    state.mainBalance = 0;
                 }
-            }
-        };
+                updateWalletUI();
+            });
 
-        const TICKET_PRICE_ETB = 10;
-        const BINGO_RANGES = { 'B': { min: 1, max: 15 }, 'I': { min: 16, max: 30 }, 'N': { min: 31, max: 45 }, 'G': { min: 46, max: 60 }, 'O': { min: 61, max: 75 } };
+            // የባላንስ ለውጥ በቀጥታ ከእውነታው ጋር እንዲመሳሰል (Real-time Balance Listener)
+            userRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    state.playBalance = data.playBalance || 0;
+                    state.mainBalance = data.mainBalance || 0;
+                    updateWalletUI();
+                }
+            });
+        }
 
         window.onload = function() {
             renderTicketsGrid();
             startCountdownTimer();
-            updateWalletUI();
-            renderLeaderboardUI();
+            listenToGlobalGameStatus();
         };
 
+        function listenToGlobalGameStatus() {
+            db.collection("games").doc("active_room").onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    const isRunning = data.isGameRunning || false;
+                    const overlay = document.getElementById('gameInProgressOverlay');
+                    if (isRunning) overlay.classList.remove('hidden');
+                    else overlay.classList.add('hidden');
+                }
+            });
+        }
+
         function switchTab(tabName) {
-            state.activeTab = tabName;
-            document.getElementById('tabHome').classList.add('hidden');
-            document.getElementById('tabLeaderboard').classList.add('hidden');
-            document.getElementById('tabWallet').classList.add('hidden');
-            document.getElementById('tabProfile').classList.add('hidden');
-
-            const navs = ['navHomeBtn', 'navLeaderboardBtn', 'navWalletBtn', 'navProfileBtn'];
-            navs.forEach(id => document.getElementById(id).className = "flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition");
-
-            if (tabName === 'home') {
-                document.getElementById('tabHome').classList.remove('hidden');
-                document.getElementById('navHomeBtn').className = "flex flex-col items-center space-y-1 text-purple-400 transition";
-            } else if (tabName === 'leaderboard') {
-                document.getElementById('tabLeaderboard').classList.remove('hidden');
-                document.getElementById('navLeaderboardBtn').className = "flex flex-col items-center space-y-1 text-purple-400 transition";
-                renderLeaderboardUI();
-            } else if (tabName === 'wallet') {
-                document.getElementById('tabWallet').classList.remove('hidden');
-                document.getElementById('navWalletBtn').className = "flex flex-col items-center space-y-1 text-purple-400 transition";
-                updateWalletUI();
-            } else if (tabName === 'profile') {
-                document.getElementById('tabProfile').classList.remove('hidden');
-                document.getElementById('navProfileBtn').className = "flex flex-col items-center space-y-1 text-purple-400 transition";
-            }
+            ['home', 'leaderboard', 'wallet', 'profile'].forEach(t => document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden'));
+            document.getElementById(`tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`).classList.remove('hidden');
         }
 
         function renderTicketsGrid() {
@@ -531,7 +359,7 @@
             for (let i = 1; i <= 500; i++) {
                 const btn = document.createElement('button');
                 btn.id = `ticket-btn-${i}`;
-                btn.className = "py-2 rounded-xl font-mono text-xs font-bold transition border border-slate-800 bg-slate-900/60 text-slate-300 hover:border-purple-500/50 hover:text-white";
+                btn.className = "py-2 rounded-xl font-mono text-xs font-bold border border-slate-800 bg-slate-900/60 text-slate-300";
                 btn.innerText = `#${i}`;
                 btn.onclick = () => toggleTicketSelection(i);
                 grid.appendChild(btn);
@@ -543,10 +371,7 @@
             if (index > -1) {
                 state.selectedTickets.splice(index, 1);
             } else {
-                if (state.selectedTickets.length >= 4) {
-                    showToast("⚠️ Maximum 4 tickets allowed!");
-                    return;
-                }
+                if (state.selectedTickets.length >= 4) return;
                 state.selectedTickets.push(ticketNum);
             }
             updateTicketGridStyles();
@@ -558,47 +383,17 @@
                 const btn = document.getElementById(`ticket-btn-${i}`);
                 if (!btn) continue;
                 if (state.selectedTickets.includes(i)) {
-                    btn.className = "py-2 rounded-xl font-mono text-xs font-bold transition border border-pink-500 bg-gradient-to-tr from-pink-600 to-purple-600 text-white shadow-md";
+                    btn.className = "py-2 rounded-xl font-mono text-xs font-bold border border-pink-500 bg-gradient-to-tr from-pink-600 to-purple-600 text-white";
                 } else {
-                    btn.className = "py-2 rounded-xl font-mono text-xs font-bold transition border border-slate-800 bg-slate-900/60 text-slate-300";
+                    btn.className = "py-2 rounded-xl font-mono text-xs font-bold border border-slate-800 bg-slate-900/60 text-slate-300";
                 }
             }
         }
 
         function updateSummaryBar() {
-            const container = document.getElementById('selectedBadgesContainer');
-            const countText = document.getElementById('selectedCountText');
-            const totalCostText = document.getElementById('totalCostText');
-            const joinBtn = document.getElementById('joinMatchBtn');
             const count = state.selectedTickets.length;
-            countText.innerText = count;
-            totalCostText.innerText = `${count * TICKET_PRICE_ETB} ETB`;
-
-            if (count === 0) {
-                container.innerHTML = `<span class="text-xs text-slate-500 italic">No tickets selected yet</span>`;
-                joinBtn.disabled = true;
-                joinBtn.className = "w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 opacity-50 cursor-not-allowed text-white font-extrabold rounded-2xl shadow-lg transition text-xs sm:text-sm";
-            } else {
-                container.innerHTML = '';
-                state.selectedTickets.forEach(num => {
-                    const badge = document.createElement('span');
-                    badge.className = "px-2.5 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 rounded-lg text-xs font-bold font-mono flex items-center space-x-1";
-                    badge.innerHTML = `<span>#${num}</span>`;
-                    container.appendChild(badge);
-                });
-                joinBtn.disabled = false;
-                joinBtn.className = "w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 text-white font-extrabold rounded-2xl shadow-lg transition text-xs sm:text-sm";
-            }
-        }
-
-        function selectRandomTickets() {
-            state.selectedTickets = [];
-            while (state.selectedTickets.length < 4) {
-                const rand = Math.floor(Math.random() * 500) + 1;
-                if (!state.selectedTickets.includes(rand)) state.selectedTickets.push(rand);
-            }
-            updateTicketGridStyles();
-            updateSummaryBar();
+            document.getElementById('selectedCountText').innerText = count;
+            document.getElementById('totalCostText').innerText = `${count * 10} ETB`;
         }
 
         function startCountdownTimer() {
@@ -610,192 +405,25 @@
                 display.innerText = `${state.countdownSec}s`;
                 if (state.countdownSec <= 0) {
                     clearInterval(state.countdownTimer);
-                    if (state.selectedTickets.length === 0) selectRandomTickets();
                     launchLiveRoomImmediately();
                 }
             }, 1000);
         }
 
         function launchLiveRoomImmediately() {
-            if (state.selectedTickets.length === 0) selectRandomTickets();
-            const totalCost = state.selectedTickets.length * TICKET_PRICE_ETB;
-            if (state.playBalance < totalCost) {
-                showToast("⚠️ Insufficient Play Balance!");
-                switchTab('wallet');
-                return;
-            }
-            state.playBalance -= totalCost;
-            updateWalletUI();
-            clearInterval(state.countdownTimer);
-            state.cardsData = {};
-            state.selectedTickets.forEach(ticketNum => {
-                state.cardsData[ticketNum] = generateCardMatrixForTicket(ticketNum);
-            });
-            document.getElementById('ticketSelectionSection').classList.add('hidden');
-            document.getElementById('liveBingoRoomSection').classList.remove('hidden');
-            renderLiveCards();
-            initUncalledNumbers();
-            startLiveCaller();
-        }
-
-        function generateCardMatrixForTicket(seed) {
-            let card = Array(5).fill(null).map(() => Array(5).fill(null));
-            const keys = ['B', 'I', 'N', 'G', 'O'];
-            keys.forEach((colKey, colIdx) => {
-                const range = BINGO_RANGES[colKey];
-                let nums = [];
-                for (let n = range.min; n <= range.max; n++) nums.push(n);
-                nums.sort((a, b) => ((a * seed * 17) % 31) - ((b * seed * 17) % 31));
-                for (let rowIdx = 0; rowIdx < 5; rowIdx++) {
-                    if (colIdx === 2 && rowIdx === 2) card[rowIdx][colIdx] = { number: 'FREE', marked: true, isFree: true };
-                    else card[rowIdx][colIdx] = { number: nums.pop(), marked: false, isFree: false };
-                }
-            });
-            return card;
-        }
-
-        function renderLiveCards() {
-            const container = document.getElementById('liveCardsContainer');
-            container.innerHTML = '';
-            state.selectedTickets.forEach(ticketNum => {
-                const cardMatrix = state.cardsData[ticketNum];
-                const cardBox = document.createElement('div');
-                cardBox.className = "glass-panel p-3.5 rounded-3xl border border-slate-800 shadow-xl space-y-2.5";
-                cardBox.innerHTML = `<div class="flex justify-between pb-1.5 border-b border-slate-800"><span class="text-xs font-black font-mono text-purple-300">TICKET #${ticketNum}</span></div><div id="grid-ticket-${ticketNum}" class="grid grid-cols-5 gap-1 text-center font-bold"></div>`;
-                container.appendChild(cardBox);
-                const gridDiv = document.getElementById(`grid-ticket-${ticketNum}`);
-                for (let r = 0; r < 5; r++) {
-                    for (let c = 0; c < 5; c++) {
-                        const cell = cardMatrix[r][c];
-                        const btn = document.createElement('button');
-                        btn.id = `cell-${ticketNum}-${r}-${c}`;
-                        btn.onclick = () => handleManualCellClick(ticketNum, r, c);
-                        updateCellElementStyle(btn, cell);
-                        gridDiv.appendChild(btn);
-                    }
-                }
-            });
-        }
-
-        function updateCellElementStyle(btn, cell) {
-            let baseClass = "aspect-square rounded-lg flex items-center justify-center font-black text-xs border transition ";
-            if (cell.isFree) {
-                baseClass += "bg-amber-500/30 text-amber-300 dapped-mark";
-                btn.innerHTML = `<span class="tile-text text-[8px]">FREE</span>`;
-            } else if (cell.marked) {
-                baseClass += "bg-slate-900 border-purple-500 dapped-mark";
-                btn.innerHTML = `<span class="tile-text">${cell.number}</span>`;
-            } else {
-                baseClass += "bg-slate-900 border-slate-800 text-slate-200";
-                btn.innerHTML = `<span class="tile-text">${cell.number}</span>`;
-            }
-            btn.className = baseClass;
-        }
-
-        function handleManualCellClick(ticketNum, r, c) {
-            const cell = state.cardsData[ticketNum][r][c];
-            if (cell.isFree) return;
-            cell.marked = !cell.marked;
-            updateCellElementStyle(document.getElementById(`cell-${ticketNum}-${r}-${c}`), cell);
-        }
-
-        function initUncalledNumbers() {
-            state.uncalledNumbers = [];
-            for (let i = 1; i <= 75; i++) state.uncalledNumbers.push(i);
-            state.calledNumbers = [];
-        }
-
-        function startLiveCaller() {
-            clearInterval(state.liveCallerTimer);
-            state.hasGameEnded = false;
-            drawNextNumber();
-            state.liveCallerTimer = setInterval(drawNextNumber, 3200);
-        }
-
-        function drawNextNumber() {
-            if (state.uncalledNumbers.length === 0 || state.hasGameEnded) return;
-            const randIdx = Math.floor(Math.random() * state.uncalledNumbers.length);
-            const num = state.uncalledNumbers.splice(randIdx, 1)[0];
-            state.calledNumbers.unshift(num);
-            let letter = 'B';
-            if (num >= 16 && num <= 30) letter = 'I';
-            else if (num >= 31 && num <= 45) letter = 'N';
-            else if (num >= 46 && num <= 60) letter = 'G';
-            else if (num >= 61 && num <= 75) letter = 'O';
-
-            document.getElementById('currentLetter').innerText = letter;
-            document.getElementById('currentNumber').innerText = num;
-            document.getElementById('currentCallText').innerText = `Called ${letter}-${num}`;
-            document.getElementById('totalCalledCount').innerText = state.calledNumbers.length;
-
-            if (state.isAutoSelectMode) {
-                autoDabCalledNumber(num);
-                checkAutoWinCondition();
-            }
-        }
-
-        function autoDabCalledNumber(calledNum) {
-            state.selectedTickets.forEach(ticketNum => {
-                const cardMatrix = state.cardsData[ticketNum];
-                for (let r = 0; r < 5; r++) {
-                    for (let c = 0; c < 5; c++) {
-                        if (cardMatrix[r][c].number === calledNum) {
-                            cardMatrix[r][c].marked = true;
-                            const btn = document.getElementById(`cell-${ticketNum}-${r}-${c}`);
-                            if (btn) updateCellElementStyle(btn, cardMatrix[r][c]);
-                        }
-                    }
-                }
-            });
-        }
-
-        function checkCardForWinningLines(cardMatrix) {
-            const isValid = cell => cell.marked && (cell.isFree || state.calledNumbers.includes(cell.number));
-            for (let r = 0; r < 5; r++) {
-                if (cardMatrix[r].every(isValid)) return { winner: true, pattern: `Row ${r + 1}` };
-            }
-            return { winner: false, pattern: null };
-        }
-
-        function checkAutoWinCondition() {
-            for (let ticketNum of state.selectedTickets) {
-                const res = checkCardForWinningLines(state.cardsData[ticketNum]);
-                if (res.winner) {
-                    triggerBingoVictory(ticketNum, res.pattern);
-                    break;
-                }
-            }
-        }
-
-        function claimBingoManual() {
-            for (let ticketNum of state.selectedTickets) {
-                const res = checkCardForWinningLines(state.cardsData[ticketNum]);
-                if (res.winner) {
-                    triggerBingoVictory(ticketNum, res.pattern);
+            const totalCost = state.selectedTickets.length * 10;
+            if (totalCost > 0) {
+                if (state.playBalance < totalCost) {
+                    showToast("⚠️ የ Play Balance በቂ አይደለም! እባክዎን ዴፖዚት ያድርጉ[span_9](start_span)[span_9](end_span)።");
+                    switchTab('wallet');
                     return;
                 }
+                state.playBalance -= totalCost;
+                db.collection("users").doc(currentUserTelegramId).update({ playBalance: state.playBalance });
+                updateWalletUI();
             }
-            showToast("⚠️ ውድቅ ቢንጎ!");
-        }
-
-        function triggerBingoVictory(ticketNum, pattern) {
-            state.hasGameEnded = true;
-            clearInterval(state.liveCallerTimer);
-            state.mainBalance += 1800;
-            updateWalletUI();
-            document.getElementById('winningTicketNum').innerText = `Ticket #${ticketNum}`;
-            document.getElementById('victoryModal').classList.remove('hidden');
-        }
-
-        function resetToHome() {
-            document.getElementById('victoryModal').classList.add('hidden');
-            document.getElementById('liveBingoRoomSection').classList.add('hidden');
-            document.getElementById('ticketSelectionSection').classList.remove('hidden');
-            state.selectedTickets = [];
-            renderTicketsGrid();
-            updateSummaryBar();
-            startCountdownTimer();
-            switchTab('home');
+            document.getElementById('ticketSelectionSection').classList.add('hidden');
+            document.getElementById('liveBingoRoomSection').classList.remove('hidden');
         }
 
         function updateWalletUI() {
@@ -805,16 +433,30 @@
             document.getElementById('walletMainBalanceMain').innerText = `${state.mainBalance.toLocaleString()}.00 ETB`;
         }
 
-        function openDepositModal(target) { document.getElementById('depositModal').classList.remove('hidden'); }
-        function processDeposit() {
-            const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
-            state.playBalance += amount;
-            updateWalletUI();
-            document.getElementById('depositModal').classList.add('hidden');
-            showToast(`✅ Deposited ${amount} ETB!`);
+        function openDepositModal() { document.getElementById('depositModal').classList.remove('hidden'); }
+        function closeDepositModal() { document.getElementById('depositModal').classList.add('hidden'); }
+
+        function submitDepositRequest() {
+            const sms = document.getElementById('depositSmsInput').value.trim();
+            if(!sms) { showToast("⚠️ እባክዎን የቴሌብር ኤስኤምኤስ ያስገቡ!"); return; }
+            db.collection("deposits").add({
+                telegramId: currentUserTelegramId,
+                smsDetails: sms,
+                status: "pending",
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                closeDepositModal();
+                showToast("✅ የክፍያ ጥያቄዎ ለአድሚን ተልኳል[span_10](start_span)[span_10](end_span)!");
+            });
         }
 
-        function toggleSound() { state.soundEnabled = !state.soundEnabled; }
+        function copyInviteLink() {
+            const input = document.getElementById('inviteLinkInput');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            showToast("አገናኙ ኮፒ ሆኗል! 📋");
+        }
+
         function showToast(msg) {
             const t = document.createElement('div');
             t.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-2xl z-50";
@@ -822,11 +464,6 @@
             document.body.appendChild(t);
             setTimeout(() => t.remove(), 3000);
         }
-
-        function setTimeframe(tf) {}
-        function setLeaderboardCategory(cat) {}
-        function renderLeaderboardUI() {}
-        function claimPromoCode() { showToast("🎉 Code claimed!"); }
     </script>
 </body>
 </html>
