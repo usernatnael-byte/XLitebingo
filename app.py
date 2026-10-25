@@ -9,7 +9,7 @@ from game_engine import GameEngine
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# Firebase ማስጀመር (ተነጣጥለው ለገቡት Env Variables ሙሉ Dictionary ማዘጋጀት)
+# --- Firebase ማስጀመር ---
 if not firebase_admin._apps:
     cred = None
     private_key = os.environ.get("FIREBASE_PRIVATE_KEY")
@@ -17,10 +17,7 @@ if not firebase_admin._apps:
     project_id = os.environ.get("FIREBASE_PROJECT_ID")
     
     if private_key and client_email and project_id:
-        # \n የመስመር መቀየሪያዎችን ማስተካከል
         private_key = private_key.replace('\\n', '\n')
-        
-        # Firebase የሚፈልጋቸውን ሙሉ መረጃዎች (token_uri ጨምሮ) ማዘጋጀት
         cred_dict = {
             "type": "service_account",
             "project_id": project_id,
@@ -35,26 +32,27 @@ if not firebase_admin._apps:
         try:
             cred = credentials.Certificate(cred_dict)
         except Exception as e:
-            print(f"⚠️ በ ENV Variables ማስጀመር አልተቻለም: {e}")
+            print(f"⚠️ Firebase Env Error: {e}")
 
-    # local firebase_key.json ካለ መጠቀም
     if not cred and os.path.exists("firebase_key.json"):
         try:
             cred = credentials.Certificate("firebase_key.json")
         except Exception as e:
-            print(f"⚠️ ከ firebase_key.json ማንበብ አልተቻለም: {e}")
+            print(f"⚠️ Firebase JSON Error: {e}")
 
     if cred:
         try:
             firebase_admin.initialize_app(cred, {
                 'databaseURL': 'https://litebingo-513a9-default-rtdb.firebaseio.com/'
             })
-            print("✅ ከ Firebase Realtime Database ጋር ግንኙነት ተጀምሯል!")
+            print("✅ Firebase Connected Successfully!")
         except Exception as e:
             print(f"⚠️ Firebase Init Error: {e}")
     else:
-        print("⚠️ ፋየርቤዝ ምስክርነቶች አልተገኙም (Continuing without DB)")
+        print("⚠️ Continuing without DB credentials")
 
+
+# --- ኪስ ቦርሳ (Wallet Class) ---
 class RTDBWallet:
     def recover_unsettled(self):
         return 0
@@ -63,12 +61,11 @@ class RTDBWallet:
         if uid == "bot_player":
             return 999999.0
         if not firebase_admin._apps:
-            return 1000.0  # DB ካልተገናኘ ለሙከራ 1000 ብር መስጠት
+            return 1000.0
         try:
             user_data = rtdb.reference(f"users/{uid}").get() or {}
             return float(user_data.get("balance", 1000.0))
-        except Exception as e:
-            print(f"Wallet fetch error: {e}")
+        except Exception:
             return 1000.0
 
     def begin_round(self, rid, snapshot):
@@ -88,8 +85,7 @@ class RTDBWallet:
             new_balance = current - amount
             ref.update({"balance": new_balance})
             return new_balance
-        except Exception as e:
-            print(f"Charge error: {e}")
+        except Exception:
             return 1000.0
 
     def refund(self, uid, rid):
@@ -124,13 +120,17 @@ class RTDBWallet:
             return {}
         try:
             return rtdb.reference(f"users/{uid}").get() or {}
-        except Exception as e:
+        except Exception:
             return {}
 
+
+# --- ሞተርን ማስጀመር ---
 wallet_instance = RTDBWallet()
 engine = GameEngine(wallet=wallet_instance)
 engine.start()
 
+
+# --- የ Flask API ራውቶች (Routes) ---
 @app.route('/')
 def serve_index():
     base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -139,14 +139,13 @@ def serve_index():
 @app.route('/api/user-data', methods=['GET'])
 def get_user_data():
     user_id = request.args.get('userId', 'test_user')
+    data = {}
     if firebase_admin._apps:
         try:
             data = rtdb.reference(f"users/{user_id}").get() or {}
         except Exception:
             data = {}
-    else:
-        data = {"balance": 1000.0}
-
+    
     return jsonify({
         "status": "success",
         "balance": data.get("balance", 1000.0),
@@ -206,6 +205,7 @@ def leaderboard():
             print(f"Leaderboard error: {e}")
             
     return jsonify({"status": "success", "leaderboard": players[:10]})
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
