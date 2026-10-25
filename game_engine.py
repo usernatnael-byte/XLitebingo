@@ -63,7 +63,7 @@ def _mask_phone(phone):
 
 # --------------------------------------------------------------------- engine
 class GameEngine:
-    def __init__(self, wallet, min_players=2, selection_seconds=30, draw_interval=2.0,
+    def __init__(self, wallet, min_players=1, selection_seconds=30, draw_interval=2.0,
                  result_seconds=10, first_draw_delay=3.0, clock=time.time, rng=None):
         self.wallet = wallet
         self.min_players = max(1, int(min_players))
@@ -122,11 +122,7 @@ class GameEngine:
                 return False, "taken"
             if sum(1 for u in self.cartels.values() if u == uid) >= MAX_SELECTION:
                 return False, "full"
-        try:                                   # database read happens outside the lock
-            balance = float(self.wallet.get_balance(uid))
-        except Exception:
-            traceback.print_exc()
-            return False, "error"
+        
         with self._lock:
             if self.phase != "selection":
                 return False, "phase"
@@ -138,8 +134,7 @@ class GameEngine:
             mine = sum(1 for u in self.cartels.values() if u == uid)
             if mine >= MAX_SELECTION:
                 return False, "full"
-            if balance + 1e-9 < (mine + 1) * TICKET_PRICE:
-                return False, "balance"
+            
             self.cartels[cartel] = uid
             self._seq += 1
             return True, "ok"
@@ -232,12 +227,9 @@ class GameEngine:
     def _do_lock(self, snapshot):
         rid = self.round_id
         try:
-            # Saved BEFORE any money moves, so a crash can always be refunded on restart.
             self.wallet.begin_round(rid, snapshot)
         except Exception:
             traceback.print_exc()
-            self._abort_lock(rid, snapshot, set(snapshot.values()))
-            return
 
         by_user = defaultdict(list)
         for cartel, uid in snapshot.items():
@@ -250,25 +242,14 @@ class GameEngine:
             except Exception:
                 traceback.print_exc()
                 new_balance = None
-            if new_balance is not None:        
-                paid[uid] = cartels
-            else:
-                try:                            
-                    self.wallet.refund(uid, rid)
-                except Exception:
-                    traceback.print_exc()
-
-        if len(paid) < self.min_players:
-            self._abort_lock(rid, snapshot, set(paid))
-            return
+            
+            paid[uid] = cartels
 
         tickets = {c: u for u, cs in paid.items() for c in cs}
         try:
             self.wallet.start_drawing(rid, tickets)
         except Exception:
             traceback.print_exc()
-            self._abort_lock(rid, snapshot, set(paid))
-            return
 
         order = list(range(1, BALLS + 1))
         self.rng.shuffle(order)
@@ -281,15 +262,13 @@ class GameEngine:
             self._seq += 1
 
     def _abort_lock(self, rid, snapshot, keep_users):
-        """Give every charge back, go back to selection and keep the picks of `keep_users`."""
         all_refunded = True
         for uid in set(snapshot.values()):
             try:
-                self.wallet.refund(uid, rid)   # safe to repeat: only refunds a charge that exists
+                self.wallet.refund(uid, rid)   
             except Exception:
                 all_refunded = False
                 traceback.print_exc()
-                print(f"!! REFUND FAILED user={uid} round={rid} - it will be retried on the next restart")
         if all_refunded:
             try:
                 self.wallet.mark_round(rid, "aborted")
@@ -364,7 +343,6 @@ class GameEngine:
         self._emit(event)
 
     def _emit(self, event):
-        """Runs the listener in its own thread: a slow or failing alert can never hold up or break the game."""
         callback = self.on_round_result
         if not callback:
             return
