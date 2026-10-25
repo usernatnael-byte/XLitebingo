@@ -202,3 +202,73 @@ def leaderboard():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+    class RTDBWallet:
+    def recover_unsettled(self):
+        return 0
+
+    def get_balance(self, uid):
+        if uid == "bot_player":
+            return 999999.0
+        if not firebase_admin._apps:
+            return 1000.0
+        try:
+            user_data = rtdb.reference(f"users/{uid}").get() or {}
+            return float(user_data.get("balance", 1000.0))
+        except Exception as e:
+            return 1000.0
+
+    def begin_round(self, rid, snapshot):
+        pass
+
+    def charge(self, uid, amount, rid, cartels=1):
+        if uid == "bot_player":
+            return 999999.0
+        if not firebase_admin._apps:
+            return 1000.0
+        try:
+            ref = rtdb.reference(f"users/{uid}")
+            data = ref.get() or {}
+            current = float(data.get("balance", 1000.0))
+            if current < amount:
+                return None
+            new_balance = current - amount
+            ref.update({"balance": new_balance})
+            return new_balance
+        except Exception as e:
+            return 1000.0
+
+    def refund(self, uid, rid):
+        pass
+
+    def start_drawing(self, rid, tickets):
+        pass
+
+    def settle(self, rid, payouts):
+        if not firebase_admin._apps:
+            return
+        try:
+            for uid, prize in payouts.items():
+                if uid == "bot_player":
+                    continue
+                ref = rtdb.reference(f"users/{uid}")
+                data = ref.get() or {}
+                current = float(data.get("balance", 0.0))
+                new_bal = current + prize
+                total_win = float(data.get("total_winnings", 0.0)) + prize
+                ref.update({"balance": new_bal, "total_winnings": total_win})
+        except Exception as e:
+            print(f"Settle error: {e}")
+
+    def cancel_round(self, rid, uids):
+        pass
+
+    def profile(self, uid):
+        if uid == "bot_player":
+            return {"name": "Bingo Bot", "phone": "0911223344", "username": "bingo_bot"}
+        if not firebase_admin._apps:
+            return {}
+        try:
+            return rtdb.reference(f"users/{uid}").get() or {}
+        except Exception as e:
+            return {}
+
