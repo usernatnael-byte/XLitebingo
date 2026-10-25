@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethio Bingo - Admin Control Panel</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Firebase App, Firestore & Analytics SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyBuUGJyt4XNYGnjGgXu7MeYSzgr-NmWU0s",
+          authDomain: "ethio-bingo-app.firebaseapp.com",
+          databaseURL: "https://ethio-bingo-app-default-rtdb.firebaseio.com",
+          projectId: "ethio-bingo-app",
+          storageBucket: "ethio-bingo-app.firebasestorage.app",
+          messagingSenderId: "922073990731",
+          appId: "1:922073990731:web:a96d4d36539bfae0cc6fce",
+          measurementId: "G-EVBKGZW29X"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        admin: {
+                            dark: '#061a14',
+                            card: '#0b2920',
+                            border: '#134e3e',
+                            accent: '#F59E0B' // Yellow Accent
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #061a14; }
+        ::-webkit-scrollbar-thumb { background: #134e3e; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #F59E0B; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR NAVIGATION (Dark Green / Slate Theme with Yellow Highlights) -->
+    <aside class="w-64 bg-emerald-950 border-r border-emerald-900/60 flex flex-col justify-between hidden md:flex shadow-2xl">
+        <div>
+            <!-- Brand Header -->
+            <div class="p-4 border-b border-emerald-900/60 flex items-center space-x-3 bg-emerald-950/80">
+                <div class="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 font-black">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm text-yellow-400 tracking-wider">ETHIO ADMIN</h1>
+                    <p class="text-[9px] text-emerald-400 font-mono">Multiplayer Bingo Hub</p>
+                </div>
+            </div>
+
+            <!-- 11 Navigation Modules -->
+            <nav class="p-3 space-y-1 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-140px)]">
+                <button onclick="switchAdminTab('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-yellow-500 text-slate-950 font-bold shadow-md transition">
+                    <i class="fa-solid fa-chart-pie w-4"></i><span>Overview</span>
+                </button>
+                <button onclick="switchAdminTab('revenue')" id="nav-revenue" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
+                    <i class="fa-solid fa-chart-line w-4"></i><span>Real User Revenue</span>
+                </button>
+                <button onclick="switchAdminTab('transactions')" id="nav-transactions" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
+                    <i class="fa-solid fa-money-bill-transfer w-4"></i><span>Transactions</span>
+                </button>
+                <button onclick="switchAdminTab('users')" id="nav-users" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
+                    <i class="fa-solid fa-users w-4"></i><span>Users Management</span>
+                </button>
+                <button onclick="switchAdminTab('rooms')" id="nav-rooms" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
+                    <i class="fa-solid fa-dice w-4"></i><span>Live Rooms</span>
+                </button>
+                <button onclick="switchAdminTab('results')" id="nav-results" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
+                    <i class="fa-solid fa-trophy w-4"></i><span>Game Results</span>
+                </button>
+                <button onclick="switchAdminTab('sendmoney')" id="nav-sendmoney" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
+                    <i class="fa-solid fa-wallet w-4"></i><span>Send Money</span>
+                </button>
+                <button onclick="switchAdminTab('broadcast')" id="nav-broadcast" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
+                    <i class="fa-solid fa-bullhorn w-4"></i><span>Broadcast</span>
+                </button>
+                <button onclick="switchAdminTab('promotions')" id="nav-promotions" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
+                    <i class="fa-solid fa-gift w-4"></i><span>Promotions</span>
+                </button>
+                <button onclick="switchAdminTab('withdrawals')" id="nav-withdrawals" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
+                    <i class="fa-solid fa-money-check-dollar w-4"></i><span>Withdrawals</span>
+                </button>
+                <button onclick="switchAdminTab('bots')" id="nav-bots" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-yellow-300 bg-emerald-900/40 border border-yellow-500/30 transition">
+                    <i class="fa-solid fa-robot w-4 text-yellow-400"></i><span>Bot Settings & Names</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Logout Footer -->
+        <div class="p-3 border-t border-emerald-900/60">
+            <button onclick="alert('Logged out successfully')" class="w-full bg-red-950/40 border border-red-800/60 text-red-300 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 hover:bg-red-900/40 transition">
+                <i class="fa-solid fa-right-from-bracket"></i><span>Log Out</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col overflow-y-auto bg-slate-900">
+        
+        <!-- Top Navigation Bar -->
+        <header class="bg-emerald-950 border-b border-emerald-900/60 p-4 flex justify-between items-center shadow-md">
+            <h2 id="pageTitle" class="text-base sm:text-lg font-black text-yellow-400 flex items-center space-x-2">
+                <i class="fa-solid fa-chart-pie"></i><span>Platform Overview & Analytics</span>
+            </h2>
+            <div class="flex items-center space-x-3">
+                <span class="px-3 py-1 bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 rounded-full text-xs font-bold">
+                    🟢 Live Sync Active
+                </span>
+            </div>
+        </header>
+
+        <!-- CONTENT PANELS CONTAINER -->
+        <div class="p-4 sm:p-6 space-y-6 max-w-6xl w-full mx-auto flex-grow">
+
+            <!-- 1. OVERVIEW PANEL -->
+            <div id="panel-overview" class="admin-panel space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-emerald-950/50 border border-emerald-800/60 p-4 rounded-2xl shadow">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Total Active Players</span>
+                        <span class="text-2xl font-black text-white font-mono mt-1 block">1,482</span>
+                        <span class="text-[10px] text-emerald-400 mt-1 block">↑ 12% from last hour</span>
+                    </div>
+                    <div class="bg-emerald-950/50 border border-emerald-800/60 p-4 rounded-2xl shadow">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Today House Profit (15%)</span>
+                        <span class="text-2xl font-black text-yellow-400 font-mono mt-1 block">14,850 ETB</span>
+                        <span class="text-[10px] text-emerald-400 mt-1 block">Real-time commission</span>
+                    </div>
+                    <div class="bg-emerald-950/50 border border-emerald-800/60 p-4 rounded-2xl shadow">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Active Rooms</span>
+                        <span class="text-2xl font-black text-purple-400 font-mono mt-1 block">8 Rooms</span>
+                        <span class="text-[10px] text-slate-400 mt-1 block">90 Cards per room avg</span>
+                    </div>
+                    <div class="bg-emerald-950/50 border border-emerald-800/60 p-4 rounded-2xl shadow">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Pending Withdrawals</span>
+                        <span class="text-2xl font-black text-amber-400 font-mono mt-1 block">3,200 ETB</span>
+                        <span class="text-[10px] text-amber-400 mt-1 block">4 Requests waiting</span>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-950/30 border border-emerald-800/60 p-5 rounded-3xl shadow-xl">
+                    <h3 class="font-extrabold text-white text-sm mb-3">Recent Platform Activity</h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                            <span class="text-slate-300">User <b class="text-white">@abebe_bingo</b> won Bingo Round #482</span>
+                            <span class="text-emerald-400 font-mono">+1,800 ETB Payout</span>
+                        </div>
+                        <div class="flex justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                            <span class="text-slate-300">User <b class="text-white">@helen_t</b> deposited via Telebirr</span>
+                            <span class="text-blue-400 font-mono">+500 ETB Play Bal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. REAL USER REVENUE PANEL -->
+            <div id="panel-revenue" class="admin-panel hidden space-y-6">
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-6 rounded-3xl shadow-xl space-y-4">
+                    <h3 class="font-extrabold text-yellow-400 text-sm">Revenue Analytics & House Commission Breakdown</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold block">Gross Game Turnover</span>
+                            <span class="text-xl font-black text-white font-mono mt-1 block">98,500 ETB</span>
+                        </div>
+                        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold block">Total Winners Payout (85%)</span>
+                            <span class="text-xl font-black text-emerald-400 font-mono mt-1 block">83,725 ETB</span>
+                        </div>
+                        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold block">Net Platform Earnings (15%)</span>
+                            <span class="text-xl font-black text-yellow-400 font-mono mt-1 block">14,775 ETB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. TRANSACTIONS PANEL -->
+            <div id="panel-transactions" class="admin-panel hidden space-y-6">
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-4">
+                    <h3 class="font-extrabold text-white text-sm">All Platform Financial Transactions</h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <div>
+                                <span class="font-bold text-white block">Telebirr Deposit - @sami_bingo</span>
+                                <span class="text-[10px] text-slate-400">Ref: TRN-948201 • 2 mins ago</span>
+                            </div>
+                            <span class="font-mono font-bold text-emerald-400">+1,000 ETB</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <div>
+                                <span class="font-bold text-white block">Withdrawal Approved - @dawit_y</span>
+                                <span class="text-[10px] text-slate-400">Ref: WTH-102948 • 15 mins ago</span>
+                            </div>
+                            <span class="font-mono font-bold text-red-400">-2,500 ETB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. USERS MANAGEMENT PANEL -->
+            <div id="panel-users" class="admin-panel hidden space-y-6">
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-extrabold text-white text-sm">Player Accounts Management</h3>
+                        <input type="text" placeholder="Search user by phone/name..." class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-yellow-400">
+                    </div>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <div>
+                                <span class="font-bold text-white block">Abebe Kebede (@abebe_bingo)</span>
+                                <span class="text-[10px] text-slate-400">Play Bal: 500 ETB | Main Bal: 1,250 ETB</span>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="alert('User balance adjusted')" class="px-3 py-1 bg-yellow-500 text-slate-950 font-bold rounded-lg">Edit</button>
+                                <button onclick="alert('User banned')" class="px-3 py-1 bg-red-950 text-red-300 border border-red-800 rounded-lg">Ban</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. LIVE ROOMS PANEL -->
+            <div id="panel-rooms" class="admin-panel hidden space-y-6">
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-4">
+                    <h3 class="font-extrabold text-yellow-400 text-sm">Live Bingo Rooms Configuration</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2">
+                            <span class="font-bold text-white block">Room #1 (Standard 10 ETB)</span>
+                            <p class="text-slate-400">Ticket Price: 10 ETB | Caller Speed: 3.2s</p>
+                            <button onclick="alert('Room settings saved')" class="mt-2 px-4 py-1.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl">Configure Room</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. GAME RESULTS PANEL -->
+            <div id="panel-results" class="admin-panel hidden space-y-6">
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3">
+                    <h3 class="font-extrabold text-white text-sm">Past Rounds & Winners Archive</h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex justify-between">
+                            <span>Round #482 • Winner: @abebe_bingo (Ticket #14)</span>
+                            <span class="text-emerald-400 font-mono">1,800 ETB Won</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. SEND MONEY PANEL -->
+            <div id="panel-sendmoney" class="admin-panel hidden space-y-6">
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3 max-w-xl">
+                    <h3 class="font-extrabold text-yellow-400 text-sm">Direct Manual Bonus Credit</h3>
+                    <div class="space-y-3 text-xs">
+                        <input type="text" placeholder="Username or Phone (e.g. @abebe_bingo)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
+                        <input type="number" placeholder="Amount in ETB" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
+                        <button onclick="alert('Funds credited successfully!')" class="w-full py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl">Credit User Account</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. BROADCAST PANEL -->
+            <div id="panel-broadcast" class="admin-panel hidden space-y-6">
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3 max-w-xl">
+                    <h3 class="font-extrabold text-white text-sm">Global Announcement Broadcast</h3>
+                    <div class="space-y-3 text-xs">
+                        <textarea rows="4" placeholder="Type notification message for all online players..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white"></textarea>
+                        <button onclick="alert('Broadcast sent to all active players!')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl">Send Global Alert</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. PROMOTIONS PANEL -->
+            <div id="panel-promotions" class="admin-panel hidden space-y-6">
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3 max-w-xl">
+                    <h3 class="font-extrabold text-yellow-400 text-sm">Create Promo / Coupon Voucher</h3>
+                    <div class="space-y-3 text-xs">
+                        <input type="text" placeholder="Coupon Code (e.g. ETHIO2026)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white uppercase font-mono">
+                        <input type="number" placeholder="Bonus Amount (ETB)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
+                        <button onclick="alert('Promo code created successfully!')" class="w-full py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl">Save Promo Code</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10. WITHDRAWALS PANEL -->
+            <div id="panel-withdrawals" class="admin-panel hidden space-y-6">
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3">
+                    <h3 class="font-extrabold text-white text-sm">Pending Withdrawal Requests Queue</h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-white block">@sami_bingo • 1,500 ETB (Telebirr 0911******)</span>
+                                <span class="text-[10px] text-amber-400">Pending Review</span>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="alert('Withdrawal approved')" class="px-3 py-1 bg-emerald-600 text-white font-bold rounded-lg">Approve</button>
+                                <button onclick="alert('Withdrawal rejected')" class="px-3 py-1 bg-red-900 text-white font-bold rounded-lg">Reject</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11. BOT SETTINGS & ETHIOPIAN NAMES MANAGER -->
+            <div id="panel-bots" class="admin-panel hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-emerald-950/60 border border-emerald-800/60 p-4 rounded-2xl shadow">
+                        <span class="text-[10px] text-slate-400 block uppercase font-bold">Loaded Bot Names</span>
+                        <span class="text-2xl font-black text-yellow-400 mt-1 block">500 Names</span>
+                    </div>
+                    <div class="bg-emerald-950/60 border border-emerald-800/60 p-4 rounded-2xl shadow">
+                        <span class="text-[10px] text-slate-400 block uppercase font-bold">Simulated Activity</span>
+                        <span class="text-2xl font-black text-emerald-400 mt-1 block">Active</span>
+                    </div>
+                    <div class="bg-emerald-950/60 border border-emerald-800/60 p-4 rounded-2xl shadow">
+                        <span class="text-[10px] text-slate-400 block uppercase font-bold">Bot Win Rate Cap</span>
+                        <span class="text-2xl font-black text-yellow-400 mt-1 block">15%</span>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-950/40 border border-emerald-800/60 p-6 rounded-3xl shadow-xl space-y-4">
+                    <h3 class="font-extrabold text-yellow-400 text-sm">🤖 Ethiopian Bot Names Manager (Up to 500 Names)</h3>
+                    <p class="text-xs text-slate-400">Enter or paste names separated by commas or new lines to simulate high room activity.</p>
+                    
+                    <textarea id="botNamesArea" rows="7" class="w-full bg-slate-950 border border-emerald-800 rounded-2xl p-3 text-xs text-slate-200 focus:outline-none focus:border-yellow-400 font-mono">
+አበበ ከበደ, አልማዝ ተስፋዬ, ናቲ ጊርማ, ቃልኪዳን አስፋው, ዳንኤል ሰለሞን, ትግስት አለሙ, መሳይ በለጠ, ፍቅርተ መኮንን, ዮሐንስ ታደሰ, ሄለን ሃይሉ, ሳሙኤል አበራ, እቴነሽ መርዕድ, ብርሃኑ ነጋ, ማህሌት አሰፋ, ኪሮስ አያሌው, መቅደስ ታደሰ, ኤልያስ ዮሐንስ, ትዕግስት ገብሩ, ናትናኤል ግርማ, ቢለን ተስፋዬ
+                    </textarea>
+
+                    <div class="flex justify-between items-center">
+                        <span id="nameCountIndicator" class="text-xs text-emerald-400 font-bold">Status: Ready for Firestore Sync</span>
+                        <button onclick="saveBotNamesToFirebase()" class="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold text-xs rounded-xl shadow transition">
+                            💾 Save Bot Names to Firebase
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ADMIN PANEL JAVASCRIPT CONTROLS -->
+    <script>
+        function switchAdminTab(tabId) {
+            const panels = document.querySelectorAll('.admin-panel');
+            panels.forEach(p => p.classList.add('hidden'));
+
+            const targetPanel = document.getElementById(`panel-${tabId}`);
+            if (targetPanel) targetPanel.classList.remove('hidden');
+
+            // Reset navigation highlights
+            const navButtons = document.querySelectorAll('aside nav button');
+            navButtons.forEach(btn => {
+                btn.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition";
+            });
+
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                if (tabId === 'bots') {
+                    activeBtn.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-yellow-300 bg-emerald-900/40 border border-yellow-500/30 transition";
+                } else {
+                    activeBtn.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-yellow-500 text-slate-950 font-bold shadow-md transition";
+                }
+            }
+
+            // Update Header Title
+            const titles = {
+                'overview': 'Platform Overview & Analytics',
+                'revenue': 'Real User Revenue & House Profits',
+                'transactions': 'Financial Transactions Log',
+                'users': 'Player Accounts Management',
+                'rooms': 'Live Rooms & Card Pricing',
+                'results': 'Game Results Archive',
+                'sendmoney': 'Manual Bonus & Money Sender',
+                'broadcast': 'Global Player Announcements',
+                'promotions': 'Promos & Coupon Vouchers',
+                'withdrawals': 'Withdrawal Requests Queue',
+                'bots': 'Bot Settings & Ethiopian Names Manager'
+            };
+            document.getElementById('pageTitle').innerHTML = `<i class="fa-solid fa-gear"></i><span>${titles[tabId] || 'Admin Control Panel'}</span>`;
+        }
+
+        function saveBotNamesToFirebase() {
+            const namesText = document.getElementById('botNamesArea').value;
+            db.collection("settings").doc("botNames").set({
+                namesList: namesText,
+                updatedAt: new Date()
+            }).then(() => {
+                alert("✅ Bot names successfully saved and synced to Firebase Firestore!");
+            }).catch((error) => {
+                alert("❌ Error saving to Firestore: " + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
