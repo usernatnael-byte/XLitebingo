@@ -1,17 +1,14 @@
 import os
 import json
-import random
-import threading
-import time
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, db as rtdb
+from game_engine import GameEngine
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}, r"/*": {"origins": "*"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# --- Firebase ማስጀመር (Render Env Variables) ---
 if not firebase_admin._apps:
     cred = None
     private_key = os.environ.get("FIREBASE_PRIVATE_KEY")
@@ -26,71 +23,72 @@ if not firebase_admin._apps:
             "private_key_id": "1a275129ef2d718611aaafa9f43093777b1659f7",
             "private_key": private_key,
             "client_email": client_email,
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{client_email.replace('@', '%40')}"
         }
         try:
             cred = credentials.Certificate(cred_dict)
         except Exception as e:
-            print(f"⚠️ Firebase Env Error: {e}")
+            print(f"⚠️ በ ENV Variables ማስጀመር አልተቻለም: {e}")
 
     if not cred and os.path.exists("firebase_key.json"):
         try:
             cred = credentials.Certificate("firebase_key.json")
         except Exception as e:
-            print(f"⚠️ Firebase JSON Error: {e}")
+            print(f"⚠️ ከ firebase_key.json ማንበብ አልተቻለም: {e}")
 
     if cred:
-        try:
-            firebase_admin.initialize_app(cred, {
-                'databaseURL': 'https://litebingo-513a9-default-rtdb.firebaseio.com/'
-            })
-            print("✅ Firebase Connected Successfully!")
-        except Exception as e:
-            print(f"⚠️ Firebase Init Error: {e}")
+        firebase_admin.initialize_app(cred, {
+            'databaseURL': 'https://litebingo-513a9-default-rtdb.firebaseio.com/'
+        })
+        print("✅ ከ Firebase Realtime Database ጋር ግንኙነት ተጀምሯል!")
+    else:
+        raise ValueError("❌ ፋየርቤዝ ምስክርነቶች (Firebase Credentials) አልተገኙም!")
 
+class RTDBWallet:
+    def recover_unsettled(self):
+        return 0
 
-# --- የጨዋታው ሁኔታ (Game State) ---
-game_state = {
-    "running": False,
-    "round_id": 1,
-    "current": None,
-    "called": [],
-    "bag": [],
-    "winner": None
-}
+    def get_balance(self, uid):
+        user_data = rtdb.reference(f"users/{uid}").get() or {}
+        return float(user_data.get("balance", 0.0))
 
-def reset_game():
-    game_state["running"] = False
-    game_state["current"] = None
-    game_state["called"] = []
-    game_state["bag"] = list(range(1, 76))
-    random.shuffle(game_state["bag"])
-    game_state["winner"] = None
+    def begin_round(self, rid, snapshot):
+        pass
 
-# የመጀመሪያ ቦርሳ ማዘጋጀት
-reset_game()
+    def charge(self, uid, amount, rid, cartels=1):
+        ref = rtdb.reference(f"users/{uid}")
+        data = ref.get() or {}
+        current = float(data.get("balance", 0.0))
+        if current < amount:
+            return None
+        new_balance = current - amount
+        ref.update({"balance": new_balance})
+        return new_balance
 
-def background_ball_drawer():
-    """እያንዳንዱን ቁጥር በ 3 ሰኮንድ ልዩነት እየራገፈ ወደ ከረጢቱ የሚወስድ ሉፕ"""
-    while True:
-        if game_state["running"]:
-            if game_state["bag"]:
-                ball = int(game_state["bag"].pop(0))
-                game_state["current"] = ball
-                game_state["called"].append(ball)
-            else:
-                game_state["running"] = False
-        time.sleep(3)
+    def refund(self, uid, rid):
+        pass
 
-# የጀርባ አሰራር (Background Thread) ማስጀመር
-drawer_thread = threading.Thread(target=background_ball_drawer, daemon=True)
-drawer_thread.start()
+    def start_drawing(self, rid, tickets):
+        pass
 
+    def settle(self, rid, payouts):
+        for uid, prize in payouts.items():
+            ref = rtdb.reference(f"users/{uid}")
+            data = ref.get() or {}
+            current = float(data.get("balance", 0.0))
+            new_bal = current + prize
+            total_win = float(data.get("total_winnings", 0.0)) + prize
+            ref.update({"balance": new_bal, "total_winnings": total_win})
 
-# --- API Endpoints ---
+    def cancel_round(self, rid, uids):
+        pass
+
+    def profile(self, uid):
+        return rtdb.reference(f"users/{uid}").get() or {}
+
+wallet_instance = RTDBWallet()
+engine = GameEngine(wallet=wallet_instance)
+engine.start()
 
 @app.route('/')
 def serve_index():
@@ -100,86 +98,60 @@ def serve_index():
 @app.route('/api/user-data', methods=['GET'])
 def get_user_data():
     user_id = request.args.get('userId', 'test_user')
-    data = {}
-    if firebase_admin._apps:
-        try:
-            data = rtdb.reference(f"users/{user_id}").get() or {}
-        except Exception:
-            data = {}
-    
+    data = rtdb.reference(f"users/{user_id}").get() or {}
     return jsonify({
         "status": "success",
-        "name": data.get("first_name", data.get("name", "Player")),
-        "balance": data.get("balance", 20.0),
-        "main_balance": data.get("main_balance", 0.0),
+        "balance": data.get("balance", 0.0),
+        "bonus": data.get("bonus", 0.0),
+        "phone_number": data.get("phone_number", ""),
         "total_games_played": data.get("total_games_played", 0),
-        "total_winnings_count": data.get("total_winnings_count", 0),
-        "total_winnings": data.get("total_winnings", 0.0)
+        "total_winnings": data.get("total_winnings", 0.0),
+        "transactions": data.get("transactions", [])
     })
 
-@app.route('/state', methods=['GET'])
-def get_state():
-    return jsonify(game_state)
-
-@app.route('/start', methods=['GET'])
-def start_game():
-    if not game_state["running"]:
-        reset_game()
-        game_state["running"] = True
-        game_state["round_id"] += 1
-    return jsonify({"status": "started", "round_id": game_state["round_id"]})
-
-@app.route('/claim_bingo', methods=['POST'])
-def claim_bingo():
-    data = request.json or {}
-    cartela_id = data.get('cartela_id')
-    username = data.get('username', 'Player')
-    user_id = data.get('userId', 'test_user')
-
-    game_state["running"] = False
-    
-    # የሽልማት መጠን ማስላት (ለምሳሌ: በወጡ ቁጥሮች እና ካርቴሎች ብዛት ልክ)
-    prize = len(game_state["called"]) * 10
-    
-    game_state["winner"] = {
-        "name": username,
-        "cartela_id": cartela_id,
-        "prize": prize
-    }
-
-    # አሸናፊ ሲሆን ሽልማቱን ወደ ዩዘሩ Main Balance በፋየርቤዝ መመዝገብ
-    if firebase_admin._apps:
-        try:
-            ref = rtdb.reference(f"users/{user_id}")
-            user_data = ref.get() or {}
-            current_main = float(user_data.get("main_balance", 0.0))
-            current_total_win = float(user_data.get("total_winnings", 0.0))
-            current_win_count = int(user_data.get("total_winnings_count", 0))
-            current_games = int(user_data.get("total_games_played", 0))
-
-            new_main = current_main + prize
-            new_total_win = current_total_win + prize
-            
-            ref.update({
-                "main_balance": new_main,
-                "total_winnings": new_total_win,
-                "total_winnings_count": current_win_count + 1,
-                "total_games_played": current_games + 1
-            })
-        except Exception as e:
-            print(f"Error updating winner data in DB: {e}")
-
+@app.route('/api/round', methods=['GET'])
+def get_round():
+    user_id = request.args.get('userId', 'test_user')
     return jsonify({
         "status": "success",
-        "winner": game_state["winner"]
+        "balance": wallet_instance.get_balance(user_id),
+        "bonus": 0.0,
+        "state": engine.get_state(user_id)
     })
 
-@app.route('/reset', methods=['GET'])
-def reset_endpoint():
-    reset_game()
-    return jsonify({"status": "reset"})
+@app.route('/api/round/pick', methods=['POST'])
+def pick_cartel():
+    data = request.get_json() or {}
+    user_id = request.args.get('userId', 'test_user')
+    ok, code = engine.pick(user_id, data.get('cartel'))
+    return jsonify({
+        "status": "success" if ok else "fail",
+        "code": code,
+        "balance": wallet_instance.get_balance(user_id),
+        "state": engine.get_state(user_id)
+    })
 
+@app.route('/api/round/unpick', methods=['POST'])
+def unpick_cartel():
+    data = request.get_json() or {}
+    user_id = request.args.get('userId', 'test_user')
+    ok, code = engine.unpick(user_id, data.get('cartel'))
+    return jsonify({
+        "status": "success" if ok else "fail",
+        "code": code,
+        "balance": wallet_instance.get_balance(user_id),
+        "state": engine.get_state(user_id)
+    })
+
+@app.route('/api/leaderboard', methods=['GET'])
+def leaderboard():
+    all_users = rtdb.reference("users").get() or {}
+    players = [
+        {"name": u.get("first_name", "Player"), "cartels": u.get("total_games_played", 0)} 
+        for u in all_users.values()
+    ]
+    players.sort(key=lambda x: x["cartels"], reverse=True)
+    return jsonify({"status": "success", "leaderboard": players[:10]})
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=5000)
