@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, db as rtdb
-from game_engine import GameEngine
+from play_engine import PlayEngine
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -48,11 +48,8 @@ if not firebase_admin._apps:
             print("✅ Firebase Connected Successfully!")
         except Exception as e:
             print(f"⚠️ Firebase Init Error: {e}")
-    else:
-        print("⚠️ Continuing without DB credentials")
 
-
-# --- ኪስ ቦርሳ (Wallet Class) ---
+# --- ኪስ ቦርሳ (Wallet) ---
 class RTDBWallet:
     def recover_unsettled(self):
         return 0
@@ -67,32 +64,6 @@ class RTDBWallet:
             return float(user_data.get("balance", 1000.0))
         except Exception:
             return 1000.0
-
-    def begin_round(self, rid, snapshot):
-        pass
-
-    def charge(self, uid, amount, rid, cartels=1):
-        if uid == "bot_player":
-            return 999999.0
-        if not firebase_admin._apps:
-            return 1000.0
-        try:
-            ref = rtdb.reference(f"users/{uid}")
-            data = ref.get() or {}
-            current = float(data.get("balance", 1000.0))
-            if current < amount:
-                return None
-            new_balance = current - amount
-            ref.update({"balance": new_balance})
-            return new_balance
-        except Exception:
-            return 1000.0
-
-    def refund(self, uid, rid):
-        pass
-
-    def start_drawing(self, rid, tickets):
-        pass
 
     def settle(self, rid, payouts):
         if not firebase_admin._apps:
@@ -110,9 +81,6 @@ class RTDBWallet:
         except Exception as e:
             print(f"Settle error: {e}")
 
-    def cancel_round(self, rid, uids):
-        pass
-
     def profile(self, uid):
         if uid == "bot_player":
             return {"name": "Bingo Bot", "phone": "0911223344", "username": "bingo_bot"}
@@ -120,17 +88,13 @@ class RTDBWallet:
             return {}
         try:
             return rtdb.reference(f"users/{uid}").get() or {}
-        except Exception:
+        except Exception as e:
             return {}
 
-
-# --- ሞተርን ማስጀመር ---
 wallet_instance = RTDBWallet()
-engine = GameEngine(wallet=wallet_instance)
+engine = PlayEngine(wallet=wallet_instance)
 engine.start()
 
-
-# --- የ Flask API ራውቶች (Routes) ---
 @app.route('/')
 def serve_index():
     base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -205,7 +169,6 @@ def leaderboard():
             print(f"Leaderboard error: {e}")
             
     return jsonify({"status": "success", "leaderboard": players[:10]})
-
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
