@@ -1,1112 +1,253 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0e1621]">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>1x Bingo</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'xbet-dark': '#0e1621',
-            'xbet-card': '#17212b',
-            'xbet-border': '#242f3d',
-            'xbet-blue': '#1e2c3a',
-            'xbet-teal': '#00b894',
-            'xbet-green': '#00e676',
-            'xbet-accent': '#2b5278'
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lite Bingo</title>
+    <style>
+        body {
+            background-color: #121824;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding-bottom: 70px;
         }
-      }
-    }
-  </script>
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: #0e1621; }
-    ::-webkit-scrollbar-thumb { background: #242f3d; border-radius: 4px; }
-    body { touch-action: manipulation; user-select: none; }
-    @keyframes ballPop {
-      0% { transform: scale(0.3) rotate(-180deg); opacity: 0; }
-      70% { transform: scale(1.15) rotate(10deg); opacity: 1; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-    .animate-ball { animation: ballPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-    @keyframes modalPop {
-      0% { transform: scale(0.8); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .animate-modal { animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-    .nav-active { color: #00b894 !important; text-shadow: 0 0 10px rgba(0,184,148,0.5); }
-  </style>
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #1a2232;
+            border-bottom: 1px solid #2a3447;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #8b5cf6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .wallet-box {
+            background-color: #1e293b;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: right;
+        }
+        .wallet-box span {
+            color: #22c55e;
+            font-weight: bold;
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 15px;
+        }
+        .stat-card {
+            background-color: #1e293b;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #2a3447;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .current-ball-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .current-ball {
+            width: 80px;
+            height: 80px;
+            background-color: #ffffff;
+            color: #121824;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+            margin-bottom: 10px;
+        }
+        .section-title {
+            padding: 0 15px;
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+        .master-board-btn {
+            margin: 0 15px 15px 15px;
+            background-color: #1e293b;
+            border: 1px solid #2a3447;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .cartel-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 0 15px;
+        }
+        .cartel-card {
+            background-color: #1e293b;
+            border: 1px solid #2a3447;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .cartel-header {
+            font-size: 12px;
+            color: #38bdf8;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #1a2232;
+            border-top: 1px solid #2a3447;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+        .nav-item {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            color: #38bdf8;
+        }
+        .winner-banner {
+            background-color: #10b981;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+    </style>
 </head>
-<body class="h-full text-white font-sans antialiased flex flex-col overflow-x-hidden select-none">
+<body>
 
-  <!-- GLOBAL HEADER -->
-  <header class="p-3 bg-xbet-card border-b border-xbet-border flex justify-between items-center sticky top-0 z-30 shadow-md">
-    <div class="flex items-center space-x-2">
-      <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center font-bold text-white shadow relative">
-        <i class="fa-solid fa-user-ninja"></i>
-      </div>
-      <div>
-        <div class="font-bold text-sm tracking-wide text-white" id="header-user-name">Loading...</div>
-        <div class="text-xs text-gray-400 font-mono" id="header-user-phone">Loading...</div>
-      </div>
-    </div>
-    <div class="flex items-center space-x-2">
-      <button id="sound-btn" onclick="toggleSound()" aria-label="Sound on/off" class="w-9 h-9 rounded-full bg-xbet-dark border border-xbet-border flex items-center justify-center text-teal-300 active:scale-95 transition">
-        <i id="sound-icon" class="fa-solid fa-volume-high"></i>
-      </button>
-      <div class="bg-xbet-dark px-3 py-1.5 rounded-lg border border-xbet-border flex flex-col items-end text-xs">
-        <div class="flex items-center space-x-2">
-          <span class="text-xbet-green font-bold text-[10px] tracking-wider">PLAY WALLET</span>
-          <span id="play-wallet" class="font-mono font-bold text-white text-sm">0.00</span>
-        </div>
-        <div class="flex items-center space-x-2 mt-0.5">
-          <span class="text-yellow-400 font-bold text-[10px] tracking-wider">MAIN WALLET</span>
-          <span id="main-wallet" class="font-mono text-gray-300">0.00</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- PAGE: HOME -->
-  <div id="page-home" class="flex-1 flex flex-col max-w-md mx-auto w-full pb-20">
-    <section class="p-3">
-      <div class="bg-gradient-to-b from-[#17212b] to-[#0e1621] border border-xbet-border rounded-xl p-3 relative overflow-hidden shadow-lg">
-        <div class="flex justify-between items-center mb-3">
-          <div class="text-center w-full">
-            <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-300 to-blue-400 uppercase">
-              1X BINGO
-            </h1>
-          </div>
-        </div>
-        <div class="grid grid-cols-3 gap-2">
-          <div class="bg-xbet-blue/80 border border-xbet-border rounded-lg p-2 text-center flex flex-col justify-between shadow">
-            <span id="game-status-label" class="text-[10px] text-gray-300 font-medium">ጨዋታው ሊጀምር ነው</span>
-            <div id="countdown" class="text-lg font-black text-white font-mono tracking-wider my-1 drop-shadow-md">00:30</div>
-            <div class="w-full bg-gray-700 h-1 rounded-full overflow-hidden">
-              <div id="timer-bar" class="bg-teal-400 h-full w-full transition-all duration-1000"></div>
-            </div>
-          </div>
-          <div class="bg-xbet-blue/80 border border-cyan-500/30 rounded-lg p-2 text-center flex flex-col justify-between shadow">
-            <span class="text-[10px] text-cyan-400 font-bold tracking-wide">ደራሽ</span>
-            <div id="jackpot-display" class="text-lg font-black text-cyan-300 font-mono tracking-tight my-0.5">0.00</div>
-            <span class="text-[10px] text-gray-400 font-semibold">ETB</span>
-          </div>
-          <div class="bg-xbet-blue/80 border border-xbet-border rounded-lg p-2 text-center flex flex-col justify-center items-center shadow">
-            <span class="text-[9px] text-gray-400 leading-tight mb-1">የደራሽ ቦነስ በቅርብ ቀን ይጀመራል</span>
-            <i class="fa-solid fa-hourglass-half text-yellow-500 text-sm animate-pulse"></i>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="px-4 py-2 flex justify-between items-center">
-      <div class="font-bold text-sm tracking-wide flex items-center space-x-1">
-        <span class="text-white">ካርቴል ይምረጡ</span>
-        <span class="text-xs text-gray-400 font-normal">(10 ብር)</span>
-      </div>
-      <div class="text-sm font-bold bg-xbet-card px-2.5 py-1 rounded-lg border border-xbet-border font-mono">
-        <span id="selected-count" class="text-gray-400">0</span> <span class="text-gray-500">/ 4</span>
-      </div>
-    </section>
-
-    <section class="px-3 flex-1 relative h-full">
-      <div class="bg-xbet-card/60 border border-xbet-border rounded-xl p-2.5 h-[50vh] overflow-y-auto shadow-inner relative">
-        <div id="cartel-grid" class="grid grid-cols-10 gap-1.5 pb-44"></div>
-      </div>
-      <div class="absolute bottom-4 right-6 z-20">
-        <div class="bg-gradient-to-r from-blue-900/90 to-slate-900/90 backdrop-blur-md border border-cyan-500/50 rounded-full px-3 py-1.5 shadow-2xl flex items-center space-x-2">
-          <span class="flex h-2.5 w-2.5 relative">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-          </span>
-          <div class="flex flex-col text-left">
-            <span class="text-[8px] text-red-400 font-black tracking-widest uppercase">LIVE</span>
-            <span id="floating-jackpot" class="text-xs font-bold text-cyan-300 font-mono">0.00 ETB</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- PAGE: TICKET -->
-  <div id="page-ticket" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full pb-32">
-    <section class="p-4 flex justify-between items-end">
-      <h2 class="text-xl font-black text-teal-400 tracking-wide drop-shadow">የእኔ ካርቴሎች</h2>
-      <div class="flex flex-col items-end text-xs font-mono font-bold">
-        <div class="text-gray-400 mb-1">BALLS: <span id="ticket-draw-count" class="text-white">0/75</span></div>
-        <div class="border border-xbet-border bg-xbet-blue/60 rounded px-2 py-1 flex items-center space-x-1">
-          <span class="text-gray-500">PRIZE:</span>
-          <span id="ticket-prize-pool" class="text-cyan-400">0.00 ETB</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="px-4 mb-4">
-      <div class="bg-xbet-card border border-xbet-border rounded-xl p-3 flex items-center space-x-4 shadow-lg relative overflow-hidden">
-        <div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
-          <div class="absolute inset-0 bg-teal-500/20 rounded-full blur-md"></div>
-          <div class="absolute inset-2 border border-teal-400/50 rounded-full animate-ping opacity-50"></div>
-          <div id="ticket-current-ball" class="relative w-12 h-12 bg-white rounded-full flex flex-col items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.4)]">
-            <span id="ticket-ball-text" class="text-slate-900 font-black text-xl font-mono leading-none">--</span>
-          </div>
-        </div>
-        <div id="ticket-status-text" class="text-gray-400 font-medium text-sm">ገና አልጀመረም...</div>
-      </div>
-    </section>
-
-    <section class="px-4 mb-4">
-      <button onclick="toggleMasterBoard()" class="w-full bg-xbet-blue border border-teal-500/50 hover:bg-slate-700 text-teal-300 font-bold py-2.5 rounded-lg flex items-center justify-center space-x-2 transition-colors">
-        <i class="fa-solid fa-eye text-orange-400"></i>
-        <span>ሙሉ ቦርድ እይ (Master Board)</span>
-        <i id="master-board-chevron" class="fa-solid fa-chevron-down text-[10px] ml-1 transition-transform"></i>
-      </button>
-      <div id="collapsible-master-board" class="hidden mt-3 bg-xbet-dark/90 border border-xbet-border rounded-lg p-2 shadow-inner">
-        <div id="master-board-grid" class="grid grid-cols-5 gap-0.5"></div>
-      </div>
-    </section>
-
-    <section class="px-4 flex-1">
-      <div id="ticket-empty-msg" class="text-center text-gray-500 text-sm py-10">እስካሁን ካርቴል አልገዙም</div>
-      <div id="ticket-matrices-container" class="grid grid-cols-1 gap-4 hidden pb-10"></div>
-    </section>
-  </div>
-
-  <!-- PAGE: WALLET -->
-  <div id="page-wallet" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full pb-32">
-    <section class="p-5 text-center mt-2">
-      <h2 class="text-2xl font-black text-white tracking-wide">የእኔ ሂሳብ (Wallet)</h2>
-    </section>
-    <section class="px-4 mb-6">
-      <div class="bg-xbet-card border border-xbet-border rounded-2xl p-6 shadow-xl relative overflow-hidden flex flex-col items-center">
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-red-500/10 rounded-full blur-3xl"></div>
-        <div class="z-10 flex flex-col items-center w-full">
-          <div class="text-sm font-bold text-gray-300 mb-1 flex items-center space-x-2">
-            <span>ዋና ሂሳብ</span>
-            <span id="wallet-page-main" class="text-yellow-400 font-mono text-base">0.00</span>
-          </div>
-          <div class="text-sm font-bold text-gray-300 mb-8 flex items-center space-x-2">
-            <span>መጫወቻ ሂሳብ:</span>
-            <span id="wallet-page-play" class="text-cyan-400 font-mono text-base">0.00 ETB</span>
-          </div>
-          <div class="flex space-x-4 w-full">
-            <button onclick="triggerDeposit()" class="flex-1 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 text-black font-black py-3 rounded-xl shadow-[0_4px_15px_rgba(20,184,166,0.4)]">
-              <i class="fa-solid fa-plus text-lg"></i><span>Deposit</span>
-            </button>
-            <button onclick="triggerWithdraw()" class="flex-1 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 text-white font-black py-3 rounded-xl shadow-[0_4px_15px_rgba(225,29,72,0.3)]">
-              <i class="fa-solid fa-money-bill-transfer text-sm"></i><span>Withdraw</span>
-            </button>
-          </div>
-        </div>
-      </div>
-      <div class="mt-6">
-        <h3 class="text-gray-400 font-medium text-sm mb-3">የግብይት ታሪክ (History)</h3>
-        <div id="transaction-history-list" class="space-y-2">
-          <div class="text-center text-gray-600 text-sm py-4">Loading...</div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- PAGE: RANK -->
-  <div id="page-rank" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full pb-32">
-    <section class="p-5 text-center mt-2 pb-2">
-      <h2 class="text-2xl font-black text-yellow-500 tracking-wide drop-shadow mb-1 flex items-center justify-center space-x-2">
-        <i class="fa-solid fa-trophy"></i><span>አሸናፊዎች (TOP 10)</span>
-      </h2>
-      <div class="text-[10px] text-gray-400 font-mono uppercase tracking-widest" id="rank-date-subtitle">Weekly Players</div>
-    </section>
-    <section class="px-4 mb-6 mt-4">
-      <div class="flex justify-center items-end gap-2" id="rank-podium-container"></div>
-    </section>
-    <section class="px-4 flex-1">
-      <div id="rank-list-container" class="flex flex-col space-y-2 pb-10"></div>
-    </section>
-  </div>
-
-  <!-- PAGE: PROFILE -->
-  <div id="page-profile" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full pb-32">
-    <section class="p-5 text-center mt-2 pb-3">
-      <h2 class="text-xl font-black text-white tracking-wide flex items-center justify-center space-x-2">
-        <i class="fa-solid fa-user text-gray-400"></i><span>የእኔ ፕሮፋይል</span>
-      </h2>
-    </section>
-    <section class="px-4 mb-4">
-      <div class="bg-xbet-card border border-xbet-border rounded-2xl p-5 flex flex-col items-center shadow-lg relative overflow-hidden">
-        <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 flex items-center justify-center text-4xl font-black text-slate-900 mb-3 relative">
-          <span id="profile-avatar-letter">?</span>
-        </div>
-        <div class="text-xl font-bold text-white tracking-wide mb-0.5" id="profile-user-name">Loading...</div>
-        <div class="text-sm text-gray-400 font-mono mb-3" id="profile-user-phone">Loading...</div>
-        <div class="text-xs text-teal-400 font-mono bg-xbet-dark px-4 py-1.5 rounded-full border border-teal-500/30">
-          ID: #<span id="profile-user-id">Loading...</span>
-        </div>
-      </div>
-    </section>
-    <section class="px-4 mb-4">
-      <div class="bg-xbet-card border border-xbet-border rounded-xl p-4 shadow-md">
-        <div class="text-xs font-bold text-teal-400 flex items-center space-x-2 mb-2">
-          <i class="fa-solid fa-robot text-lg"></i><span>የእርስዎ መጋበዣ ሊንክ (Share)</span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <div id="referral-link-display" class="flex-1 bg-xbet-dark border border-xbet-border rounded-lg px-3 py-2 text-xs text-gray-400 font-mono truncate select-all">Loading...</div>
-          <button onclick="copyReferralLink()" id="btn-copy-link" class="bg-xbet-blue hover:bg-slate-700 text-white text-xs font-bold px-4 py-2 rounded-lg border border-xbet-border transition-colors w-16 text-center">Copy</button>
-        </div>
-      </div>
-    </section>
-    <section class="px-4 mb-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-xbet-card border border-xbet-border rounded-xl p-4 flex flex-col items-center justify-center shadow-md">
-          <span class="text-xs text-gray-400 mb-1 font-medium">የተጫወቱት (Played)</span>
-          <div id="stat-games-played" class="text-xl font-mono font-black text-blue-400">0</div>
-        </div>
-        <div class="bg-xbet-card border border-xbet-border rounded-xl p-4 flex flex-col items-center justify-center shadow-md">
-          <span class="text-xs text-gray-400 mb-1 font-medium">ያሸነፉት (Won)</span>
-          <div id="stat-games-won" class="text-xl font-mono font-black text-xbet-green">0.00 ETB</div>
-        </div>
-      </div>
-    </section>
-    <section class="px-4 flex-1">
-      <div class="flex flex-col space-y-2">
-        <button id="profile-help-btn" class="w-full bg-xbet-card border border-xbet-border hover:bg-xbet-blue rounded-xl p-4 flex justify-between items-center transition-colors shadow-sm">
-          <div class="flex items-center gap-3"><span class="text-blue-400 text-xl">📞</span><span class="font-medium text-sm">እርዳታ ያስፈልጎታል?</span></div>
-          <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
-        </button>
-        <button id="game-rules-btn" class="w-full bg-xbet-card border border-xbet-border hover:bg-xbet-blue rounded-xl p-4 flex justify-between items-center transition-colors shadow-sm">
-          <div class="flex items-center gap-3"><span class="text-blue-400 text-xl">📘</span><span class="font-medium text-sm">የጨዋታው መመሪያ እና ደንብ</span></div>
-          <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
-        </button>
-      </div>
-    </section>
-  </div>
-
-  <!-- POPUP PANEL -->
-  <div id="cartel-popup-panel" class="fixed bottom-16 left-0 right-0 max-w-md mx-auto z-40 bg-slate-950/95 backdrop-blur-md border-t-2 border-xbet-teal p-3 rounded-t-2xl shadow-[0_-8px_25px_rgba(0,0,0,0.8)] hidden transition-all duration-300">
-    <div class="flex justify-between items-center mb-2 px-1">
-      <div class="text-xs font-bold text-white flex items-center space-x-1.5">
-        <span>የመረጧቸው ካርቴሎች:</span><span id="popup-cartel-count" class="text-xbet-teal font-mono font-black text-sm">0</span>
-      </div>
-      <div id="popup-total-price" class="text-xbet-green font-mono font-black text-sm tracking-wide">0 ETB</div>
-    </div>
-    <div id="popup-cards-wrapper" class="flex space-x-3 overflow-x-auto pb-1 pt-1 scrollbar-thin"></div>
-  </div>
-
-  <!-- WINNER MODAL -->
-  <div id="winner-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
-    <div class="max-w-xs w-full bg-xbet-card border-2 border-xbet-teal rounded-2xl p-4 shadow-[0_0_50px_rgba(0,184,148,0.4)] animate-modal text-center relative overflow-hidden">
-      <div class="text-xs font-black text-amber-400 uppercase tracking-widest mb-1">✨ ሽልማት ገቢ እየተደረገ ነው... ✨</div>
-      <div class="text-sm font-extrabold text-gray-300 tracking-wider mb-2">አሸናፊ (WINNER)</div>
-      <div class="text-5xl font-black text-white tracking-widest my-1">BINGO!</div>
-      <div id="winner-share-status" class="text-lg font-black text-yellow-400 mb-3">በጋራ አሸንፈዋል!</div>
-      <div class="bg-slate-900 border border-yellow-500/60 rounded-xl p-3 mb-3 shadow-inner">
-        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">ጠቅላላ የደራሽ ሽልማት</div>
-        <div id="winner-total-prize" class="text-2xl font-black text-white font-mono tracking-tight">0.00 ETB</div>
-      </div>
-      <div class="bg-slate-900/80 border border-xbet-border rounded-xl p-2 max-h-48 overflow-y-auto">
-        <div class="text-xs font-black text-emerald-400 mb-2" id="winners-count-label">አሸናፊዎች (1)</div>
-        <div id="winners-list-container" class="space-y-1.5"></div>
-      </div>
-      <button onclick="closeWinnerModal()" class="w-full mt-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-black font-black py-2 rounded-xl text-xs uppercase tracking-wider">ቀጥል (CONTINUE)</button>
-    </div>
-  </div>
-
-  <!-- NAVIGATION BAR -->
-  <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-xbet-card border-t border-xbet-border px-4 py-2 flex justify-between items-center z-50 shadow-[0_-5px_15px_rgba(0,0,0,0.3)]">
-    <button onclick="switchPage('home')" id="nav-home" class="nav-active flex flex-col items-center space-y-1 text-gray-400 hover:text-teal-400 transition-colors w-12">
-      <i class="fa-solid fa-house text-lg"></i><span class="text-[10px] font-medium">Home</span>
-    </button>
-    <button onclick="switchPage('ticket')" id="nav-ticket" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-teal-400 transition-colors w-12 relative">
-      <i class="fa-solid fa-ticket text-lg"></i><span class="text-[10px] font-medium">Ticket</span>
-      <span id="nav-ticket-badge" class="absolute -top-1 right-0 bg-red-500 text-white text-[8px] font-bold px-1.5 rounded-full hidden">0</span>
-    </button>
-    <button onclick="switchPage('wallet')" id="nav-wallet" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-teal-400 transition-colors w-12">
-      <i class="fa-solid fa-wallet text-lg"></i><span class="text-[10px] font-medium">Wallet</span>
-    </button>
-    <button onclick="switchPage('rank')" id="nav-rank" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-teal-400 transition-colors w-12">
-      <i class="fa-solid fa-trophy text-lg"></i><span class="text-[10px] font-medium">Rank</span>
-    </button>
-    <button onclick="switchPage('profile')" id="nav-profile" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-teal-400 transition-colors w-12">
-      <i class="fa-solid fa-user-gear text-lg"></i><span class="text-[10px] font-medium">Profile</span>
-    </button>
-  </nav>
-
-  <!-- TELEGRAM WEBAPP SCRIPT -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- JAVASCRIPT GAME LOGIC -->
-  <script>
-    window.currentUserName = "Player";
-    window.currentUserPhone = "Unknown";
-    window.currentUserId = "test_user";
-
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      const tgUser = tg.initDataUnsafe?.user;
-      if (tgUser) {
-        window.currentUserName = `${tgUser.first_name} ${tgUser.last_name || ""}`.trim();
-        window.currentUserId = tgUser.id.toString();
-      }
-    }
-
-    const API_BASE = ''; 
-
-    async function api(path, options = {}) {
-      const separator = path.includes('?') ? '&' : '?';
-      const url = API_BASE + path + separator + 'userId=' + encodeURIComponent(window.currentUserId);
-      const res = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Telegram-Init-Data': (window.Telegram?.WebApp?.initData || ''),
-          ...options.headers
-        }
-      });
-      return res.json();
-    }
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      if (document.getElementById('header-user-name')) document.getElementById('header-user-name').innerText = window.currentUserName;
-      if (document.getElementById('profile-user-name')) document.getElementById('profile-user-name').innerText = window.currentUserName;
-      if (document.getElementById('profile-user-id')) document.getElementById('profile-user-id').innerText = window.currentUserId;
-      
-      if (window.currentUserName && window.currentUserName.length > 0) {
-        const firstLetter = window.currentUserName.charAt(0).toUpperCase();
-        if (document.getElementById('profile-avatar-letter')) document.getElementById('profile-avatar-letter').innerText = firstLetter;
-      }
-
-      displayUserReferralLink();
-
-      try {
-        const data = await api('/api/user-data');
-        if (data.status === 'success') {
-          applyUserData(data);
-        }
-      } catch (error) {
-        console.error("Error fetching initial user data:", error);
-      }
-
-      const profileHelpBtn = document.getElementById('profile-help-btn');
-      if (profileHelpBtn) {
-        profileHelpBtn.addEventListener('click', () => {
-          if (tg) tg.openTelegramLink("https://t.me/my_1x_bingo_bot?start=help");
-        });
-      }
-
-      const rulesBtn = document.getElementById('game-rules-btn');
-      if (rulesBtn) {
-        rulesBtn.addEventListener('click', () => {
-          if (tg) tg.openTelegramLink("https://t.me/my_1x_bingo_bot?start=rules");
-        });
-      }
-    });
-
-    const MAX_SELECTION = 4;
-    const TICKET_PRICE = 10;
-
-    let serverBonus = 0;
-    let serverBalance = 0;
-    let userPlayBalance = 0;
-    let balanceRefreshing = false;
-    let selectedTickets = [];
-    let takenCartels = new Set();
-    let isDrawingPhase = false;
-    let drawnNumbers = [];
-    let currentPage = 'home';
-    let round = null;
-    let clockOffset = 0;
-    let lastRoundId = null;
-    let lastPhase = null;
-    let lastSeq = -1;
-    let lastDrawnCount = 0;
-    let shownResultFor = null;
-    let pollBusy = false;
-    let pickBusy = false;
-    let gridState = [];
-
-    const pageHome = document.getElementById('page-home');
-    const pageTicket = document.getElementById('page-ticket');
-    const pageWallet = document.getElementById('page-wallet');
-    const pageRank = document.getElementById('page-rank');
-    const pageProfile = document.getElementById('page-profile');
-    
-    const navHome = document.getElementById('nav-home');
-    const navTicket = document.getElementById('nav-ticket');
-    const navWallet = document.getElementById('nav-wallet');
-    const navRank = document.getElementById('nav-rank');
-    const navProfile = document.getElementById('nav-profile');
-    const navTicketBadge = document.getElementById('nav-ticket-badge');
-
-    const gridContainer = document.getElementById('cartel-grid');
-    const selectedCountDisplay = document.getElementById('selected-count');
-    const playWalletDisplay = document.getElementById('play-wallet');
-    const gameStatusLabel = document.getElementById('game-status-label');
-    const popupPanel = document.getElementById('cartel-popup-panel');
-    const popupCardsWrapper = document.getElementById('popup-cards-wrapper');
-
-    const masterBoardGrid = document.getElementById('master-board-grid');
-    const collapsibleMasterBoard = document.getElementById('collapsible-master-board');
-    const masterBoardChevron = document.getElementById('master-board-chevron');
-    const ticketEmptyMsg = document.getElementById('ticket-empty-msg');
-    const ticketMatricesContainer = document.getElementById('ticket-matrices-container');
-    const ticketDrawCount = document.getElementById('ticket-draw-count');
-    const ticketPrizePool = document.getElementById('ticket-prize-pool');
-    const ticketCurrentBall = document.getElementById('ticket-current-ball');
-    const ticketBallText = document.getElementById('ticket-ball-text');
-    const ticketStatusText = document.getElementById('ticket-status-text');
-
-    const walletPagePlay = document.getElementById('wallet-page-play');
-    const mainWalletDisplay = document.getElementById('main-wallet');
-    const walletPageMain = document.getElementById('wallet-page-main');
-    const winnerModal = document.getElementById('winner-modal');
-    const winnersListContainer = document.getElementById('winners-list-container');
-
-    function esc(v) {
-      return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-
-    function switchPage(page) {
-      currentPage = page;
-      if (page === 'wallet' || page === 'profile') refreshUserDataSoon();
-      
-      pageHome.classList.add('hidden');
-      pageTicket.classList.add('hidden');
-      pageWallet.classList.add('hidden');
-      pageRank.classList.add('hidden');
-      pageProfile.classList.add('hidden');
-      
-      navHome.classList.remove('nav-active');
-      navTicket.classList.remove('nav-active');
-      navWallet.classList.remove('nav-active');
-      navRank.classList.remove('nav-active');
-      navProfile.classList.remove('nav-active');
-      popupPanel.classList.add('hidden');
-
-      if (page === 'home') {
-        pageHome.classList.remove('hidden');
-        navHome.classList.add('nav-active');
-        if (selectedTickets.length > 0 && !isDrawingPhase) popupPanel.classList.remove('hidden');
-      } else if (page === 'ticket') {
-        pageTicket.classList.remove('hidden');
-        navTicket.classList.add('nav-active');
-        renderTicketMatrices();
-      } else if (page === 'wallet') {
-        pageWallet.classList.remove('hidden');
-        navWallet.classList.add('nav-active');
-        updateUI();
-      } else if (page === 'rank') {
-        pageRank.classList.remove('hidden');
-        navRank.classList.add('nav-active');
-        fetchAndRenderLeaderboard();
-      } else if (page === 'profile') {
-        pageProfile.classList.remove('hidden');
-        navProfile.classList.add('nav-active');
-      }
-    }
-
-    function toggleMasterBoard() {
-      collapsibleMasterBoard.classList.toggle('hidden');
-      masterBoardChevron.classList.toggle('rotate-180');
-    }
-
-    const CLS_FREE  = 'h-9 bg-xbet-blue hover:bg-slate-700 text-white font-bold text-xs rounded border border-xbet-border/80 flex items-center justify-center transition-all duration-150 active:scale-95 shadow-sm';
-    const CLS_MINE  = 'h-9 bg-xbet-green text-black font-black text-xs rounded border border-green-300 flex items-center justify-center';
-    const CLS_TAKEN = 'h-9 bg-slate-800 text-slate-600 font-bold text-xs rounded border border-slate-700 flex items-center justify-center opacity-50 cursor-not-allowed';
-
-    function initGrid() {
-      gridContainer.innerHTML = '';
-      gridState = [];
-      for (let i = 1; i <= 500; i++) {
-        const btn = document.createElement('button');
-        btn.id = `cartel-${i}`;
-        btn.className = CLS_FREE;
-        btn.innerText = i;
-        btn.onclick = () => toggleCartel(i);
-        gridContainer.appendChild(btn);
-      }
-    }
-
-    function paintGrid() {
-      const mine = new Set(selectedTickets);
-      for (let i = 1; i <= 500; i++) {
-        const st = mine.has(i) ? 'mine' : (takenCartels.has(i) ? 'taken' : 'free');
-        if (gridState[i] === st) continue;
-        gridState[i] = st;
-        const btn = document.getElementById(`cartel-${i}`);
-        if (btn) btn.className = st === 'mine' ? CLS_MINE : st === 'taken' ? CLS_TAKEN : CLS_FREE;
-      }
-    }
-
-    function initMasterBoard() {
-      masterBoardGrid.innerHTML = '';
-      const columns = [
-        { letter: 'B', bg: 'bg-blue-600', text: 'text-white' },
-        { letter: 'I', bg: 'bg-indigo-500', text: 'text-white' },
-        { letter: 'N', bg: 'bg-purple-500', text: 'text-white' },
-        { letter: 'G', bg: 'bg-emerald-500', text: 'text-white' },
-        { letter: 'O', bg: 'bg-orange-500', text: 'text-white' }
-      ];
-      
-      columns.forEach((col, idx) => {
-        const colDiv = document.createElement('div');
-        colDiv.className = 'flex flex-col';
-        const header = document.createElement('div');
-        header.className = `${col.bg} ${col.text} text-center font-black text-[11px] py-1 border border-slate-900`;
-        header.innerText = col.letter;
-        colDiv.appendChild(header);
-
-        for (let r = 1; r <= 15; r++) {
-          const num = idx * 15 + r;
-          const cell = document.createElement('div');
-          cell.id = `master-num-${num}`;
-          cell.className = `h-5 bg-xbet-card/50 ${col.text} font-mono font-bold text-[10px] flex items-center justify-center border border-slate-800 transition-colors`;
-          cell.innerText = num;
-          cell.setAttribute('data-active-bg', col.bg);
-          colDiv.appendChild(cell);
-        }
-        masterBoardGrid.appendChild(colDiv);
-      });
-    }
-
-    function pickErrorText(code) {
-      switch (code) {
-        case 'taken':     return 'ይህ ካርቴል ቀድሞ ተመርጧል!';
-        case 'full':      return `ቢበዛ ${MAX_SELECTION} ካርቴል ብቻ መምረጥ ይችላሉ`;
-        case 'balance':   return 'የጨዋታ ሂሳብዎ በቂ አይደለም!';
-        case 'phase':     return 'ምርጫ ተዘግቷል፣ ቀጣዩን ዙር ይጠብቁ';
-        default:          return 'አልተሳካም፣ እንደገና ይሞክሩ';
-      }
-    }
-
-    async function toggleCartel(id) {
-      if (!round || round.phase !== 'selection' || pickBusy) return;
-      const mine = selectedTickets.includes(id);
-      if (!mine && takenCartels.has(id)) { alert(pickErrorText('taken')); return; }
-      if (!mine && selectedTickets.length >= MAX_SELECTION) { alert(pickErrorText('full')); return; }
-      if (!mine && userPlayBalance < TICKET_PRICE) { alert(pickErrorText('balance')); return; }
-      pickBusy = true;
-      try {
-        const res = await api(mine ? '/api/round/unpick' : '/api/round/pick', {
-          method: 'POST',
-          body: JSON.stringify({ cartel: id })
-        });
-        if (res.balance != null) { serverBalance = Number(res.balance); serverBonus = Number(res.bonus) || 0; }
-        if (res.state) applyRound(res.state);
-        if (res.status !== 'success') {
-          const msg = pickErrorText(res.code);
-          if (msg) alert(msg);
-        }
-      } catch (err) {
-        console.error('pick failed', err);
-      } finally {
-        pickBusy = false;
-      }
-    }
-
-    function updateUI() {
-      const reserved = (round && round.phase === 'selection') ? selectedTickets.length * TICKET_PRICE : 0;
-      userPlayBalance = serverBalance - reserved;
-      const bonus = Math.min(serverBonus, serverBalance);
-      const fromBonus = Math.min(bonus, reserved);
-      const playShown = bonus - fromBonus;
-      const mainShown = (serverBalance - bonus) - (reserved - fromBonus);
-      if (!balanceRefreshing) {
-        playWalletDisplay.innerText = playShown.toFixed(2);
-        walletPagePlay.innerText = playShown.toFixed(2) + ' ETB';
-        mainWalletDisplay.innerText = mainShown.toFixed(2);
-        walletPageMain.innerText = mainShown.toFixed(2);
-      }
-      selectedCountDisplay.innerText = selectedTickets.length;
-
-      const poolPrize = round ? Number(round.pool) : 0;
-      document.getElementById('jackpot-display').innerText = poolPrize.toFixed(2);
-      document.getElementById('floating-jackpot').innerText = `${poolPrize.toFixed(2)} ETB`;
-      ticketPrizePool.innerText = `${poolPrize.toFixed(2)} ETB`;
-
-      if (selectedTickets.length > 0) {
-        navTicketBadge.innerText = selectedTickets.length;
-        navTicketBadge.classList.remove('hidden');
-        ticketEmptyMsg.classList.add('hidden');
-        ticketMatricesContainer.classList.remove('hidden');
-      } else {
-        navTicketBadge.classList.add('hidden');
-        ticketEmptyMsg.classList.remove('hidden');
-        ticketMatricesContainer.classList.add('hidden');
-      }
-    }
-
-    function seededRandom(seed) { let x = Math.sin(seed++) * 10000; return x - Math.floor(x); }
-
-    function generateMatrix(ticketId) {
-      const matrix = []; let currentSeed = ticketId * 1573;
-      for (let col = 0; col < 5; col++) {
-        const colNumbers = []; const min = col * 15 + 1;
-        while (colNumbers.length < 5) {
-          const rand = Math.floor(seededRandom(currentSeed++) * 15);
-          const val = min + rand;
-          if (!colNumbers.includes(val)) colNumbers.push(val);
-        }
-        matrix.push(colNumbers);
-      }
-      return matrix;
-    }
-
-    function renderPopupCartels() {
-      if (selectedTickets.length === 0 || isDrawingPhase || currentPage !== 'home') {
-        popupPanel.classList.add('hidden');
-        return;
-      }
-      popupPanel.classList.remove('hidden');
-      document.getElementById('popup-cartel-count').innerText = selectedTickets.length;
-      document.getElementById('popup-total-price').innerText = `${selectedTickets.length * TICKET_PRICE} ETB`;
-      popupCardsWrapper.innerHTML = '';
-
-      selectedTickets.forEach(ticketId => {
-        const matrix = generateMatrix(ticketId);
-        const card = document.createElement('div');
-        card.className = 'flex-shrink-0 bg-white text-black rounded-lg p-1.5 w-32 shadow-2xl border-2 border-xbet-teal relative group';
-        let html = `
-          <button onclick="toggleCartel(${ticketId})" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow-md hover:bg-red-700 z-10">&times;</button>
-          <div class="text-center font-black text-xs border-b border-gray-300 pb-0.5 mb-1">#${ticketId}</div>
-          <div class="grid grid-cols-5 gap-0.5 text-center font-mono font-bold text-[9px]">
-        `;
-        for (let row = 0; row < 5; row++) {
-          for (let col = 0; col < 5; col++) {
-            if (row === 2 && col === 2) {
-              html += `<div class="bg-amber-100 text-amber-500 border border-gray-200 h-5 flex items-center justify-center rounded-sm"><i class="fa-solid fa-star text-[8px]"></i></div>`;
-            } else {
-              const num = matrix[col][row];
-              const isMarked = drawnNumbers.includes(num);
-              const bgClass = isMarked ? 'bg-emerald-500 text-white' : 'bg-gray-50 border border-gray-200';
-              html += `<div class="${bgClass} h-5 flex items-center justify-center rounded-sm">${num}</div>`;
-            }
-          }
-        }
-        card.innerHTML = html + `</div>`;
-        popupCardsWrapper.appendChild(card);
-      });
-    }
-
-    function renderTicketMatrices() {
-      ticketMatricesContainer.innerHTML = '';
-      if (selectedTickets.length === 0) return;
-      ticketMatricesContainer.className = "grid grid-cols-2 gap-1.5 p-1.5";
-      selectedTickets.forEach(ticketId => {
-        const matrix = generateMatrix(ticketId);
-        const card = document.createElement('div');
-        card.className = 'bg-xbet-card border border-xbet-border rounded-lg p-1.5 shadow-lg relative';
-        let html = `
-          <div class="flex justify-between items-center mb-1 pb-1 border-b border-xbet-border">
-              <span class="font-bold text-xs text-teal-400 flex items-center space-x-1">
-                  <i class="fa-solid fa-ticket text-[10px]"></i><span>ካርቴላ #${ticketId}</span>
-              </span>
-          </div>
-          <div class="grid grid-cols-5 gap-1 text-center font-black text-xs text-yellow-400 mb-1">
-              <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
-          </div>
-          <div class="grid grid-cols-5 gap-1 text-center text-xs font-mono font-bold">
-        `;
-        for (let row = 0; row < 5; row++) {
-          for (let col = 0; col < 5; col++) {
-            if (row === 2 && col === 2) {
-              html += `<div class="bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 font-black p-2 rounded shadow flex items-center justify-center text-[10px]">FREE</div>`;
-            } else {
-              const num = matrix[col][row];
-              const isMarked = drawnNumbers.includes(num);
-              const style = isMarked ? 'bg-emerald-500 text-black border-2 border-white scale-105 text-sm p-1' : 'bg-xbet-blue text-white border border-gray-600 text-sm p-1';
-              html += `<div class="${style} p-2 rounded transition-all duration-200 flex items-center justify-center">${num}</div>`;
-            }
-          }
-        }
-        card.innerHTML = html + `</div>`;
-        ticketMatricesContainer.appendChild(card);
-      });
-    }
-
-    let lastUserRefresh = 0;
-    function refreshUserDataSoon() {
-      if (Date.now() - lastUserRefresh > 60000) refreshUserData();
-    }
-
-    function applyUserData(d) {
-      lastUserRefresh = Date.now();
-      serverBalance = Number(d.balance) || 0;
-      serverBonus = Number(d.bonus) || 0;
-      renderTransactionHistory(d.transactions || []);
-      window.currentUserPhone = d.phone_number || 'Not Provided';
-      ['header-user-phone', 'profile-user-phone'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = window.currentUserPhone;
-      });
-      const played = document.getElementById('stat-games-played');
-      if (played) played.innerText = d.total_games_played || 0;
-      const won = document.getElementById('stat-games-won');
-      if (won) won.innerText = (Number(d.total_winnings) || 0).toFixed(2) + ' ETB';
-      updateUI();
-    }
-
-    async function refreshUserData() {
-      balanceRefreshing = true;
-      try {
-        const d = await api('/api/user-data');
-        if (d.status === 'success') applyUserData(d);
-      } catch (err) {
-        console.error('Could not refresh balance', err);
-      } finally {
-        balanceRefreshing = false;
-        updateUI();
-      }
-    }
-
-    function markMaster(num) {
-      const cell = document.getElementById(`master-num-${num}`);
-      if (!cell) return;
-      const activeBg = cell.getAttribute('data-active-bg');
-      cell.className = `h-5 ${activeBg} text-white font-mono font-black text-[11px] flex items-center justify-center border border-slate-900 shadow-inner`;
-    }
-
-    function showBall(num, count, speak) {
-      ticketDrawCount.innerText = `${count}/75`;
-      ticketBallText.innerText = num;
-      ticketCurrentBall.classList.remove('animate-ball');
-      void ticketCurrentBall.offsetWidth;
-      ticketCurrentBall.classList.add('animate-ball');
-      const letter = num <= 15 ? 'B' : num <= 30 ? 'I' : num <= 45 ? 'N' : num <= 60 ? 'G' : 'O';
-      if (speak) playCall(num);
-      ticketStatusText.innerHTML = `የወጣው ቁጥር: <strong class="text-white ml-1 text-lg">${letter} - ${num}</strong>`;
-    }
-
-    function statusText(s) {
-      if (s.phase === 'selection') {
-        return s.players < s.min_players ? `ተጫዋቾችን በመጠበቅ ላይ (${s.players}/${s.min_players})` : 'ጨዋታው ሊጀምር ነው';
-      }
-      if (s.phase === 'locking') return 'ካርቴሎች እየተቆለፉ ነው...';
-      if (s.phase === 'result') return 'ጨዋታው ተጠናቋል';
-      return 'ጨዋታው ተጀምሯል (እጣ እየወጣ ነው)';
-    }
-
-    function showResult(s) {
-      const winners = s.winners || [];
-      if (s.no_winner || winners.length === 0) {
-        ticketStatusText.innerText = 'ምንም አሸናፊ የለም';
-        return;
-      }
-      const cartels = winners.map(w => `#${w.cartel}`).join(', ');
-      ticketStatusText.innerHTML = `ቢንጎ! አሸናፊ ካርቴል: <strong class="text-white ml-1">${esc(cartels)}</strong>`;
-      if (selectedTickets.length === 0) return;
-      if (winners.some(w => w.mine)) refreshUserData();
-      playCall('bingo');
-      document.getElementById('winner-total-prize').innerText = `${Number(s.pool).toFixed(2)} ETB`;
-      document.getElementById('winner-share-status').innerText = winners.length > 1 ? 'በጋራ አሸንፈዋል!' : '';
-      document.getElementById('winners-count-label').innerText = `አሸናፊዎች (${winners.length})`;
-      winnersListContainer.innerHTML = winners.map(w => `
-        <div class="bg-xbet-card border border-xbet-border rounded-lg p-2 flex justify-between items-center text-left">
-          <div class="flex items-center space-x-2">
-            <div class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-xs"><i class="fa-solid fa-user"></i></div>
+    <div class="header">
+        <div class="user-info">
+            <div class="avatar" id="user-initial">N</div>
             <div>
-              <div class="text-xs text-teal-300 font-bold">${esc(w.name)}${w.mine ? ' (እርስዎ)' : ''}</div>
-              <div class="text-[9px] text-gray-400 font-mono">${w.phone ? 'ስልክ: ' + esc(w.phone) + ' | ' : ''}ካርቴል: <span class="text-teal-400 font-bold">#${w.cartel}</span></div>
+                <div style="font-weight: bold; font-size: 14px;" id="username">Nhatty</div>
+                <div style="font-size: 11px; color: #94a3b8;" id="user-phone">+251949196145</div>
             </div>
-          </div>
-          <div class="text-xs font-black text-yellow-400 font-mono tracking-wide">${Number(w.prize).toFixed(2)} ETB</div>
-        </div>`).join('');
-      winnerModal.classList.remove('hidden');
-    }
-
-    function applyRound(s) {
-      if (round && s.round_id === round.round_id && s.seq < round.seq) return;
-
-      clockOffset = s.server_time - Date.now() / 1000;
-      const newRound = s.round_id !== lastRoundId;
-      const phaseChanged = lastPhase !== null && lastPhase !== s.phase;
-      const prevPhase = lastPhase;
-
-      round = s;
-      selectedTickets = s.my_cartels.slice();
-      takenCartels = new Set(s.taken);
-      isDrawingPhase = s.phase !== 'selection';
-      drawnNumbers = s.drawn;
-      lastPhase = s.phase;
-
-      if (newRound) {
-        lastRoundId = s.round_id;
-        lastDrawnCount = 0;
-        gridState = [];
-        initMasterBoard();
-        ticketBallText.innerText = '--';
-        ticketStatusText.innerText = 'ገና አልጀመረም...';
-        ticketDrawCount.innerText = '0/75';
-        winnerModal.classList.add('hidden');
-      }
-
-      const n = s.drawn.length;
-      if (n < lastDrawnCount) lastDrawnCount = 0;
-      if (n > lastDrawnCount) {
-        const fresh = s.drawn.slice(lastDrawnCount);
-        fresh.forEach(markMaster);
-        showBall(s.drawn[n - 1], n, fresh.length <= 3);
-        lastDrawnCount = n;
-      }
-
-      gameStatusLabel.innerText = statusText(s);
-
-      if (s.phase === 'drawing' && prevPhase !== 'drawing' && selectedTickets.length > 0 && currentPage === 'home') {
-        switchPage('ticket');
-      }
-      if (s.phase === 'result' && shownResultFor !== s.round_id) {
-        shownResultFor = s.round_id;
-        showResult(s);
-      }
-
-      paintGrid();
-      updateUI();
-      if (s.seq !== lastSeq || phaseChanged) {
-        lastSeq = s.seq;
-        renderPopupCartels();
-        renderTicketMatrices();
-      }
-    }
-
-    async function pollRound() {
-      if (pollBusy) return;
-      pollBusy = true;
-      try {
-        const res = await api('/api/round');
-        if (res.balance != null) { serverBalance = Number(res.balance); serverBonus = Number(res.bonus) || 0; }
-        if (res.state) applyRound(res.state);
-      } catch (err) {
-        console.error('round poll failed', err);
-      } finally {
-        pollBusy = false;
-      }
-    }
-
-    function tickCountdown() {
-      if (!round) return;
-      const countdownEl = document.getElementById('countdown');
-      const bar = document.getElementById('timer-bar');
-      if (round.phase === 'selection') {
-        const left = Math.max(0, Math.ceil(round.phase_ends_at - (Date.now() / 1000 + clockOffset)));
-        const waiting = round.players < round.min_players;
-        const mm = String(Math.floor(left / 60)).padStart(2, '0');
-        const ss = String(left % 60).padStart(2, '0');
-        countdownEl.innerText = waiting ? '--:--' : `${mm}:${ss}`;
-        bar.style.width = waiting ? '100%' : `${Math.min(100, (left / round.selection_seconds) * 100)}%`;
-      } else {
-        countdownEl.innerText = '00:00';
-        bar.style.width = '0%';
-      }
-    }
-
-    function closeWinnerModal() {
-      winnerModal.classList.add('hidden');
-      switchPage('home');
-    }
-
-    initGrid();
-    initMasterBoard();
-    updateUI();
-    setInterval(tickCountdown, 250);
-    document.addEventListener('DOMContentLoaded', () => {
-      setInterval(pollRound, 1000);
-      pollRound();
-    });
-
-    function renderTransactionHistory(transactions) {
-      const historyContainer = document.getElementById('transaction-history-list');
-      if (!historyContainer) return;
-
-      if (!transactions || transactions.length === 0) {
-        historyContainer.innerHTML = `<div class="text-center text-gray-500 text-sm py-4">ምንም የግብይት ታሪክ የለም።</div>`;
-        return;
-      }
-
-      const sortedTx = transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-      historyContainer.innerHTML = sortedTx.map(tx => {
-        const isDeposit = ['deposit', 'win', 'refund', 'bonus', 'deposit_bonus'].includes(tx.type);
-        const colorClass = isDeposit ? 'text-xbet-green' : 'text-red-500';
-        const sign = isDeposit ? '+' : '-';
-        const dateStr = new Date(tx.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-        return `
-        <div class="bg-xbet-dark border border-xbet-border rounded-lg p-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-full ${isDeposit ? 'bg-teal-500/20 text-teal-400' : 'bg-red-500/20 text-red-400'} flex items-center justify-center">
-                    <i class="fa-solid ${isDeposit ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
-                </div>
-                <div>
-                    <div class="text-xs font-bold text-gray-300 uppercase tracking-wider">${String(tx.type).replace('_', ' ')}</div>
-                    <div class="text-[10px] text-gray-500 font-mono">${dateStr}</div>
-                </div>
-            </div>
-            <div class="font-mono font-black ${colorClass}">${sign}${tx.amount.toFixed(2)} ETB</div>
-        </div>`;
-      }).join('');
-    }
-
-    function triggerDeposit() {
-      if (tg) {
-        tg.openTelegramLink("https://t.me/my_1x_bingo_bot?start=deposit");
-        tg.close();
-      }
-    }
-    
-    function triggerWithdraw() {
-      if (tg) {
-        tg.openTelegramLink("https://t.me/my_1x_bingo_bot?start=withdraw");
-        tg.close();
-      }
-    }
-
-    const CALL_FILE = 'calls.mp3';
-    const CALL_MAP = {"1":[0.0,1.47],"2":[1.57,1.48],"3":[3.15,1.49],"4":[4.74,1.49],"5":[6.33,1.51],"6":[7.94,1.56],"7":[9.6,1.6],"8":[11.3,1.42],"9":[12.82,1.35],"10":[14.27,1.4],"11":[15.77,1.51],"12":[17.38,1.43],"13":[18.91,1.57],"14":[20.58,1.65],"15":[22.33,1.63],"16":[24.06,1.76],"17":[25.92,1.81],"18":[27.83,1.8],"19":[29.73,1.61],"20":[31.44,1.32],"21":[32.86,1.6],"22":[34.56,1.54],"23":[36.2,1.61],"24":[37.91,1.63],"25":[39.64,1.54],"26":[41.28,1.71],"27":[43.09,1.64],"28":[44.83,1.61],"29":[46.54,1.52],"30":[48.16,1.47],"31":[49.73,1.5],"32":[51.33,1.93],"33":[53.36,1.87],"34":[55.33,1.85],"35":[57.28,1.73],"36":[59.11,1.73],"37":[60.94,1.85],"38":[62.89,1.88],"39":[64.87,1.67],"40":[66.64,1.4],"41":[68.14,1.65],"42":[69.891,1.85],"43":[71.841,1.7],"44":[73.641,1.64],"45":[75.381,1.66],"46":[77.141,1.95],"47":[79.191,1.7],"48":[80.991,2.15],"49":[83.241,1.58],"50":[84.921,1.38],"51":[86.401,1.55],"52":[88.051,1.84],"53":[89.991,1.54],"54":[91.631,1.87],"55":[93.601,1.66],"56":[95.361,1.58],"57":[97.041,1.74],"58":[98.881,1.79],"59":[100.771,1.65],"60":[102.521,1.42],"61":[104.041,1.52],"62":[105.661,1.8],"63":[107.561,1.42],"64":[109.081,1.69],"65":[110.871,1.43],"66":[112.401,1.65],"67":[114.151,1.74],"68":[115.991,1.61],"69":[117.701,1.48],"70":[119.281,1.25],"71":[120.631,1.86],"72":[122.591,1.66],"73":[124.351,1.51],"74":[125.961,1.64],"75":[127.701,1.5],"bingo":[129.301,1.09]};
-    let audioCtx = null, callBuffer = null, callsLoading = false, currentCall = null;
-    let soundOn = true;
-    try { soundOn = localStorage.getItem('bingo_sound') !== 'off'; } catch (e) {}
-
-    function applySoundIcon() {
-      const icon = document.getElementById('sound-icon');
-      const btn = document.getElementById('sound-btn');
-      if (icon) icon.className = soundOn ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
-      if (btn) {
-        btn.classList.toggle('text-teal-300', soundOn);
-        btn.classList.toggle('text-gray-500', !soundOn);
-      }
-    }
-
-    function stopCall() {
-      if (currentCall) { try { currentCall.stop(); } catch (e) {} currentCall = null; }
-    }
-
-    function toggleSound() {
-      soundOn = !soundOn;
-      try { localStorage.setItem('bingo_sound', soundOn ? 'on' : 'off'); } catch (e) {}
-      if (soundOn) unlockAudio(); else stopCall();
-      applySoundIcon();
-    }
-
-    async function loadCalls() {
-      if (callBuffer || callsLoading) return;
-      callsLoading = true;
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const res = await fetch(CALL_FILE);
-        const data = await res.arrayBuffer();
-        callBuffer = await new Promise((ok, fail) => audioCtx.decodeAudioData(data, ok, fail));
-      } catch (e) {
-        console.warn('Voice file could not load', e);
-      } finally {
-        callsLoading = false;
-      }
-    }
-
-    function unlockAudio() {
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        if (!callBuffer) loadCalls();
-      } catch (e) {}
-    }
-    ['pointerdown', 'touchstart', 'click'].forEach(ev => document.addEventListener(ev, unlockAudio, { passive: true }));
-    document.addEventListener('DOMContentLoaded', () => { applySoundIcon(); loadCalls(); });
-
-    function playCall(key) {
-      if (!soundOn || !callBuffer || !audioCtx) return;
-      const slot = CALL_MAP[key];
-      if (!slot) return;
-      try {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        stopCall();
-        const src = audioCtx.createBufferSource();
-        src.buffer = callBuffer;
-        src.connect(audioCtx.destination);
-        src.start(0, slot[0], slot[1]);
-        currentCall = src;
-        src.onended = () => { if (currentCall === src) currentCall = null; };
-      } catch (e) { console.warn('Could not play call', e); }
-    }
-
-    async function fetchAndRenderLeaderboard() {
-      try {
-        const response = await api('/api/leaderboard');
-        if (response.status === 'success') {
-          renderLeaderboardUI(response.leaderboard);
-        }
-      } catch (error) {
-        console.error("Error loading leaderboard:", error);
-      }
-    }
-
-    function renderLeaderboardUI(players) {
-      const podiumContainer = document.getElementById('rank-podium-container');
-      const listContainer = document.getElementById('rank-list-container');
-      if (!podiumContainer || !listContainer) return;
-
-      const fullList = [...players];
-      while (fullList.length < 10) {
-        fullList.push({ name: '---', cartels: 0 });
-      }
-
-      const p1 = fullList[0], p2 = fullList[1], p3 = fullList[2];
-
-      podiumContainer.innerHTML = `
-        <div class="flex-1 bg-gray-800/80 border border-slate-600 rounded-2xl p-3 flex flex-col items-center justify-between h-36 relative">
-            <div class="w-8 h-8 rounded-full bg-slate-300 text-slate-900 font-bold flex items-center justify-center -mt-7 border-2 border-slate-400 text-sm">2</div>
-            <div class="text-xs font-semibold text-white truncate max-w-[80px]">${esc(p2.name)}</div>
-            <div class="text-[11px] font-bold text-amber-500">${p2.cartels} CARTELS</div>
         </div>
-        <div class="flex-1 bg-gray-800/90 border border-yellow-500/80 rounded-2xl p-3 flex flex-col items-center justify-between h-44 relative shadow-lg shadow-yellow-500/10">
-            <div class="w-9 h-9 rounded-full bg-yellow-400 text-yellow-950 font-black flex items-center justify-center -mt-8 border-2 border-yellow-300 text-base"><i class="fas fa-crown"></i></div>
-            <div class="text-xs font-bold text-yellow-400 truncate max-w-[80px]">${esc(p1.name)}</div>
-            <div class="text-xs font-extrabold text-amber-400">${p1.cartels} CARTELS</div>
+        <div class="wallet-box">
+            <div>PLAY WALLET <span id="balance">0.00</span></div>
+            <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">MAIN: <span id="main-balance" style="color: #cbd5e1;">999920.00</span></div>
         </div>
-        <div class="flex-1 bg-gray-800/80 border border-amber-700/60 rounded-2xl p-3 flex flex-col items-center justify-between h-32 relative">
-            <div class="w-8 h-8 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center -mt-7 border-2 border-amber-500 text-sm">3</div>
-            <div class="text-xs font-semibold text-white truncate max-w-[80px]">${esc(p3.name)}</div>
-            <div class="text-[11px] font-bold text-amber-500">${p3.cartels} CARTELS</div>
-        </div>`;
+    </div>
 
-      listContainer.innerHTML = fullList.slice(3, 10).map((player, index) => `
-        <div class="flex items-center justify-between p-3 bg-gray-800/60 rounded-xl border border-gray-700/50">
-            <div class="flex items-center space-x-3">
-                <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center">${index + 4}</div>
-                <div class="text-sm font-semibold text-white truncate max-w-[140px]">${esc(player.name)}</div>
-            </div>
-            <div class="text-xs font-bold text-emerald-400">${player.cartels} CARTELS</div>
-        </div>`).join('');
-    }
+    <div id="winner-container"></div>
 
-    function displayUserReferralLink() {
-      const userId = window.currentUserId;
-      if (userId) {
-        const linkBox = document.getElementById("referral-link-display");
-        if (linkBox) {
-          linkBox.innerText = `https://t.me/my_1x_bingo_bot?start=ref_${userId}`;
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-label">BALLS</div>
+            <div class="stat-value" id="balls-count">0/75</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">PRIZE</div>
+            <div class="stat-value" id="prize-pool">0.00 ETB</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">ROUND</div>
+            <div class="stat-value" id="round-id">r1</div>
+        </div>
+    </div>
+
+    <div class="current-ball-container">
+        <div class="current-ball" id="current-ball">--</div>
+        <div style="font-size: 12px; color: #94a3b8;">አሁን የወጣ ቁጥር (Current Ball)</div>
+    </div>
+
+    <div class="master-board-btn">
+        <span>👁️ ሙሉ ቦርድ ማስተዋል (Master Board)</span>
+        <span>▼</span>
+    </div>
+
+    <div class="section-title">የወጡ ቁጥሮች (Called Balls)</div>
+    <div style="padding: 0 15px; font-size: 13px; color: #38bdf8; word-break: break-all;" id="called-balls-list">
+        የሉም...
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item">🏠<br>Home</div>
+        <div class="nav-item active">🎫<br>Ticket</div>
+        <div class="nav-item">💰<br>Wallet</div>
+        <div class="nav-item">🏆<br>Rank</div>
+        <div class="nav-item">⚙️<br>Profile</div>
+    </div>
+
+    <script>
+        const userId = "test_user";
+
+        function fetchGameState() {
+            fetch(`/api/round?userId=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        document.getElementById('balance').innerText = parseFloat(data.balance).toFixed(2);
+                        
+                        const state = data.state;
+                        document.getElementById('round-id').innerText = state.round_id;
+                        document.getElementById('prize-pool').innerText = parseFloat(state.pool).toFixed(2) + " ETB";
+                        
+                        const drawn = state.drawn || [];
+                        document.getElementById('balls-count').innerText = `${drawn.length}/75`;
+                        document.getElementById('called-balls-list').innerText = drawn.length > 0 ? drawn.join(', ') : "የሉም...";
+                        
+                        const currentBall = state.current_ball !== null ? state.current_ball : "--";
+                        document.getElementById('current-ball').innerText = currentBall;
+
+                        // Winner banner
+                        const winnerContainer = document.getElementById('winner-container');
+                        if (state.winners && state.winners.length > 0) {
+                            const w = state.winners[0];
+                            winnerContainer.innerHTML = `<div class="winner-banner">🎉 አሸናፊ: ${w.name} (ካርቴል #${w.cartela_id}) - ሽልማት: ${w.prize} ETB</div>`;
+                        } else {
+                            winnerContainer.innerHTML = '';
+                        }
+                    }
+                })
+                .catch(err => console.error("Error fetching state:", err));
         }
-      }
-    }
 
-    function copyReferralLink() {
-      const linkBox = document.getElementById("referral-link-display");
-      const copyBtn = document.getElementById("btn-copy-link");
-      if (linkBox) {
-        navigator.clipboard.writeText(linkBox.innerText).then(() => {
-          if (copyBtn) {
-            copyBtn.innerText = "Copied!";
-            setTimeout(() => { copyBtn.innerText = "Copy"; }, 2000);
-          }
-        });
-      }
-    }
-  </script>
+        // በየ 2 ሰኮንዱ ሰርቨሩን ማነጋገር
+        setInterval(fetchGameState, 2000);
+        fetchGameState();
+    </script>
 </body>
 </html>
