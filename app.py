@@ -9,9 +9,9 @@ import firebase_admin
 from firebase_admin import credentials, db as rtdb
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}, r"/*": {"origins": "*"}})
 
-# --- 1. Firebase ማስጀመር (Render Env Variables) ---
+# --- Firebase ማስጀመር (Render Env Variables) ---
 if not firebase_admin._apps:
     cred = None
     private_key = os.environ.get("FIREBASE_PRIVATE_KEY")
@@ -52,9 +52,9 @@ if not firebase_admin._apps:
             print(f"⚠️ Firebase Init Error: {e}")
 
 
-# --- 2. የጨዋታው ሁኔታ (Game State) ---
+# --- የጨዋታው ሁኔታ (Game State) ---
 game_state = {
-    "running": True,       # ሰርቨሩ ሲጀመር በራሱ ቁጥር ማውጣት እንዲጀምር
+    "running": False,
     "round_id": 1,
     "current": None,
     "called": [],
@@ -63,13 +63,12 @@ game_state = {
 }
 
 def reset_game():
-    game_state["running"] = True
+    game_state["running"] = False
     game_state["current"] = None
     game_state["called"] = []
     game_state["bag"] = list(range(1, 76))
     random.shuffle(game_state["bag"])
     game_state["winner"] = None
-    game_state["round_id"] += 1
 
 # የመጀመሪያ ቦርሳ ማዘጋጀት
 reset_game()
@@ -83,8 +82,7 @@ def background_ball_drawer():
                 game_state["current"] = ball
                 game_state["called"].append(ball)
             else:
-                # ከረጢቱ ሲያልቅ አዲስ ራውንንድ በራሱ መጀመር
-                reset_game()
+                game_state["running"] = False
         time.sleep(3)
 
 # የጀርባ አሰራር (Background Thread) ማስጀመር
@@ -92,7 +90,7 @@ drawer_thread = threading.Thread(target=background_ball_drawer, daemon=True)
 drawer_thread.start()
 
 
-# --- 3. ራውቶች (API Endpoints) ---
+# --- API Endpoints ---
 
 @app.route('/')
 def serve_index():
@@ -111,63 +109,65 @@ def get_user_data():
     
     return jsonify({
         "status": "success",
-        "balance": data.get("balance", 1000.0),
-        "bonus": data.get("bonus", 0.0),
-        "phone_number": data.get("phone_number", ""),
+        "name": data.get("first_name", data.get("name", "Player")),
+        "balance": data.get("balance", 20.0),
+        "main_balance": data.get("main_balance", 0.0),
         "total_games_played": data.get("total_games_played", 0),
-        "total_winnings": data.get("total_winnings", 0.0),
-        "transactions": data.get("transactions", [])
+        "total_winnings_count": data.get("total_winnings_count", 0),
+        "total_winnings": data.get("total_winnings", 0.0)
     })
 
 @app.route('/state', methods=['GET'])
-@app.route('/api/round', methods=['GET'])
 def get_state():
-    user_id = request.args.get('userId', 'test_user')
-    
-    # ከዳታቤዝ የዩዘሩን ባላንስ ለማምጣት
-    balance = 1000.0
-    if firebase_admin._apps:
-        try:
-            user_data = rtdb.reference(f"users/{user_id}").get() or {}
-            balance = float(user_data.get("balance", 1000.0))
-        except Exception:
-            pass
-
-    # የፊት ገጽ (Frontend) ከሚጠብቀው ቅርጸት ጋር ማቀናጀት
-    response_data = {
-        "status": "success",
-        "balance": balance,
-        "state": {
-            "round_id": f"r{game_state['round_id']}",
-            "phase": "drawing" if game_state["running"] else "result",
-            "drawn": game_state["called"],
-            "current_ball": game_state["current"],
-            "pool": len(game_state["called"]) * 10,
-            "winners": [game_state["winner"]] if game_state["winner"] else [],
-            "no_winner": False
-        }
-    }
-    return jsonify(response_data)
+    return jsonify(game_state)
 
 @app.route('/start', methods=['GET'])
 def start_game():
     if not game_state["running"]:
         reset_game()
+        game_state["running"] = True
+        game_state["round_id"] += 1
     return jsonify({"status": "started", "round_id": game_state["round_id"]})
 
 @app.route('/claim_bingo', methods=['POST'])
-@app.route('/api/claim_bingo', methods=['POST'])
 def claim_bingo():
     data = request.json or {}
     cartela_id = data.get('cartela_id')
-    username = data.get('username', 'Nhatty')
+    username = data.get('username', 'Player')
+    user_id = data.get('userId', 'test_user')
 
     game_state["running"] = False
+    
+    # የሽልማት መጠን ማስላት (ለምሳሌ: በወጡ ቁጥሮች እና ካርቴሎች ብዛት ልክ)
+    prize = len(game_state["called"]) * 10
+    
     game_state["winner"] = {
         "name": username,
         "cartela_id": cartela_id,
-        "prize": len(game_state["called"]) * 8
+        "prize": prize
     }
+
+    # አሸናፊ ሲሆን ሽልማቱን ወደ ዩዘሩ Main Balance በፋየርቤዝ መመዝገብ
+    if firebase_admin._apps:
+        try:
+            ref = rtdb.reference(f"users/{user_id}")
+            user_data = ref.get() or {}
+            current_main = float(user_data.get("main_balance", 0.0))
+            current_total_win = float(user_data.get("total_winnings", 0.0))
+            current_win_count = int(user_data.get("total_winnings_count", 0))
+            current_games = int(user_data.get("total_games_played", 0))
+
+            new_main = current_main + prize
+            new_total_win = current_total_win + prize
+            
+            ref.update({
+                "main_balance": new_main,
+                "total_winnings": new_total_win,
+                "total_winnings_count": current_win_count + 1,
+                "total_games_played": current_games + 1
+            })
+        except Exception as e:
+            print(f"Error updating winner data in DB: {e}")
 
     return jsonify({
         "status": "success",
