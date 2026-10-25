@@ -1,876 +1,1757 @@
 <!DOCTYPE html>
-<html lang="am">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spark Bingo - Live, Cartela & Wallet</title>
+    <title>Ethio Bingo - Live Multiplayer & Dual Balance</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Firebase App, Firestore & Analytics SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyBuUGJyt4XNYGnjGgXu7MeYSzgr-NmWU0s",
+          authDomain: "ethio-bingo-app.firebaseapp.com",
+          databaseURL: "https://ethio-bingo-app-default-rtdb.firebaseio.com",
+          projectId: "ethio-bingo-app",
+          storageBucket: "ethio-bingo-app.firebasestorage.app",
+          messagingSenderId: "922073990731",
+          appId: "1:922073990731:web:a96d4d36539bfae0cc6fce",
+          measurementId: "G-EVBKGZW29X"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        try {
+            const analytics = firebase.analytics(app);
+        } catch (e) {
+            console.log("Analytics not supported in this environment");
+        }
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        bingo: {
+                            b: '#EC4899', // Pink
+                            i: '#8B5CF6', // Purple
+                            n: '#3B82F6', // Blue
+                            g: '#10B981', // Emerald
+                            o: '#F59E0B', // Amber
+                        },
+                        dark: {
+                            base: '#0B0F19',
+                            card: '#161F30',
+                            border: '#2A364F'
+                        }
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'pop-in': 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'number-call': 'numberCall 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)' },
+                            '50%': { boxShadow: '0 0 30px rgba(236, 72, 153, 0.7)' },
+                        },
+                        popIn: {
+                            '0%': { transform: 'scale(0.85)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        numberCall: {
+                            '0%': { transform: 'scale(0) rotate(-180deg)', opacity: '0' },
+                            '70%': { transform: 'scale(1.15) rotate(10deg)' },
+                            '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background: #0b0f19; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding-bottom: 60px; }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(11, 15, 25, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2A364F;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3B82F6;
+        }
 
-        /* Top Bar */
-        .top-bar { width: 100%; max-width: 480px; padding: 8px 12px; background: #131b2e; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a3b5c; flex-shrink: 0; }
-        .brand-title { font-size: 13px; font-weight: 800; color: #fff; }
-        .user-badge { display: flex; align-items: center; gap: 6px; background: #172138; padding: 2px 8px; border-radius: 20px; border: 1px solid #2a3b5c; font-size: 11px; }
-        .user-avatar { width: 20px; height: 20px; background: #f39c12; color: #000; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .bg-mesh {
+            background-color: #0B0F19;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(236, 72, 153, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
+        }
 
-        /* Stats & Countdown / AutoPlay Panel */
-        .stats-box { width: 100%; max-width: 480px; padding: 8px 12px; background: #131b2e; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #2a3b5c; flex-shrink: 0; }
-        .bal-row { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; }
-        .bal-val { color: #f39c12; }
+        .glass-panel {
+            background: rgba(22, 31, 48, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
 
-        .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .info-card { background: #172138; border: 1px solid #2a3b5c; border-radius: 6px; padding: 6px; text-align: center; }
-        .info-label { font-size: 9px; color: #8c9cb6; margin-bottom: 1px; }
-        .info-value { font-size: 13px; font-weight: bold; color: #ffcc00; }
-
-        .container { width: 100%; max-width: 480px; padding: 8px 10px; display: none; flex-direction: column; gap: 8px; }
-        .container.active { display: flex; }
-
-        /* Cartela Picker Grid (1 - 400) */
-        .selection-header { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: #f39c12; }
-        .cartela-picker-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; background: #172138; padding: 8px; border-radius: 10px; border: 1px solid #2a3b5c; max-height: 350px; overflow-y: auto; }
-        .picker-cell { background: #0b0f19; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #8c9cb6; border-radius: 3px; cursor: pointer; border: 1px solid #2a3b5c; }
-        .picker-cell.selected { background: #f39c12; color: #000; border-color: #fff; box-shadow: 0 0 6px #f39c12; }
-
-        /* Live Room Styles */
-        .live-top-panel { background: #131b2e; border: 1px solid #2a3b5c; border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-        .live-header-row { display: flex; justify-content: space-between; align-items: center; }
-
-        .main-ball-box { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #f39c12, #d35400); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; border: 2px solid #ffcc00; box-shadow: 0 0 6px rgba(243,156,12,0.4); text-align: center; line-height: 1.1; }
-
-        /* Called Numbers History Bar */
-        .called-history-container { display: flex; align-items: center; gap: 4px; overflow-x: auto; padding-bottom: 4px; white-space: nowrap; scrollbar-width: thin; }
-        .called-history-container::-webkit-scrollbar { height: 4px; }
-        .called-history-container::-webkit-scrollbar-thumb { background: #2a3b5c; border-radius: 2px; }
-
-        .history-ball { min-width: 32px; height: 22px; border-radius: 11px; background: #172138; border: 1px solid #2a3b5c; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #8c9cb6; padding: 0 4px; }
-        .history-ball.latest { background: #f39c12; color: #000; border-color: #fff; box-shadow: 0 0 4px #f39c12; }
-
-        /* Auto Play Toggle Bar */
-        .autoplay-bar { background: #172138; border: 1px solid #2a3b5c; border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: bold; flex-shrink: 0; }
-        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #2a3b5c; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #f39c12; }
-        input:checked + .slider:before { transform: translateX(16px); }
-
-        /* 2x2 Grid for Cartelas */
-        .cartelas-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .cartela-card { background: #172138; border: 1px solid #2a3b5c; border-radius: 8px; padding: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; flex-direction: column; justify-content: space-between; }
-        .cartela-header { text-align: center; font-size: 10px; font-weight: bold; color: #f39c12; border-bottom: 1px solid #2a3b5c; padding-bottom: 3px; margin-bottom: 4px; }
-
-        .bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: #2a3b5c; padding: 2px; border-radius: 4px; }
-        .cell { background: #0b0f19; aspect-ratio: 1.15; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 2px; color: #fff; cursor: pointer; }
-        .cell.head { background: #131b2e; color: #f39c12; font-size: 10px; cursor: default; }
-        .cell.marked { background: #f39c12; color: #000; box-shadow: 0 0 3px #f39c12; }
-        .cell.manual-marked { background: #27ae60; color: #fff; box-shadow: 0 0 3px #27ae60; }
-
-        .manual-bingo-btn { width: 100%; padding: 4px; background: #2a3b5c; color: #8c9cb6; border: none; border-radius: 4px; font-size: 9px; font-weight: bold; cursor: not-allowed; transition: 0.3s; margin-top: 4px; }
-        .manual-bingo-btn.ready { background: #f39c12; color: #000; cursor: pointer; box-shadow: 0 0 4px #f39c12; }
-        .manual-bingo-btn.hidden { display: none; }
-
-        /* Modal Popups */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal-content { background: #131b2e; border: 2px solid #f39c12; border-radius: 16px; padding: 25px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 0 20px rgba(243,156,12,0.5); }
-        .modal-title { font-size: 22px; font-weight: bold; color: #ffcc00; margin-bottom: 10px; }
-        .modal-text { font-size: 14px; color: #fff; margin-bottom: 15px; line-height: 1.5; }
-        .modal-timer { font-size: 13px; color: #8c9cb6; margin-top: 10px; }
-
-        /* Footer Navigation */
-        .footer { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #0d1322; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #2a3b5c; z-index: 1000; }
-        .nav-link { color: #8c9cb6; font-size: 10px; cursor: pointer; text-align: center; flex: 1; }
-        .nav-link.active { color: #ffcc00; }
-        .nav-link span { font-size: 15px; display: block; }
+        .dapped-mark {
+            position: relative;
+        }
+        .dapped-mark::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.95) 0%, rgba(139, 92, 246, 0.95) 100%);
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4), 0 0 10px rgba(236, 72, 153, 0.6);
+            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+        .dapped-mark .tile-text {
+            position: relative;
+            z-index: 20;
+            color: #ffffff !important;
+            font-weight: 900;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+        }
     </style>
 </head>
-<body>
+<body class="bg-mesh text-slate-100 min-h-screen font-sans flex flex-col justify-between pb-24 selection:bg-purple-500 selection:text-white antialiased">
 
-    <!-- Top Navigation Bar -->
-    <header class="top-bar">
-        <div class="brand-title">|Spark Bingo|</div>
-        <div class="user-badge">
-            <span id="userNameDisplay">Player</span>
-            <div class="user-avatar" id="userAvatarInitial">P</div>
+    <!-- TOP HEADER NAVBAR WITH USER PROFILE & DUAL BALANCES -->
+    <header class="w-full glass-panel border-b border-slate-800/80 sticky top-0 z-40 px-3 sm:px-4 py-2.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            
+            <!-- Brand & User Profile -->
+            <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchTab('profile')">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-pink-500 via-purple-600 to-blue-500 p-0.5 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-sm text-white">
+                        👤
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-xs sm:text-sm tracking-tight text-white leading-none">
+                        Abebe Kebede
+                    </h1>
+                    <p class="text-[9px] sm:text-[10px] text-purple-400 font-mono font-medium mt-0.5">@abebe_bingo</p>
+                </div>
+            </div>
+
+            <!-- DUAL BALANCES DISPLAY (Play & Main Balance) -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                
+                <!-- Play Balance Chip -->
+                <div onclick="switchTab('wallet')" class="bg-slate-900/90 hover:bg-slate-800 border border-blue-500/40 px-2.5 sm:px-3 py-1 rounded-xl flex items-center space-x-1.5 cursor-pointer transition shadow-inner">
+                    <i class="fa-solid fa-gamepad text-blue-400 text-[11px]"></i>
+                    <div class="text-left">
+                        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Play Bal</span>
+                        <span id="navPlayBalance" class="text-xs font-black text-blue-400 font-mono leading-none">500 ETB</span>
+                    </div>
+                </div>
+
+                <!-- Main Balance Chip -->
+                <div onclick="switchTab('wallet')" class="bg-slate-900/90 hover:bg-slate-800 border border-emerald-500/40 px-2.5 sm:px-3 py-1 rounded-xl flex items-center space-x-1.5 cursor-pointer transition shadow-inner">
+                    <i class="fa-solid fa-trophy text-amber-400 text-[11px]"></i>
+                    <div class="text-left">
+                        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Main Bal</span>
+                        <span id="navMainBalance" class="text-xs font-black text-emerald-400 font-mono leading-none">1,250 ETB</span>
+                    </div>
+                </div>
+
+                <!-- Sound Toggle -->
+                <button id="soundToggleBtn" onclick="toggleSound()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-center text-slate-300 hover:text-white transition hover:border-purple-500/50">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- Stats & Countdown / AutoPlay Panel -->
-    <div class="stats-box">
-        <div class="bal-row">
-            <span>PLAY BAL: <span class="bal-val" id="topPlayBal">0.00</span></span>
-            <span>MAIN BAL: <span class="bal-val" id="topMainBal">0.00</span></span>
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl w-full mx-auto p-3 sm:p-6 flex-grow flex flex-col justify-start">
+
+        <!-- ==================================================== -->
+        <!-- TAB 1: HOME PAGE (TICKET SELECTION & LIVE BINGO ROOM) -->
+        <!-- ==================================================== -->
+        <div id="tabHome" class="w-full space-y-5">
+
+            <!-- SUB-VIEW A: TICKET SELECTION GRID (1 - 500) -->
+            <section id="ticketSelectionSection" class="w-full space-y-5 animate-pop-in">
+                
+                <!-- Countdown Header Banner -->
+                <div class="glass-panel p-5 sm:p-8 rounded-3xl border border-slate-800 text-center relative overflow-hidden shadow-2xl max-w-4xl mx-auto">
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl"></div>
+
+                    <span class="inline-block px-3.5 py-1 bg-purple-500/10 text-purple-300 rounded-full text-xs font-bold mb-2.5 border border-purple-500/20">
+                        🎟️ 1 TICKET = 10 ETB (CHOOSE 1 TO 4 CARDS)
+                    </span>
+                    <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight">Select Bingo Cards</h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-1 max-w-lg mx-auto">
+                        Pick up to 4 tickets from 1 to 500. Deductions are made from your <b>Play Balance</b>[span_1](start_span)[span_1](end_span).
+                    </p>
+
+                    <!-- Timer & Action Button -->
+                    <div class="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
+                        <div class="flex items-center space-x-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-2xl shadow-inner">
+                            <i class="fa-regular fa-clock text-amber-400 text-base animate-spin"></i>
+                            <div class="text-left">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Round Starts In</span>
+                                <span id="countdownDisplay" class="font-mono font-black text-lg text-amber-400 leading-none">30s</span>
+                            </div>
+                        </div>
+
+                        <button id="joinMatchBtn" onclick="launchLiveRoomImmediately()" disabled 
+                            class="w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 opacity-50 cursor-not-allowed text-white font-extrabold rounded-2xl shadow-lg shadow-purple-600/30 transition transform active:scale-95 flex items-center justify-center space-x-2 text-xs sm:text-sm">
+                            <i class="fa-solid fa-play"></i>
+                            <span>JOIN LIVE GAME NOW</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Selected Tickets Summary Bar -->
+                <div id="selectionSummaryBar" class="max-w-4xl mx-auto glass-panel p-3.5 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Cards:</span>
+                        <div id="selectedBadgesContainer" class="flex flex-wrap gap-1.5">
+                            <span class="text-xs text-slate-500 italic">No tickets selected yet</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-400">
+                        Selected: <span id="selectedCountText" class="font-bold text-purple-400">0</span>/4 | Total Cost: <span id="totalCostText" class="font-bold text-blue-400 font-mono">0 ETB</span>
+                    </div>
+                </div>
+
+                <!-- Search & Quick Pick Tools -->
+                <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass text-slate-500 absolute left-3.5 top-3 text-xs"></i>
+                        <input type="number" id="ticketSearchInput" min="1" max="500" placeholder="Jump to ticket # (1-500)..." oninput="filterTickets()"
+                            class="w-full bg-slate-900/80 border border-slate-800 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500">
+                    </div>
+                    <button onclick="selectRandomTickets()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-bold text-purple-400 hover:text-purple-300 transition flex items-center space-x-1.5 shrink-0">
+                        <i class="fa-solid fa-shuffle text-xs"></i>
+                        <span>Quick Pick 4</span>
+                    </button>
+                </div>
+
+                <!-- 1 TO 500 TICKETS GRID -->
+                <div class="max-w-4xl mx-auto glass-panel p-3.5 rounded-3xl border border-slate-800/80">
+                    <div id="ticketsGrid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-1.5 max-h-[360px] overflow-y-auto pr-1.5">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- SUB-VIEW B: LIVE BINGO ROOM (WITH PRIZE POOL & 2x2 GRID) -->
+            <section id="liveBingoRoomSection" class="hidden w-full space-y-5 animate-pop-in">
+                
+                <!-- Top Info Bar: Draw Caller & Dynamic Winner Prize Pool -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    
+                    <!-- Call Display Ball & Recent Calls Tray -->
+                    <div class="lg:col-span-2 glass-panel p-4 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden shadow-xl">
+                        
+                        <div class="flex items-center space-x-3.5 w-full sm:w-auto justify-center sm:justify-start">
+                            <div id="currentCallBall" class="w-20 h-20 sm:w-22 sm:h-22 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-amber-500 p-1 flex items-center justify-center shadow-xl shadow-purple-500/30">
+                                <div class="w-full h-full bg-slate-950 rounded-full flex flex-col items-center justify-center text-center">
+                                    <span id="currentLetter" class="text-xs font-black text-purple-400 tracking-widest leading-none">READY</span>
+                                    <span id="currentNumber" class="text-2xl sm:text-3xl font-black text-white leading-none mt-0.5">--</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-[9px] uppercase font-extrabold tracking-widest text-slate-400 block">Current Draw</span>
+                                <h3 id="currentCallText" class="text-base sm:text-lg font-bold text-white">Starting Draw...</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Drawn: <span id="totalCalledCount" class="text-amber-400 font-bold">0</span> / 75</p>
+                            </div>
+                        </div>
+
+                        <!-- Recent Numbers Tray -->
+                        <div class="w-full sm:w-auto flex-1 max-w-xs">
+                            <span class="text-[9px] uppercase font-semibold text-slate-400 block mb-1 text-center sm:text-left">Recent Draws</span>
+                            <div id="recentCallsTray" class="flex items-center justify-center sm:justify-start space-x-1.5 overflow-x-auto py-1">
+                                <span class="text-xs text-slate-500 italic">No numbers called yet</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Prize Pool & Claim Box -->
+                    <div class="glass-panel p-4 rounded-3xl border border-slate-800 flex flex-col justify-between space-y-3 shadow-xl">
+                        
+                        <!-- Prize Pool Display -->
+                        <div class="bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-emerald-500/10 p-3 rounded-2xl border border-amber-500/30 flex items-center justify-between">
+                            <div>
+                                <span class="text-[9px] font-extrabold uppercase tracking-wider text-amber-400 block">Round Prize Pool (ደራሽ)[span_2](start_span)[span_2](end_span)</span>
+                                <span id="livePrizePoolText" class="text-xl font-black text-emerald-400 font-mono">1,800 ETB</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[9px] text-slate-400 block">Active Tickets</span>
+                                <span id="liveActiveTicketsCount" class="text-xs font-bold text-purple-300">90 Cards</span>
+                            </div>
+                        </div>
+
+                        <!-- Auto Select Toggle & Claim Button -->
+                        <div class="flex items-center justify-between space-x-2">
+                            <div class="flex items-center space-x-2">
+                                <i id="modeIcon" class="fa-solid fa-robot text-emerald-400 text-sm"></i>
+                                <div>
+                                    <span class="text-xs font-bold text-white block">Auto Select</span>
+                                    <span id="modeSubtext" class="text-[9px] text-slate-400 block">Auto-dabs numbers[span_3](start_span)[span_3](end_span)</span>
+                                </div>
+                            </div>
+
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="modeToggleCheckbox" checked onchange="toggleGameMode()" class="sr-only peer">
+                                <div class="w-10 h-5.5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+
+                        <!-- Claim Button -->
+                        <button id="claimBingoBtn" onclick="claimBingoManual()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 via-pink-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white font-black text-sm tracking-wider rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2 border border-amber-300/30">
+                            <i class="fa-solid fa-trophy text-amber-300"></i>
+                            <span>CLAIM BINGO!</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CARDS GRID CONTAINER: 2x2 SIDE-BY-SIDE GRID LAYOUT -->
+                <div id="liveCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <!-- Cards are populated side-by-side -->
+                </div>
+
+            </section>
+
         </div>
 
-        <!-- Home Page Countdown Row (Visible only on Home) -->
-        <div class="info-row" id="homeCountdownRow">
-            <div class="info-card">
-                <div class="info-label">ጨዋታው ሊጀምር ነው</div>
-                <div class="info-value" id="countdownTimer">00:00</div>
+
+        <!-- ==================================================== -->
+        <!-- TAB 2: LEADERBOARD PAGE                              -->
+        <!-- ==================================================== -->
+        <div id="tabLeaderboard" class="hidden w-full max-w-4xl mx-auto space-y-5 animate-pop-in">
+            
+            <!-- Leaderboard Header & Timeframe Switchers -->
+            <div class="glass-panel p-5 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-black text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-trophy text-amber-400"></i>
+                        <span>ቶፕ ሊደርቦርድ (Top Leaderboard)</span>
+                    </h2>
+                    <p class="text-slate-400 text-xs mt-0.5">የከፍተኛ ተጫዋቾች፣ አሸናፊዎች እና ጋባዦች ደረጃ ማውጫ</p>
+                </div>
+
+                <!-- Daily vs Weekly Toggle -->
+                <div class="bg-slate-900 p-1 rounded-2xl border border-slate-800 flex items-center space-x-1">
+                    <button id="tfDailyBtn" onclick="setTimeframe('daily')" class="px-4 py-1.5 rounded-xl text-xs font-bold transition bg-purple-600 text-white shadow-md">
+                        የዛሬ (Daily)
+                    </button>
+                    <button id="tfWeeklyBtn" onclick="setTimeframe('weekly')" class="px-4 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white">
+                        የዚህ ሳምንት (Weekly)
+                    </button>
+                </div>
             </div>
-            <div class="info-card">
-                <div class="info-label">ድል አድራጊ ሽልማት</div>
-                <div class="info-value" id="prizePoolDisplay">0.00 ETB</div>
+
+            <!-- Leaderboard Category Sub-Tabs -->
+            <div class="flex items-center justify-center space-x-2 bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800/80">
+                <button id="lbPlayersBtn" onclick="setLeaderboardCategory('players')" class="flex-1 py-2 rounded-xl text-xs font-extrabold transition bg-purple-600/30 border border-purple-500/50 text-white shadow-sm flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-gamepad text-purple-400"></i>
+                    <span>🎮 ቶፕ ተጫዋቾች</span>
+                </button>
+                <button id="lbWinnersBtn" onclick="setLeaderboardCategory('winners')" class="flex-1 py-2 rounded-xl text-xs font-extrabold transition text-slate-400 hover:text-white flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-crown text-amber-400"></i>
+                    <span>🏆 ቶፕ አሸናፊዎች</span>
+                </button>
+                <button id="lbInvitersBtn" onclick="setLeaderboardCategory('inviters')" class="flex-1 py-2 rounded-xl text-xs font-extrabold transition text-slate-400 hover:text-white flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-users text-blue-400"></i>
+                    <span>👥 ቶፕ ጋባዦች</span>
+                </button>
             </div>
+
+            <!-- TOP 3 PODIUM DISPLAY -->
+            <div id="podiumContainer" class="grid grid-cols-3 gap-2 sm:gap-4 items-end pt-4">
+                <!-- Dynamic Top 3 Podiums rendered here -->
+            </div>
+
+            <!-- RANKINGS LIST -->
+            <div class="glass-panel p-4 rounded-3xl border border-slate-800 shadow-xl space-y-2">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider px-3 pb-1 border-b border-slate-800">
+                    <span>ተጫዋች (Player)</span>
+                    <span id="lbMetricColumnHeader">የተጫወቱት ብዛት / አሸናፊነት</span>
+                </div>
+
+                <div id="rankingsListContainer" class="space-y-1.5">
+                    <!-- Dynamic user list items rendered here -->
+                </div>
+            </div>
+
+            <!-- CURRENT USER PERSONAL RANK HIGHLIGHT CARD -->
+            <div class="glass-panel p-3.5 rounded-2xl border border-purple-500/40 bg-purple-900/10 flex items-center justify-between shadow-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-xl bg-purple-600/30 border border-purple-500/50 flex items-center justify-center font-bold text-xs text-purple-300">
+                        #14
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-white block">የእርስዎ ደረጃ (Your Rank)</span>
+                        <span id="userPersonalRankSub" class="text-[10px] text-slate-400">Abebe Kebede • @abebe_bingo</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span id="userPersonalRankMetric" class="text-xs font-mono font-black text-purple-300 block">42 Games</span>
+                    <span class="text-[9px] text-emerald-400">Active Competitor</span>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Live Room Auto Play Mode Bar -->
-        <div class="autoplay-bar" id="liveAutoPlayBar" style="display: none;">
-            <span>Auto Play Mode (አውቶማቲክ ምልክት)</span>
-            <label class="switch">
-                <input type="checkbox" id="autoPlayToggle" checked onchange="handleAutoPlayToggleChange()">
-                <span class="slider"></span>
-            </label>
+
+        <!-- ==================================================== -->
+        <!-- TAB 3: WALLET PAGE                                   -->
+        <!-- ==================================================== -->
+        <div id="tabWallet" class="hidden w-full max-w-4xl mx-auto space-y-5 animate-pop-in">
+            
+            <!-- Dual Balance Cards Header -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                <!-- Play Balance Card -->
+                <div class="glass-panel p-5 rounded-3xl border border-blue-500/30 relative overflow-hidden shadow-xl">
+                    <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl"></div>
+                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-1">Play Balance (ለጨዋታ መቁረጫ)[span_4](start_span)[span_4](end_span)</span>
+                    <h2 id="walletPlayBalanceMain" class="text-3xl font-black text-blue-400 font-mono tracking-tight">500.00 ETB</h2>
+                    <p class="text-[11px] text-slate-400 mt-1">Used exclusively to buy Bingo cards[span_5](start_span)[span_5](end_span).</p>
+                    <button onclick="openDepositModal('Play')" class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Top Up Play Balance</span>
+                    </button>
+                </div>
+
+                <!-- Main Balance Card -->
+                <div class="glass-panel p-5 rounded-3xl border border-emerald-500/30 relative overflow-hidden shadow-xl">
+                    <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">Main Balance (አሸናፊነት/ወጪ የሚደረግ)[span_6](start_span)[span_6](end_span)</span>
+                    <h2 id="walletMainBalanceMain" class="text-3xl font-black text-emerald-400 font-mono tracking-tight">1,250.00 ETB</h2>
+                    <p class="text-[11px] text-slate-400 mt-1">Winning prize earnings deposited here[span_7](start_span)[span_7](end_span).</p>
+                    <div class="mt-4 flex items-center space-x-2">
+                        <button onclick="openDepositModal('Main')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            <span>Deposit</span>
+                        </button>
+                        <button onclick="openWithdrawModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            <span>Withdraw</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PAYMENT METHODS BANNER -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div class="glass-panel p-3 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center space-y-1">
+                    <i class="fa-solid fa-mobile-screen-button text-blue-400 text-lg"></i>
+                    <span class="text-xs font-bold text-white">Telebirr</span>
+                    <span class="text-[9px] text-emerald-400 font-medium">Instant</span>
+                </div>
+                <div class="glass-panel p-3 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center space-y-1">
+                    <i class="fa-solid fa-building-columns text-purple-400 text-lg"></i>
+                    <span class="text-xs font-bold text-white">CBE Birr</span>
+                    <span class="text-[9px] text-emerald-400 font-medium">Instant</span>
+                </div>
+                <div class="glass-panel p-3 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center space-y-1">
+                    <i class="fa-solid fa-credit-card text-pink-400 text-lg"></i>
+                    <span class="text-xs font-bold text-white">Chapa</span>
+                    <span class="text-[9px] text-emerald-400 font-medium">Cards & Wallet</span>
+                </div>
+                <div class="glass-panel p-3 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center space-y-1">
+                    <i class="fa-solid fa-money-bill-transfer text-amber-400 text-lg"></i>
+                    <span class="text-xs font-bold text-white">Bank Transfer</span>
+                    <span class="text-[9px] text-slate-400 font-medium">Manual Check</span>
+                </div>
+            </div>
+
+            <!-- TRANSACTION HISTORY TABLE -->
+            <div class="glass-panel p-5 rounded-3xl border border-slate-800 shadow-xl space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm sm:text-base font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-list-check text-purple-400"></i>
+                        <span>Recent Wallet Transactions</span>
+                    </h3>
+                    <span class="text-xs text-slate-500">Last Records</span>
+                </div>
+
+                <div id="transactionHistoryList" class="space-y-2">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================== -->
+        <!-- TAB 4: PROFILE & AFFILIATE PROGRAM PAGE              -->
+        <!-- ==================================================== -->
+        <div id="tabProfile" class="hidden w-full max-w-4xl mx-auto space-y-5 animate-pop-in">
+            
+            <!-- Profile Card Header -->
+            <div class="glass-panel p-5 rounded-3xl border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-amber-500 p-1 shrink-0 shadow-lg shadow-purple-500/20">
+                    <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-2xl font-black text-white">
+                        👤
+                    </div>
+                </div>
+
+                <div class="flex-1">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
+                        <div>
+                            <h2 id="profileName" class="text-lg sm:text-xl font-black text-white">Abebe Kebede</h2>
+                            <p id="profileHandle" class="text-xs text-purple-400 font-mono">@abebe_bingo • ID: #84920</p>
+                        </div>
+                        <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-[10px] font-bold">
+                            VERIFIED PLAYER
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Member since Oct 2024 • Phone: +251 91 **** 789</p>
+                </div>
+            </div>
+
+            <!-- PROMO / COUPON CODE CLAIM BOX -->
+            <div class="glass-panel p-5 rounded-3xl border border-amber-500/30 bg-gradient-to-r from-amber-500/5 via-purple-500/5 to-pink-500/5 shadow-xl space-y-3">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-ticket text-amber-400 text-lg"></i>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-white">የኩፖን/ፕሮሞ ኮድ ማስገቢያ (Claim Coupon Code)[span_8](start_span)[span_8](end_span)</h3>
+                        <p class="text-[10px] text-slate-400">ከቴሌግራም ቻናላችን ያገኙትን የቦነስ ኮድ በማስገባት ተጨማሪ የጨዋታ ባላንስ ያግኙ[span_9](start_span)[span_9](end_span)!</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="promoCodeInput" placeholder="Enter coupon code (e.g. BINGO2026)..." uppercase 
+                        class="flex-1 bg-slate-900 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-white uppercase font-mono font-bold placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                    <button onclick="claimPromoCode()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition transform active:scale-95 shrink-0">
+                        CLAIM BONUS
+                    </button>
+                </div>
+                <p class="text-[9px] text-purple-300">💡 Available sample codes: <code class="font-bold text-amber-400">BINGO2026</code>, <code class="font-bold text-amber-400">BONUS100</code>, <code class="font-bold text-amber-400">TELEGRAM50</code>[span_10](start_span)[span_10](end_span)</p>
+            </div>
+
+            <!-- AFFILIATE PROGRAM SECTION -->
+            <div class="glass-panel p-5 rounded-3xl border border-slate-800 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                    <div>
+                        <span class="text-[9px] font-extrabold uppercase tracking-widest text-emerald-400 block">10% Instant Commission[span_11](start_span)[span_11](end_span)</span>
+                        <h3 class="text-base font-black text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-handshake-angle text-emerald-400"></i>
+                            <span>የአፊሌት ፕሮግራም (Affiliate Program)[span_12](start_span)[span_12](end_span)</span>
+                        </h3>
+                    </div>
+                    <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-[10px] font-bold">
+                        10% Referral Earnings[span_13](start_span)[span_13](end_span)
+                    </span>
+                </div>
+
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    ሰዎችን በመጋበዝ በሚያስገቡት (Deposit) ገንዘብ ላይ <b>10% ኮሚሽን</b> ያግኙ! የኮሚሽን አበልዎ ወዲያውኑ ወደ <b>Main Balance</b> የሚገባ ሲሆን ወዲያውኑ ማውጣት (Withdraw) ማድረግ ይችላሉ[span_14](start_span)[span_14](end_span)።
+                </p>
+
+                <!-- Custom Promo Code Creator Tool -->
+                <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-3">
+                    <label class="text-xs font-bold text-white block">የራስዎን የመጋበዣ ፕሮሞ ኮድ ይፍጠሩ (Custom Promo Code)[span_15](start_span)[span_15](end_span)</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="customPromoInput" placeholder="BINGO-NATI" value="BINGO-NATI" 
+                            class="flex-1 bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-xs text-purple-300 font-mono font-bold focus:outline-none focus:border-purple-500">
+                        <button onclick="saveCustomPromoCode()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-md transition shrink-0">
+                            Save Code
+                        </button>
+                    </div>
+
+                    <!-- Personal Invitation Link -->
+                    <div class="pt-2">
+                        <span class="text-[10px] text-slate-400 block mb-1">Your Personal Invitation Link:</span>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="invitationLinkInput" readonly value="https://ethiobingo.app/join?ref=BINGO-NATI" 
+                                class="flex-1 bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[11px] text-slate-300 font-mono focus:outline-none">
+                            <button onclick="copyInviteLink()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition flex items-center space-x-1 shrink-0">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>Copy</span>
+                            </button>
+                            <button onclick="shareToTelegram()" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition flex items-center space-x-1 shrink-0">
+                                <i class="fa-brands fa-telegram"></i>
+                                <span>Share</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Affiliate Analytics Stats -->
+                <div class="grid grid-cols-3 gap-2.5 pt-1">
+                    <div class="bg-slate-900/60 p-3 rounded-2xl border border-slate-800 text-center">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Invited</span>
+                        <span id="statTotalInvited" class="text-lg font-black text-white font-mono mt-0.5 block">18 Players</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-2xl border border-slate-800 text-center">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Deposits</span>
+                        <span id="statInvitedDeposits" class="text-lg font-black text-purple-300 font-mono mt-0.5 block">14,200 ETB</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-2xl border border-slate-800 text-center">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">10% Earned</span>
+                        <span id="statEarnedCommission" class="text-lg font-black text-emerald-400 font-mono mt-0.5 block">1,420 ETB</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PLAYER STATS DASHBOARD -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="glass-panel p-3.5 rounded-2xl border border-slate-800 text-center">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Played</span>
+                    <span id="statTotalGames" class="text-xl font-black text-white font-mono mt-0.5 block">42</span>
+                </div>
+                <div class="glass-panel p-3.5 rounded-2xl border border-slate-800 text-center">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Wins</span>
+                    <span id="statTotalWins" class="text-xl font-black text-emerald-400 font-mono mt-0.5 block">12</span>
+                </div>
+                <div class="glass-panel p-3.5 rounded-2xl border border-slate-800 text-center">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Win Rate</span>
+                    <span id="statWinRate" class="text-xl font-black text-purple-400 font-mono mt-0.5 block">28.5%</span>
+                </div>
+                <div class="glass-panel p-3.5 rounded-2xl border border-slate-800 text-center">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Won</span>
+                    <span id="statTotalWon" class="text-xl font-black text-amber-400 font-mono mt-0.5 block">3,400 ETB</span>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- ========================================== -->
+    <!-- BOTTOM NAVIGATION BAR                      -->
+    <!-- ========================================== -->
+    <nav class="fixed bottom-0 inset-x-0 glass-panel border-t border-slate-800/80 z-40 px-4 py-2">
+        <div class="max-w-md mx-auto flex items-center justify-around">
+            <button id="navHomeBtn" onclick="switchTab('home')" class="flex flex-col items-center space-y-1 text-purple-400 transition">
+                <i class="fa-solid fa-house text-base"></i>
+                <span class="text-[10px] font-bold">Home</span>
+            </button>
+            <button id="navLeaderboardBtn" onclick="switchTab('leaderboard')" class="flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition">
+                <i class="fa-solid fa-trophy text-base"></i>
+                <span class="text-[10px] font-bold">Leaderboard</span>
+            </button>
+            <button id="navWalletBtn" onclick="switchTab('wallet')" class="flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition">
+                <i class="fa-solid fa-wallet text-base"></i>
+                <span class="text-[10px] font-bold">Wallet</span>
+            </button>
+            <button id="navProfileBtn" onclick="switchTab('profile')" class="flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition">
+                <i class="fa-solid fa-user text-base"></i>
+                <span class="text-[10px] font-bold">Profile</span>
+            </button>
+        </div>
+    </nav>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL 1: BINGO VICTORY CELEBRATION         -->
+    <!-- ========================================== -->
+    <div id="victoryModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-amber-500/40 text-center shadow-2xl relative animate-pop-in">
+            <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 via-pink-500 to-purple-600 rounded-full mx-auto flex items-center justify-center text-3xl text-white shadow-xl shadow-amber-500/30 mb-3 animate-bounce">
+                🏆
+            </div>
+            <h3 class="text-2xl font-black text-white mb-1 tracking-tight">BINGO WINNER!</h3>
+            <p id="victoryMessage" class="text-slate-300 text-xs mb-4">Congratulations! Completed pattern verified!</p>
+
+            <div class="bg-slate-900/80 p-3.5 rounded-2xl border border-slate-800 mb-5 text-left space-y-2 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Winning Ticket:</span>
+                    <span id="winningTicketNum" class="font-bold text-amber-400">Ticket #--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Winning Line:</span>
+                    <span id="winningPatternText" class="font-bold text-purple-300">Horizontal Row</span>
+                </div>
+                <div class="flex justify-between border-t border-slate-800 pt-2">
+                    <span class="text-slate-400">Prize Added To Main Balance[span_16](start_span)[span_16](end_span):</span>
+                    <span id="winningPrizeText" class="font-mono font-black text-emerald-400">+1,800 ETB</span>
+                </div>
+            </div>
+            
+            <button onclick="resetToHome()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 text-white font-extrabold text-xs rounded-xl shadow-lg transition transform active:scale-95">
+                PLAY AGAIN / SELECT NEW CARDS
+            </button>
         </div>
     </div>
 
-    <!-- 1. HOME / CARTELA SELECTION PAGE -->
-    <div id="homePage" class="container active">
-        <div class="card" style="background: #172138; border: 1px solid #2a3b5c; border-radius: 12px; padding: 12px; text-align: left;">
-            <div class="selection-header">
-                <span>ካርቴላ ይምረጡ (ከ 1 እስከ 400)</span>
-                <span id="selectedCount">መረጡ: 0 / 4</span>
-            </div>
-            <p style="font-size: 11px; color: #8c9cb6; margin-bottom: 8px;">ከ 1 እስከ 4 ካርቴላዎች መምረጥ ይችላሉ። (ሰዓቱ ሲያልቅ በራሱ ወደ Live Room ይገባል)</p>
 
-            <div class="cartela-picker-grid" id="pickerGrid"></div>
-        </div>
-    </div>
-
-    <!-- 2. WALLET PAGE -->
-    <div id="walletPage" class="container">
-        <div style="background: #172138; border: 1px solid #2a3b5c; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-            <div style="font-size: 13px; font-weight: bold; color: #f39c12; text-align: center; margin-bottom: 2px;">💳 የኪስ ቦርሳ (Wallet)</div>
-
-            <!-- Balances Box -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <div style="background: #0b0f19; padding: 8px; border-radius: 8px; text-align: center; border: 1px solid #2a3b5c;">
-                    <div style="font-size: 9px; color: #8c9cb6;">PLAY BALANCE</div>
-                    <div style="font-size: 13px; font-weight: bold; color: #f39c12;" id="walletPlayBal">0.00 ETB</div>
-                </div>
-                <div style="background: #0b0f19; padding: 8px; border-radius: 8px; text-align: center; border: 1px solid #2a3b5c;">
-                    <div style="font-size: 9px; color: #8c9cb6;">MAIN BALANCE</div>
-                    <div style="font-size: 13px; font-weight: bold; color: #27ae60;" id="walletMainBal">0.00 ETB</div>
-                </div>
+    <!-- ========================================== -->
+    <!-- MODAL 2: DEPOSIT FUNDS MODAL               -->
+    <!-- ========================================== -->
+    <div id="depositModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-md w-full p-5 rounded-3xl border border-slate-800 shadow-2xl relative animate-pop-in space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
+                <h3 class="font-extrabold text-white text-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-plus-circle text-emerald-400"></i>
+                    <span id="depositTargetTitle">Deposit Funds</span>
+                </h3>
+                <button onclick="closeDepositModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <!-- Deposit / Withdraw Mode Switch Buttons -->
-            <div style="display: flex; gap: 6px; margin-top: 2px;">
-                <button onclick="switchWalletTab('deposit')" id="depTabBtn" style="flex:1; padding:6px; background:#f39c12; color:#000; border:none; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">ዲፖዚት (Deposit)</button>
-                <button onclick="switchWalletTab('withdraw')" id="withTabBtn" style="flex:1; padding:6px; background:#0b0f19; color:#8c9cb6; border:1px solid #2a3b5c; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">ዊዝድሮው (Withdraw)</button>
-            </div>
-
-            <!-- Deposit Section -->
-            <div id="depositSection" style="display: flex; flex-direction: column; gap: 8px;">
-                <div style="background: #0b0f19; padding: 8px; border-radius: 6px; border: 1px solid #2a3b5c; font-size: 10px; line-height: 1.4; color: #8c9cb6;">
-                    ℹ️ <b>ዲፖዚት ለማድረግ:</b> ከ 100 ብር ጀምሮ ይቻላል።<br>
-                    የቴሌብር አካውንት: <b style="color:#ffcc00;">0949196145</b> (Natnael Girma)<br>
-                    ገንዘቡን ከላኩ በኋላ የክፍያ ማረጋገጫ (Transaction ID) ከታች አስገብተው ይላኩ።
-                </div>
+            <div class="space-y-2.5 text-xs">
                 <div>
-                    <label style="font-size: 10px; color: #8c9cb6; display: block; margin-bottom: 2px;">የብር መጠን (ቢያንስ 100 ETB)</label>
-                    <input type="number" id="depositAmount" placeholder="100" style="width: 100%; padding: 6px; background: #0b0f19; border: 1px solid #2a3b5c; border-radius: 4px; color: #fff; font-size: 11px;">
-                </div>
-                <div>
-                    <label style="font-size: 10px; color: #8c9cb6; display: block; margin-bottom: 2px;">Transaction ID (የክፍያ ማረጋገጫ ቁጥር)</label>
-                    <input type="text" id="depositTxId" placeholder="ለምሳሌ: FT23..." style="width: 100%; padding: 6px; background: #0b0f19; border: 1px solid #2a3b5c; border-radius: 4px; color: #fff; font-size: 11px;">
-                </div>
-                <button onclick="submitDeposit()" style="width: 100%; padding: 8px; background: #f39c12; color: #000; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 2px;">ዲፖዚት ጥያቄ ወደ አድሚን ቦት ላክ</button>
-            </div>
-
-            <!-- Withdraw Section -->
-            <div id="withdrawSection" style="display: none; flex-direction: column; gap: 8px;">
-                <div style="background: #0b0f19; padding: 8px; border-radius: 6px; border: 1px solid #2a3b5c; font-size: 10px; line-height: 1.4; color: #8c9cb6;">
-                    ℹ️ <b>ዊዝድሮው ለማድረግ:</b> ከ 300 ብር ጀምሮ ማውጣት ይቻላል። እባክዎ ትክክለኛ የባንክ ወይም የቴሌብር መረጃ ያስገቡ።
-                </div>
-                <div>
-                    <label style="font-size: 10px; color: #8c9cb6; display: block; margin-bottom: 2px;">የብር መጠን (ቢያንስ 300 ETB)</label>
-                    <input type="number" id="withdrawAmount" placeholder="300" style="width: 100%; padding: 6px; background: #0b0f19; border: 1px solid #2a3b5c; border-radius: 4px; color: #fff; font-size: 11px;">
-                </div>
-                <div>
-                    <label style="font-size: 10px; color: #8c9cb6; display: block; margin-bottom: 2px;">የባንክ / የክፍያ ዓይነት</label>
-                    <select id="withdrawBankType" style="width: 100%; padding: 6px; background: #0b0f19; border: 1px solid #2a3b5c; border-radius: 4px; color: #fff; font-size: 11px;">
-                        <option value="Telebirr">Telebirr</option>
-                        <option value="CBE">CBE (የኢትዮጵያ ንግድ ባንክ)</option>
+                    <label class="font-bold text-slate-300 block mb-1">Target Balance</label>
+                    <select id="depositTargetBalance" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-white focus:outline-none focus:border-purple-500">
+                        <option value="Play">Play Balance (For Card Buying)[span_17](start_span)[span_17](end_span)</option>
+                        <option value="Main">Main Balance (For Winnings/Withdrawals)[span_18](start_span)[span_18](end_span)</option>
                     </select>
                 </div>
+
                 <div>
-                    <label style="font-size: 10px; color: #8c9cb6; display: block; margin-bottom: 2px;">የባንክ / የቴሌብር አካውንት ቁጥር እና ስም</label>
-                    <input type="text" id="withdrawAccountInfo" placeholder="ቁጥር እና ሙሉ ስም ያስገቡ" style="width: 100%; padding: 6px; background: #0b0f19; border: 1px solid #2a3b5c; border-radius: 4px; color: #fff; font-size: 11px;">
+                    <label class="font-bold text-slate-300 block mb-1">Provider</label>
+                    <select id="depositProvider" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-white focus:outline-none focus:border-purple-500">
+                        <option value="Telebirr">Telebirr App</option>
+                        <option value="CBE Birr">CBE Birr</option>
+                        <option value="Chapa">Chapa Payment Gateway</option>
+                    </select>
                 </div>
-                <button onclick="submitWithdraw()" style="width: 100%; padding: 8px; background: #27ae60; color: #fff; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 2px;">የብር ውጣ ጥያቄ (Withdraw) ላክ</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- 3. PROFILE PAGE -->
-    <div id="profilePage" class="container">
-        <div style="background: #172138; border: 1px solid #2a3b5c; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-            <!-- User Header info -->
-            <div style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2a3b5c; padding-bottom: 8px;">
-                <div style="width: 44px; height: 44px; background: #f39c12; color: #000; font-size: 18px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" id="profileAvatarInitial">P</div>
-                <div style="overflow: hidden;">
-                    <div style="font-size: 13px; font-weight: bold; color: #fff;" id="profileNameDisplay">Player</div>
-                    <div style="font-size: 10px; color: #8c9cb6;">አባልነት: <span style="color: #ffcc00;">VIP ተጫዋች</span></div>
-                </div>
-            </div>
-
-            <!-- Gambling Stats Grid -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-                <div style="background: #0b0f19; padding: 6px; border-radius: 6px; text-align: center; border: 1px solid #2a3b5c;">
-                    <div style="font-size: 9px; color: #8c9cb6;">ጠቅላላ ጨዋታ</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #fff; margin-top: 2px;" id="totalGamesPlayed">0</div>
-                </div>
-                <div style="background: #0b0f19; padding: 6px; border-radius: 6px; text-align: center; border: 1px solid #2a3b5c;">
-                    <div style="font-size: 9px; color: #8c9cb6;">ያሸነፈባቸው</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #27ae60; margin-top: 2px;" id="totalWinningsCount">0</div>
-                </div>
-                <div style="background: #0b0f19; padding: 6px; border-radius: 6px; text-align: center; border: 1px solid #2a3b5c;">
-                    <div style="font-size: 9px; color: #8c9cb6;">አጠቃላይ ትርፍ</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #f39c12; margin-top: 2px;" id="totalWinningsAmount">0.00 Br</div>
-                </div>
-            </div>
-
-            <!-- Extra Player Info -->
-            <div style="background: #0b0f19; padding: 8px; border-radius: 6px; border: 1px solid #2a3b5c; font-size: 10px; display: flex; flex-direction: column; gap: 4px;">
-                <div style="display: flex; justify-content: space-between;"><span>የተመዘገበበት ቦታ:</span> <b style="color: #fff;">ኢትዮጵያ</b></div>
-                <div style="display: flex; justify-content: space-between;"><span>የመጨረሻ ጨዋታ:</span> <b style="color: #f39c12;">ዛሬ (Live Room)</b></div>
-            </div>
-
-            <!-- Invite / Referral Section -->
-            <div style="background: #0b0f19; padding: 8px; border-radius: 6px; border: 1px solid #2a3b5c; display: flex; flex-direction: column; gap: 6px;">
-                <div style="font-size: 11px; font-weight: bold; color: #ffcc00; display: flex; align-items: center; gap: 4px;">
-                    <span>👥</span> ጓደኛን ጋብዝ (Invite & Earn)
-                </div>
-                <div style="font-size: 9px; color: #8c9cb6; line-height: 1.3;">
-                    ሊንኩን ለጓደኛዎ በማጋራት ሲመዘገቡ ቦነስ ያግኙ!
-                </div>
-                <div style="display: flex; gap: 4px;">
-                    <input type="text" id="inviteLinkInput" value="https://t.me/SparkBingoBot?start=ref_894210" readonly style="flex: 1; padding: 5px; background: #131b2e; border: 1px solid #2a3b5c; border-radius: 4px; color: #ffcc00; font-size: 10px;">
-                    <button onclick="copyInviteLink()" style="padding: 5px 10px; background: #f39c12; color: #000; border: none; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer;">ቅዳ (Copy)</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. LIVE BINGO ROOM PAGE -->
-    <div id="livePage" class="container">
-        <div class="live-top-panel">
-            <div class="live-header-row">
                 <div>
-                    <div style="font-size: 9px; color: #8c9cb6;" id="roundLabel">Round: #1</div>
-                    <div style="font-size: 11px; font-weight: bold; margin-top: 1px;">ካርቴላዎች: <span id="cartelaCountBadge" style="color: #ffcc00;">0</span></div>
-                </div>
-                <div class="main-ball-box" id="currentBallDisplay">--</div>
-                <div style="text-align: right;">
-                    <div style="font-size: 9px; color: #8c9cb6;">የወጡ ቁጥሮች</div>
-                    <div style="font-size: 11px; font-weight: bold; color: #ffcc00;" id="countDisplay">0/75</div>
+                    <label class="font-bold text-slate-300 block mb-1">Amount (ETB)</label>
+                    <input type="number" id="depositAmount" min="50" value="200" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-white font-mono font-bold focus:outline-none focus:border-purple-500">
                 </div>
             </div>
-            <!-- Called Numbers History -->
-            <div class="called-history-container" id="calledHistoryContainer">
-                <span style="font-size: 9px; color: #8c9cb6;">የወጡ: </span>
+
+            <button onclick="processDeposit()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition transform active:scale-95">
+                Confirm & Pay
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL 3: WITHDRAW FUNDS MODAL              -->
+    <!-- ========================================== -->
+    <div id="withdrawModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-md w-full p-5 rounded-3xl border border-slate-800 shadow-2xl relative animate-pop-in space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
+                <h3 class="font-extrabold text-white text-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-purple-400"></i>
+                    <span>Withdraw From Main Balance[span_19](start_span)[span_19](end_span)</span>
+                </h3>
+                <button onclick="closeWithdrawModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
+
+            <div class="space-y-2.5 text-xs">
+                <div>
+                    <label class="font-bold text-slate-300 block mb-1">Withdraw To</label>
+                    <select id="withdrawProvider" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-white focus:outline-none">
+                        <option value="Telebirr">Telebirr Mobile Account</option>
+                        <option value="CBE Bank">Commercial Bank of Ethiopia (CBE)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-300 block mb-1">Account Number / Phone</label>
+                    <input type="text" id="withdrawAccount" placeholder="0911******" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-white focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-300 block mb-1">Amount (ETB)</label>
+                    <input type="number" id="withdrawAmount" min="100" value="200" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-white font-mono font-bold focus:outline-none">
+                </div>
+            </div>
+
+            <button onclick="processWithdraw()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition transform active:scale-95">
+                Submit Withdrawal Request
+            </button>
         </div>
-
-        <!-- Selected Cartela Box -->
-        <div class="cartelas-container" id="liveCartelasContainer"></div>
     </div>
 
-    <!-- Winner Modal Popup -->
-    <div class="modal-overlay" id="winnerModal">
-        <div class="modal-content">
-            <div class="modal-title">🎉 ቢንጎ (BINGO)! 🎉</div>
-            <div class="modal-text" id="winnerDetailsText">አሸናፊ: Player<br>ካርቴላ ቁጥር: #54</div>
-            <div class="modal-timer">ወደ መነሻ በ ( <span id="redirectTimer">3</span> ) ሰከንድ ይመለሳል...</div>
-        </div>
-    </div>
 
-    <!-- Wait For Next Game Modal Popup -->
-    <div class="modal-overlay" id="waitModal">
-        <div class="modal-content">
-            <div class="modal-title" style="color: #f39c12;">⏳ እባክዎ ይጠብቁ</div>
-            <div class="modal-text">ካርቴላ ስላልመረጡ ጨዋታውን ማስተናገድ አልተቻለም።<br><br><b>Please wait for the next game!</b></div>
-            <div class="modal-timer" id="waitStatusText">የአሁኑ ጨዋታ እስኪጠናቀቅ በመጠበቅ ላይ...</div>
-        </div>
-    </div>
-
-    <!-- Footer Navigation -->
-    <div class="footer">
-        <div class="nav-link active" onclick="switchTab('homePage', this)"><span>🎲</span>መነሻ</div>
-        <div class="nav-link" onclick="switchTab('walletPage', this)"><span>💳</span>ዎሌት</div>
-        <div class="nav-link" onclick="switchTab('profilePage', this)"><span>👤</span>ፕሮፋይል</div>
-    </div>
-
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT GAME ENGINE & STATE MANAGEMENT  -->
+    <!-- ========================================== -->
     <script>
-        let userId = "test_user"; // ከቴሌግራም ወይም ከሲስተም የሚመጣ ዩዘር ID
-        let currentUserName = "Player";
-        let userCartelasMap = {};
-        let manualMarkedMap = {};
-
-        // 1. የተጠቃሚውን መረጃ ከሰርቨር ማምጣት (ስም፣ ባላንስ፣ ወዘተ)
-        function fetchUserData() {
-            fetch(`/api/user-data?userId=${userId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if(data.status === "success") {
-                        let name = data.first_name || data.name || "Player";
-                        currentUserName = name;
-                        
-                        // ስሙን ከሰርቨር ጋር አቆራኝቶ ማሳየት
-                        document.getElementById('userNameDisplay').innerText = name;
-                        document.getElementById('userAvatarInitial').innerText = name.charAt(0).toUpperCase();
-                        document.getElementById('profileNameDisplay').innerText = name;
-                        document.getElementById('profileAvatarInitial').innerText = name.charAt(0).toUpperCase();
-
-                        // ባላንስ ማሳየት (PLAY BAL 20.00, MAIN BAL ከዊን በኋላ የሚጨምር)
-                        let playBal = data.balance !== undefined ? parseFloat(data.balance).toFixed(2) : "20.00";
-                        let mainBal = data.main_balance !== undefined ? parseFloat(data.main_balance).toFixed(2) : "0.00";
-
-                        document.getElementById('topPlayBal').innerText = playBal;
-                        document.getElementById('walletPlayBal').innerText = playBal + " ETB";
-                        document.getElementById('topMainBal').innerText = mainBal;
-                        document.getElementById('walletMainBal').innerText = mainBal + " ETB";
-
-                        // ፕሮፋይል ስታቲስቲክስ
-                        document.getElementById('totalGamesPlayed').innerText = data.total_games_played || 0;
-                        document.getElementById('totalWinningsCount').innerText = data.total_winnings_count || 0;
-                        document.getElementById('totalWinningsAmount').innerText = (data.total_winnings || 0).toFixed(2) + " Br";
-                    }
-                })
-                .catch(err => console.log('User data fetch error:', err));
-        }
-
-        fetchUserData();
-        setInterval(fetchUserData, 5000);
-
-        function generateUniqueCartela(cartelaId) {
-            function getUniqueNums(min, max, count) {
-                let arr = [];
-                let seed = cartelaId * 17;
-                while(arr.length < count) {
-                    let num = ((seed + arr.length * 31) % (max - min + 1)) + min;
-                    if(!arr.includes(num)) {
-                        arr.push(num);
-                    }
+        let state = {
+            activeTab: 'home',
+            playBalance: 500,          // Play Balance for tickets[span_20](start_span)[span_20](end_span)
+            mainBalance: 1250,         // Main Balance for winnings[span_21](start_span)[span_21](end_span)
+            selectedTickets: [],       // Max 4 cards[span_22](start_span)[span_22](end_span)
+            cardsData: {},             // Ticket matrix
+            countdownSec: 30,
+            countdownTimer: null,
+            liveCallerTimer: null,
+            calledNumbers: [],         // Sequence 1-75
+            uncalledNumbers: [],
+            isAutoSelectMode: true,
+            soundEnabled: true,
+            hasGameEnded: false,
+            depositTarget: 'Play',
+            customPromoCode: 'BINGO-NATI',
+            claimedPromoCodes: [],
+            leaderboardTimeframe: 'daily',
+            leaderboardCategory: 'players',
+            stats: {
+                totalPlayed: 42,
+                totalWins: 12,
+                totalWonETB: 3400,
+                totalInvited: 18,
+                invitedDepositsETB: 14200,
+                earnedCommissionETB: 1420
+            },
+            transactions: [
+                { type: 'Win', target: 'Main', amount: 1800, desc: 'Bingo Winner Ticket #42', date: 'Just now', status: 'Completed' },
+                { type: 'Deposit', target: 'Play', amount: 500, desc: 'Telebirr Topup to Play Bal', date: '2 hrs ago', status: 'Completed' }
+            ],
+            leaderboardData: {
+                daily: {
+                    players: [
+                        { rank: 1, name: 'Sami Kebede', handle: '@sami_bingo', val: '68 Games', sub: '1,420 ETB Won', avatar: '🦁' },
+                        { rank: 2, name: 'Helen Tadesse', handle: '@helen_t', val: '54 Games', sub: '980 ETB Won', avatar: '👑' },
+                        { rank: 3, name: 'Dawit Yohannes', handle: '@dawit_y', val: '49 Games', sub: '850 ETB Won', avatar: '⚡' },
+                        { rank: 4, name: 'Tigist Alemu', handle: '@tigist_a', val: '41 Games', sub: '620 ETB Won', avatar: '🔥' },
+                        { rank: 5, name: 'Biniyam Worku', handle: '@bini_w', val: '38 Games', sub: '510 ETB Won', avatar: '🎯' }
+                    ],
+                    winners: [
+                        { rank: 1, name: 'Helen Tadesse', handle: '@helen_t', val: '4,200 ETB', sub: '12 Victories', avatar: '👑' },
+                        { rank: 2, name: 'Sami Kebede', handle: '@sami_bingo', val: '3,600 ETB', sub: '9 Victories', avatar: '🦁' },
+                        { rank: 3, name: 'Yared Mulugeta', handle: '@yared_m', val: '2,800 ETB', sub: '7 Victories', avatar: '💎' },
+                        { rank: 4, name: 'Dawit Yohannes', handle: '@dawit_y', val: '2,100 ETB', sub: '5 Victories', avatar: '⚡' },
+                        { rank: 5, name: 'Meron Tesfaye', handle: '@meron_t', val: '1,900 ETB', sub: '4 Victories', avatar: '🌟' }
+                    ],
+                    inviters: [
+                        { rank: 1, name: 'Mekdes Zewdu', handle: '@meky_z', val: '24 Invited', sub: '2,400 ETB Earned', avatar: '🚀' },
+                        { rank: 2, name: 'Sami Kebede', handle: '@sami_bingo', val: '19 Invited', sub: '1,900 ETB Earned', avatar: '🦁' },
+                        { rank: 3, name: 'Abebe Kebede (You)', handle: '@abebe_bingo', val: '18 Invited', sub: '1,420 ETB Earned', avatar: '👤' },
+                        { rank: 4, name: 'Kaleb Girma', handle: '@kaleb_g', val: '12 Invited', sub: '1,200 ETB Earned', avatar: '🎩' },
+                        { rank: 5, name: 'Bethlehem D.', handle: '@betty_d', val: '9 Invited', sub: '900 ETB Earned', avatar: '✨' }
+                    ]
+                },
+                weekly: {
+                    players: [
+                        { rank: 1, name: 'Sami Kebede', handle: '@sami_bingo', val: '312 Games', sub: '8,400 ETB Won', avatar: '🦁' },
+                        { rank: 2, name: 'Dawit Yohannes', handle: '@dawit_y', val: '280 Games', sub: '6,200 ETB Won', avatar: '⚡' },
+                        { rank: 3, name: 'Helen Tadesse', handle: '@helen_t', val: '245 Games', sub: '5,900 ETB Won', avatar: '👑' },
+                        { rank: 4, name: 'Abebe Kebede (You)', handle: '@abebe_bingo', val: '210 Games', sub: '4,800 ETB Won', avatar: '👤' },
+                        { rank: 5, name: 'Tigist Alemu', handle: '@tigist_a', val: '195 Games', sub: '3,900 ETB Won', avatar: '🔥' }
+                    ],
+                    winners: [
+                        { rank: 1, name: 'Sami Kebede', handle: '@sami_bingo', val: '18,500 ETB', sub: '42 Victories', avatar: '🦁' },
+                        { rank: 2, name: 'Yared Mulugeta', handle: '@yared_m', val: '14,200 ETB', sub: '31 Victories', avatar: '💎' },
+                        { rank: 3, name: 'Helen Tadesse', handle: '@helen_t', val: '12,800 ETB', sub: '28 Victories', avatar: '👑' },
+                        { rank: 4, name: 'Dawit Yohannes', handle: '@dawit_y', val: '11,400 ETB', sub: '24 Victories', avatar: '⚡' },
+                        { rank: 5, name: 'Abebe Kebede (You)', handle: '@abebe_bingo', val: '9,600 ETB', sub: '20 Victories', avatar: '👤' }
+                    ],
+                    inviters: [
+                        { rank: 1, name: 'Mekdes Zewdu', handle: '@meky_z', val: '112 Invited', sub: '11,200 ETB Earned', avatar: '🚀' },
+                        { rank: 2, name: 'Abebe Kebede (You)', handle: '@abebe_bingo', val: '88 Invited', sub: '8,800 ETB Earned', avatar: '👤' },
+                        { rank: 3, name: 'Sami Kebede', handle: '@sami_bingo', val: '74 Invited', sub: '7,400 ETB Earned', avatar: '🦁' },
+                        { rank: 4, name: 'Kaleb Girma', handle: '@kaleb_g', val: '52 Invited', sub: '5,200 ETB Earned', avatar: '🎩' },
+                        { rank: 5, name: 'Bethlehem D.', handle: '@betty_d', val: '41 Invited', sub: '4,100 ETB Earned', avatar: '✨' }
+                    ]
                 }
-                return arr.sort((a,b) => a - b);
+            }
+        };
+
+        const TICKET_PRICE_ETB = 10;
+
+        const BINGO_RANGES = {
+            'B': { min: 1, max: 15 },
+            'I': { min: 16, max: 30 },
+            'N': { min: 31, max: 45 },
+            'G': { min: 46, max: 60 },
+            'O': { min: 61, max: 75 }
+        };
+
+        window.onload = function() {
+            renderTicketsGrid();
+            startCountdownTimer();
+            updateWalletUI();
+            renderLeaderboardUI();
+        };
+
+        function switchTab(tabName) {
+            state.activeTab = tabName;
+
+            document.getElementById('tabHome').classList.add('hidden');
+            document.getElementById('tabLeaderboard').classList.add('hidden');
+            document.getElementById('tabWallet').classList.add('hidden');
+            document.getElementById('tabProfile').classList.add('hidden');
+
+            const navHome = document.getElementById('navHomeBtn');
+            const navLeaderboard = document.getElementById('navLeaderboardBtn');
+            const navWallet = document.getElementById('navWalletBtn');
+            const navProfile = document.getElementById('navProfileBtn');
+
+            navHome.className = "flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition";
+            navLeaderboard.className = "flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition";
+            navWallet.className = "flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition";
+            navProfile.className = "flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition";
+
+            if (tabName === 'home') {
+                document.getElementById('tabHome').classList.remove('hidden');
+                navHome.className = "flex flex-col items-center space-y-1 text-purple-400 transition";
+            } else if (tabName === 'leaderboard') {
+                document.getElementById('tabLeaderboard').classList.remove('hidden');
+                navLeaderboard.className = "flex flex-col items-center space-y-1 text-purple-400 transition";
+                renderLeaderboardUI();
+            } else if (tabName === 'wallet') {
+                document.getElementById('tabWallet').classList.remove('hidden');
+                navWallet.className = "flex flex-col items-center space-y-1 text-purple-400 transition";
+                updateWalletUI();
+            } else if (tabName === 'profile') {
+                document.getElementById('tabProfile').classList.remove('hidden');
+                navProfile.className = "flex flex-col items-center space-y-1 text-purple-400 transition";
+                updateProfileUI();
+            }
+            playSound('click');
+        }
+
+        // TICKET SELECTION & GRID LOGIC (1 TO 500)
+        function renderTicketsGrid() {
+            const grid = document.getElementById('ticketsGrid');
+            grid.innerHTML = '';
+
+            for (let i = 1; i <= 500; i++) {
+                const btn = document.createElement('button');
+                btn.id = `ticket-btn-${i}`;
+                btn.className = "py-2 rounded-xl font-mono text-xs font-bold transition border border-slate-800 bg-slate-900/60 text-slate-300 hover:border-purple-500/50 hover:text-white";
+                btn.innerText = `#${i}`;
+                btn.onclick = () => toggleTicketSelection(i);
+                grid.appendChild(btn);
+            }
+        }
+
+        function toggleTicketSelection(ticketNum) {
+            const index = state.selectedTickets.indexOf(ticketNum);
+
+            if (index > -1) {
+                state.selectedTickets.splice(index, 1);
+            } else {
+                if (state.selectedTickets.length >= 4) {
+                    showToast("⚠️ Maximum 4 tickets allowed per player!");
+                    playSound('error');
+                    return;
+                }
+                state.selectedTickets.push(ticketNum);
             }
 
-            let bCol = getUniqueNums(1, 15, 5);
-            let iCol = getUniqueNums(16, 30, 5);
-            let nCol = getUniqueNums(31, 45, 5);
-            let gCol = getUniqueNums(46, 60, 5);
-            let oCol = getUniqueNums(61, 75, 5);
-
-            nCol[2] = 'FREE';
-
-            let matrix = [];
-            for (let r = 0; r < 5; r++) {
-                matrix.push([bCol[r], iCol[r], nCol[r], gCol[r], oCol[r]]);
-            }
-            return matrix;
+            updateTicketGridStyles();
+            updateSummaryBar();
+            playSound('click');
         }
 
-        function formatBingoBall(num) {
-            let n = parseInt(num);
-            if (isNaN(n)) return "--";
-            let letter = '';
-            if (n >= 1 && n <= 15) letter = 'B';
-            else if (n >= 16 && n <= 30) letter = 'I';
-            else if (n >= 31 && n <= 45) letter = 'N';
-            else if (n >= 46 && n <= 60) letter = 'G';
-            else if (n >= 61 && n <= 75) letter = 'O';
-            return letter + n;
-        }
+        function updateTicketGridStyles() {
+            for (let i = 1; i <= 500; i++) {
+                const btn = document.getElementById(`ticket-btn-${i}`);
+                if (!btn) continue;
 
-        function copyInviteLink() {
-            let copyText = document.getElementById('inviteLinkInput');
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(copyText.value);
-            alert('✅ የግብዣ ሊንኩ (Invite Link) ተቀድቷል!');
-        }
-
-        // 2. ድል አድራጊ ሽልማት (Prize Pool) - በተመረጡት ካርቴሎች ብዛት መሰረት በራስ ሰር የሚሰላ
-        function updatePrizePool() {
-            let count = selectedCartelaIDs.length;
-            let prize = count * 8 * 2; // በእያንዳንዱ ካርቴል 8 ብር ሲሰላ (ለምሳሌ በ 2 ተጫዋች)
-            document.getElementById('prizePoolDisplay').innerText = prize.toFixed(2) + " ETB";
-        }
-
-        const pickerGrid = document.getElementById('pickerGrid');
-        let selectedCartelaIDs = [];
-
-        for (let i = 1; i <= 400; i++) {
-            let cell = document.createElement('div');
-            cell.className = 'picker-cell';
-            cell.innerText = i;
-            cell.onclick = () => {
-                if (selectedCartelaIDs.includes(i)) {
-                    selectedCartelaIDs = selectedCartelaIDs.filter(id => id !== i);
-                    cell.classList.remove('selected');
+                if (state.selectedTickets.includes(i)) {
+                    btn.className = "py-2 rounded-xl font-mono text-xs font-bold transition border border-pink-500 bg-gradient-to-tr from-pink-600 to-purple-600 text-white shadow-md shadow-pink-500/20";
                 } else {
-                    if (selectedCartelaIDs.length < 4) {
-                        selectedCartelaIDs.push(i);
-                        cell.classList.add('selected');
-                    } else {
-                        alert('ከ 4 በላይ ካርቴላ መምረጥ አይችሉም!');
-                    }
+                    btn.className = "py-2 rounded-xl font-mono text-xs font-bold transition border border-slate-800 bg-slate-900/60 text-slate-300 hover:border-purple-500/50 hover:text-white";
                 }
-                document.getElementById('selectedCount').innerText = `መረጡ: ${selectedCartelaIDs.length} / 4`;
-                updatePrizePool(); // ሲመርጥ ሽልማቱ በራሱ እንዲቀየር
-            };
-            pickerGrid.appendChild(cell);
+            }
         }
 
-        function switchTab(pageId, el) {
-            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
+        function updateSummaryBar() {
+            const container = document.getElementById('selectedBadgesContainer');
+            const countText = document.getElementById('selectedCountText');
+            const totalCostText = document.getElementById('totalCostText');
+            const joinBtn = document.getElementById('joinMatchBtn');
 
-            let countdownRow = document.getElementById('homeCountdownRow');
-            let liveAutoBar = document.getElementById('liveAutoPlayBar');
+            const count = state.selectedTickets.length;
+            const cost = count * TICKET_PRICE_ETB;
 
-            if (pageId === 'homePage') {
-                if (countdownRow) countdownRow.style.display = 'grid';
-                if (liveAutoBar) liveAutoBar.style.display = 'none';
-            } else if (pageId === 'livePage') {
-                if (countdownRow) countdownRow.style.display = 'none';
-                if (liveAutoBar) liveAutoBar.style.display = 'flex';
+            countText.innerText = count;
+            totalCostText.innerText = `${cost} ETB`;
+
+            if (count === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-500 italic">No tickets selected yet</span>`;
+                joinBtn.disabled = true;
+                joinBtn.className = "w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 opacity-50 cursor-not-allowed text-white font-extrabold rounded-2xl shadow-lg transition text-xs sm:text-sm";
             } else {
-                if (countdownRow) countdownRow.style.display = 'none';
-                if (liveAutoBar) liveAutoBar.style.display = 'none';
-            }
+                container.innerHTML = '';
+                state.selectedTickets.forEach(num => {
+                    const badge = document.createElement('span');
+                    badge.className = "px-2.5 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 rounded-lg text-xs font-bold font-mono flex items-center space-x-1";
+                    badge.innerHTML = `<span>#${num}</span> <i class="fa-solid fa-xmark text-[9px] ml-1 cursor-pointer hover:text-white" onclick="toggleTicketSelection(${num})"></i>`;
+                    container.appendChild(badge);
+                });
 
-            if(el) {
-                document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-                el.classList.add('active');
-            }
-        }
-
-        function switchWalletTab(tab) {
-            let depSec = document.getElementById('depositSection');
-            let withSec = document.getElementById('withdrawSection');
-            let depBtn = document.getElementById('depTabBtn');
-            let withBtn = document.getElementById('withTabBtn');
-
-            if (tab === 'deposit') {
-                depSec.style.display = 'flex';
-                withSec.style.display = 'none';
-                depBtn.style.background = '#f39c12';
-                depBtn.style.color = '#000';
-                depBtn.style.border = 'none';
-                withBtn.style.background = '#0b0f19';
-                withBtn.style.color = '#8c9cb6';
-                withBtn.style.border = '1px solid #2a3b5c';
-            } else {
-                depSec.style.display = 'none';
-                withSec.style.display = 'flex';
-                withBtn.style.background = '#27ae60';
-                withBtn.style.color = '#fff';
-                withBtn.style.border = 'none';
-                depBtn.style.background = '#0b0f19';
-                depBtn.style.color = '#8c9cb6';
-                depBtn.style.border = '1px solid #2a3b5c';
+                joinBtn.disabled = false;
+                joinBtn.className = "w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 hover:from-pink-600 hover:to-blue-700 text-white font-extrabold rounded-2xl shadow-lg shadow-purple-600/30 transition transform active:scale-95 flex items-center justify-center space-x-2 text-xs sm:text-sm";
             }
         }
 
-        function submitDeposit() {
-            let amount = parseFloat(document.getElementById('depositAmount').value);
-            let txId = document.getElementById('depositTxId').value.trim();
-
-            if (isNaN(amount) || amount < 100) {
-                alert('የዲፖዚት ዝቅተኛ መጠን 100 ብር ነው!');
-                return;
+        function selectRandomTickets() {
+            state.selectedTickets = [];
+            while (state.selectedTickets.length < 4) {
+                const rand = Math.floor(Math.random() * 500) + 1;
+                if (!state.selectedTickets.includes(rand)) {
+                    state.selectedTickets.push(rand);
+                }
             }
-            if (!txId) {
-                alert('እባክዎ የ Transaction ID ያስገቡ!');
-                return;
-            }
-
-            alert(`✅ የዲፖዚት ጥያቄዎ (${amount} ETB) ተቀባይነት አግኝቷል!\nTransaction ID: ${txId}\nወደ አድሚን ቴሌግራም ቦት ተልኳል።`);
-            document.getElementById('depositAmount').value = '';
-            document.getElementById('depositTxId').value = '';
+            updateTicketGridStyles();
+            updateSummaryBar();
+            playSound('click');
         }
 
-        function submitWithdraw() {
-            let amount = parseFloat(document.getElementById('withdrawAmount').value);
-            let bankType = document.getElementById('withdrawBankType').value;
-            let accountInfo = document.getElementById('withdrawAccountInfo').value.trim();
+        function filterTickets() {
+            const query = document.getElementById('ticketSearchInput').value.trim();
+            for (let i = 1; i <= 500; i++) {
+                const btn = document.getElementById(`ticket-btn-${i}`);
+                if (!btn) continue;
 
-            if (isNaN(amount) || amount < 300) {
-                alert('የዊዝድሮው ዝቅተኛ መጠን 300 ብር ነው!');
-                return;
+                if (query === '' || i.toString().includes(query)) {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
             }
-            if (!accountInfo) {
-                alert('እባክዎ የአካውንት ቁጥር እና ስም ያስገቡ!');
-                return;
-            }
-
-            alert(`✅ የዊዝድሮው ጥያቄዎ (${amount} ETB) በ ${bankType} ተመዝግቧል!\nወደ አድሚን ቴሌግራም ቦት ተልኳል።`);
-            document.getElementById('withdrawAmount').value = '';
-            document.getElementById('withdrawAccountInfo').value = '';
         }
 
-        // 3. ከሰርቨር ጋር የተገናኘ የ 30 ሰከንድ ቆጠራ (Countdown Timer)
-        let timeLeft = 30;
-        let countdownInterval = null;
-        let waitingForNextGame = false;
-        let waitingCheckTimer = null;
+        function startCountdownTimer() {
+            clearInterval(state.countdownTimer);
+            state.countdownSec = 30;
+            const display = document.getElementById('countdownDisplay');
 
-        function startHomeCountdown() {
-            if (countdownInterval) clearInterval(countdownInterval);
-            timeLeft = 30;
-            document.getElementById('countdownTimer').innerText = `00:30`;
+            state.countdownTimer = setInterval(() => {
+                state.countdownSec--;
+                display.innerText = `${state.countdownSec}s`;
 
-            countdownInterval = setInterval(() => {
-                timeLeft--;
-                let sec = timeLeft < 10 ? '0' + timeLeft : timeLeft;
-                document.getElementById('countdownTimer').innerText = `00:${sec}`;
-
-                if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    checkAndStartLiveGame();
+                if (state.countdownSec <= 0) {
+                    clearInterval(state.countdownTimer);
+                    if (state.selectedTickets.length === 0) selectRandomTickets();
+                    launchLiveRoomImmediately();
                 }
             }, 1000);
         }
 
-        startHomeCountdown();
+        function launchLiveRoomImmediately() {
+            if (state.selectedTickets.length === 0) selectRandomTickets();
 
-        let syncTimer = null;
-        let hasWonChecked = false;
+            const totalCost = state.selectedTickets.length * TICKET_PRICE_ETB;
 
-        function checkAndStartLiveGame() {
-            let homePageActive = document.getElementById('homePage').classList.contains('active');
-            if (!homePageActive) {
-                startHomeCountdown();
+            if (state.playBalance < totalCost) {
+                showToast("⚠️ Insufficient Play Balance! Please top up your Play Balance.");
+                switchTab('wallet');
                 return;
             }
 
-            if (selectedCartelaIDs.length > 0) {
-                startLiveGame();
-            } else {
-                showWaitModal();
-            }
+            state.playBalance -= totalCost;
+            state.transactions.unshift({
+                type: 'Ticket Purchase',
+                target: 'Play',
+                amount: -totalCost,
+                desc: `Purchased ${state.selectedTickets.length} Card(s) (#${state.selectedTickets.join(', #')})`,
+                date: 'Just now',
+                status: 'Completed'
+            });
+            updateWalletUI();
+
+            clearInterval(state.countdownTimer);
+
+            state.cardsData = {};
+            state.selectedTickets.forEach(ticketNum => {
+                state.cardsData[ticketNum] = generateCardMatrixForTicket(ticketNum);
+            });
+
+            const totalRoomTickets = 90;
+            const roomGrossPot = totalRoomTickets * TICKET_PRICE_ETB; 
+            const winnerPayout = Math.floor(roomGrossPot * 0.90);
+
+            document.getElementById('livePrizePoolText').innerText = `${winnerPayout.toLocaleString()} ETB`;
+            document.getElementById('liveActiveTicketsCount').innerText = `${totalRoomTickets} Cards`;
+
+            document.getElementById('ticketSelectionSection').classList.add('hidden');
+            document.getElementById('liveBingoRoomSection').classList.remove('hidden');
+
+            state.stats.totalPlayed++;
+
+            renderLiveCards();
+
+            initUncalledNumbers();
+            startLiveCaller();
+
+            playSound('join');
         }
 
-        function showWaitModal() {
-            waitingForNextGame = true;
-            document.getElementById('waitModal').style.display = 'flex';
+        function generateCardMatrixForTicket(seed) {
+            let card = Array(5).fill(null).map(() => Array(5).fill(null));
+            const keys = ['B', 'I', 'N', 'G', 'O'];
 
-            if (waitingCheckTimer) clearInterval(waitingCheckTimer);
-            waitingCheckTimer = setInterval(() => {
-                fetch('/state')
-                    .then(res => res.json())
-                    .then(data => {
-                        if (!data.running) {
-                            clearInterval(waitingCheckTimer);
-                            document.getElementById('waitModal').style.display = 'none';
-                            waitingForNextGame = false;
-                            startHomeCountdown();
-                        }
-                    }).catch(err => console.log('Waiting check...'));
-            }, 1500);
+            keys.forEach((colKey, colIdx) => {
+                const range = BINGO_RANGES[colKey];
+                let nums = [];
+                for (let n = range.min; n <= range.max; n++) nums.push(n);
 
-            fetch('/start').catch(err => {});
+                nums.sort((a, b) => ((a * seed * 17) % 31) - ((b * seed * 17) % 31));
+
+                for (let rowIdx = 0; rowIdx < 5; rowIdx++) {
+                    if (colIdx === 2 && rowIdx === 2) {
+                        card[rowIdx][colIdx] = { number: 'FREE', marked: true, isFree: true };
+                    } else {
+                        card[rowIdx][colIdx] = { number: nums.pop(), marked: false, isFree: false };
+                    }
+                }
+            });
+            return card;
         }
 
-        function startLiveGame() {
-            hasWonChecked = false;
-            manualMarkedMap = {};
-            document.getElementById('cartelaCountBadge').innerText = selectedCartelaIDs.length;
-            userCartelasMap = {};
-
-            let container = document.getElementById('liveCartelasContainer');
+        function renderLiveCards() {
+            const container = document.getElementById('liveCardsContainer');
             container.innerHTML = '';
 
-            let autoPlayOn = document.getElementById('autoPlayToggle').checked;
+            state.selectedTickets.forEach(ticketNum => {
+                const cardMatrix = state.cardsData[ticketNum];
 
-            selectedCartelaIDs.forEach(id => {
-                let matrix = generateUniqueCartela(id);
-                userCartelasMap[id] = matrix;
-                manualMarkedMap[id] = [];
+                const cardBox = document.createElement('div');
+                cardBox.className = "glass-panel p-3.5 sm:p-4 rounded-3xl border border-slate-800 shadow-xl space-y-2.5";
+                
+                cardBox.innerHTML = `
+                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-800">
+                        <span class="text-xs font-black font-mono text-purple-300">TICKET #${ticketNum}</span>
+                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">5x5 GRID</span>
+                    </div>
 
-                let cardDiv = document.createElement('div');
-                cardDiv.className = 'cartela-card';
+                    <div class="grid grid-cols-5 gap-1 text-center font-black text-xs sm:text-sm">
+                        <div class="py-1 rounded-lg bg-bingo-b/20 text-bingo-b border border-bingo-b/30">B</div>
+                        <div class="py-1 rounded-lg bg-bingo-i/20 text-bingo-i border border-bingo-i/30">I</div>
+                        <div class="py-1 rounded-lg bg-bingo-n/20 text-bingo-n border border-bingo-n/30">N</div>
+                        <div class="py-1 rounded-lg bg-bingo-g/20 text-bingo-g border border-bingo-g/30">G</div>
+                        <div class="py-1 rounded-lg bg-bingo-o/20 text-bingo-o border border-bingo-o/30">O</div>
+                    </div>
 
-                let html = `<div class="cartela-header">#${id}</div>`;
-                html += `<div class="bingo-grid" id="grid-${id}">`;
-                html += `<div class="cell head">B</div><div class="cell head">I</div><div class="cell head">N</div><div class="cell head">G</div><div class="cell head">O</div>`;
+                    <div id="grid-ticket-${ticketNum}" class="grid grid-cols-5 gap-1 text-center font-bold">
+                    </div>
+                `;
 
-                for(let r=0; r<5; r++) {
-                    for(let c=0; c<5; c++) {
-                        let val = matrix[r][c];
-                        if(val === 'FREE') {
-                            html += `<div class="cell marked" data-val="FREE" data-row="${r}" data-col="${c}">⭐</div>`;
-                        } else {
-                            html += `<div class="cell" data-val="${val}" data-row="${r}" data-col="${c}" onclick="handleCellClick(${id}, ${val}, this)">${val}</div>`;
+                container.appendChild(cardBox);
+
+                const gridDiv = document.getElementById(`grid-ticket-${ticketNum}`);
+                for (let r = 0; r < 5; r++) {
+                    for (let c = 0; c < 5; c++) {
+                        const cell = cardMatrix[r][c];
+                        const btn = document.createElement('button');
+                        btn.id = `cell-${ticketNum}-${r}-${c}`;
+                        btn.onclick = () => handleManualCellClick(ticketNum, r, c);
+                        
+                        updateCellElementStyle(btn, cell);
+                        gridDiv.appendChild(btn);
+                    }
+                }
+            });
+        }
+
+        function updateCellElementStyle(btn, cell) {
+            let baseClass = "aspect-square rounded-lg flex items-center justify-center font-black text-xs sm:text-sm border transition transform active:scale-90 relative overflow-hidden ";
+
+            if (cell.isFree) {
+                baseClass += "bg-gradient-to-br from-amber-500/30 to-purple-600/30 border-amber-500/50 text-amber-300 dapped-mark";
+                btn.innerHTML = `<span class="tile-text text-[8px] tracking-wider">FREE</span>`;
+            } else if (cell.marked) {
+                baseClass += "bg-slate-900 border-purple-500/60 dapped-mark";
+                btn.innerHTML = `<span class="tile-text">${cell.number}</span>`;
+            } else {
+                baseClass += "bg-slate-900/90 border-slate-800/80 text-slate-200 hover:border-purple-500/40 hover:bg-slate-800";
+                btn.innerHTML = `<span class="tile-text">${cell.number}</span>`;
+            }
+            btn.className = baseClass;
+        }
+
+        function handleManualCellClick(ticketNum, r, c) {
+            if (state.hasGameEnded) return;
+
+            const cell = state.cardsData[ticketNum][r][c];
+            if (cell.isFree) return;
+
+            cell.marked = !cell.marked;
+            const btn = document.getElementById(`cell-${ticketNum}-${r}-${c}`);
+            updateCellElementStyle(btn, cell);
+            playSound(cell.marked ? 'dab' : 'click');
+        }
+
+        function initUncalledNumbers() {
+            state.uncalledNumbers = [];
+            for (let i = 1; i <= 75; i++) state.uncalledNumbers.push(i);
+            state.calledNumbers = [];
+        }
+
+        function startLiveCaller() {
+            clearInterval(state.liveCallerTimer);
+            state.hasGameEnded = false;
+
+            drawNextNumber();
+            state.liveCallerTimer = setInterval(drawNextNumber, 3200);
+        }
+
+        function speakCall(text) {
+            if (!state.soundEnabled) return;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.0;
+                utterance.pitch = 1.1;
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function drawNextNumber() {
+            if (state.uncalledNumbers.length === 0 || state.hasGameEnded) {
+                clearInterval(state.liveCallerTimer);
+                return;
+            }
+
+            const randIdx = Math.floor(Math.random() * state.uncalledNumbers.length);
+            const num = state.uncalledNumbers.splice(randIdx, 1)[0];
+            state.calledNumbers.unshift(num);
+
+            let letter = 'B';
+            if (num >= 16 && num <= 30) letter = 'I';
+            else if (num >= 31 && num <= 45) letter = 'N';
+            else if (num >= 46 && num <= 60) letter = 'G';
+            else if (num >= 61 && num <= 75) letter = 'O';
+
+            const ball = document.getElementById('currentCallBall');
+            ball.classList.remove('animate-number-call');
+            void ball.offsetWidth;
+            ball.classList.add('animate-number-call');
+
+            document.getElementById('currentLetter').innerText = letter;
+            document.getElementById('currentNumber').innerText = num;
+            document.getElementById('currentCallText').innerText = `Called ${letter}-${num}`;
+            document.getElementById('totalCalledCount').innerText = state.calledNumbers.length;
+
+            updateRecentCallsTray();
+            playSound('call');
+            speakCall(`${letter}, ${num}`);
+
+            if (state.isAutoSelectMode) {
+                autoDabCalledNumber(num);
+                checkAutoWinCondition();
+            }
+        }
+
+        function updateRecentCallsTray() {
+            const tray = document.getElementById('recentCallsTray');
+            tray.innerHTML = '';
+
+            const recent = state.calledNumbers.slice(1, 6);
+            if (recent.length === 0) {
+                tray.innerHTML = `<span class="text-xs text-slate-500 italic">No previous calls</span>`;
+                return;
+            }
+
+            recent.forEach(num => {
+                let letter = 'B';
+                if (num >= 16 && num <= 30) letter = 'I';
+                else if (num >= 31 && num <= 45) letter = 'N';
+                else if (num >= 46 && num <= 60) letter = 'G';
+                else if (num >= 61 && num <= 75) letter = 'O';
+
+                const chip = document.createElement('span');
+                chip.className = "px-2 py-0.5 bg-slate-900 border border-slate-800 text-slate-300 rounded-md text-[11px] font-mono font-bold shrink-0";
+                chip.innerText = `${letter}-${num}`;
+                tray.appendChild(chip);
+            });
+        }
+
+        function autoDabCalledNumber(calledNum) {
+            state.selectedTickets.forEach(ticketNum => {
+                const cardMatrix = state.cardsData[ticketNum];
+                for (let r = 0; r < 5; r++) {
+                    for (let c = 0; c < 5; c++) {
+                        if (cardMatrix[r][c].number === calledNum) {
+                            cardMatrix[r][c].marked = true;
+                            const btn = document.getElementById(`cell-${ticketNum}-${r}-${c}`);
+                            if (btn) updateCellElementStyle(btn, cardMatrix[r][c]);
                         }
                     }
                 }
-                html += `</div>`;
-
-                let btnClass = autoPlayOn ? 'manual-bingo-btn hidden' : 'manual-bingo-btn';
-                html += `<button id="bingo-btn-${id}" class="${btnClass}" onclick="pressManualBingo(${id})">BINGO (#${id})</button>`;
-
-                cardDiv.innerHTML = html;
-                container.appendChild(cardDiv);
-            });
-
-            switchTab('livePage', null);
-
-            fetch('/start')
-                .then(res => res.json())
-                .then(data => {
-                    if(data.round_id) {
-                        document.getElementById('roundLabel').innerText = `Round: #${data.round_id}`;
-                    }
-                    beginEngineSync();
-                })
-                .catch(err => alert('ሰርቨር ጋር መገናኘት አልተቻለም!'));
-        }
-
-        function handleCellClick(cartelaId, val, cellEl) {
-            let autoPlayOn = document.getElementById('autoPlayToggle').checked;
-            if (autoPlayOn) return;
-
-            let calledNums = window.lastCalledNums || [];
-            if (calledNums.includes(parseInt(val))) {
-                if (!manualMarkedMap[cartelaId].includes(val)) {
-                    manualMarkedMap[cartelaId].push(val);
-                    cellEl.classList.add('manual-marked');
-                    updateManualBingoButtonState(cartelaId);
-                }
-            } else {
-                alert('ይህ ቁጥር እስካሁን አልወጣም!');
-            }
-        }
-
-        function handleAutoPlayToggleChange() {
-            let autoPlayOn = document.getElementById('autoPlayToggle').checked;
-            selectedCartelaIDs.forEach(id => {
-                let btn = document.getElementById(`bingo-btn-${id}`);
-                if (btn) {
-                    if (autoPlayOn) {
-                        btn.classList.add('hidden');
-                    } else {
-                        btn.classList.remove('hidden');
-                        updateManualBingoButtonState(id);
-                    }
-                }
             });
         }
 
-        function updateManualBingoButtonState(cartelaId) {
-            let autoPlayOn = document.getElementById('autoPlayToggle').checked;
-            if (autoPlayOn) return;
+        function toggleGameMode() {
+            const checkbox = document.getElementById('modeToggleCheckbox');
+            state.isAutoSelectMode = checkbox.checked;
 
-            let btn = document.getElementById(`bingo-btn-${cartelaId}`);
-            if (!btn) return;
+            const icon = document.getElementById('modeIcon');
+            const subtext = document.getElementById('modeSubtext');
+            const claimBtn = document.getElementById('claimBingoBtn');
 
-            let calledNums = window.lastCalledNums || [];
-            let isComplete = checkBingoLine(userCartelasMap[cartelaId], calledNums, cartelaId);
+            if (state.isAutoSelectMode) {
+                icon.className = "fa-solid fa-robot text-emerald-400 text-sm";
+                subtext.innerText = "Auto-dabs numbers";
+                claimBtn.classList.add('opacity-50');
 
-            if (isComplete) {
-                btn.classList.add('ready');
+                state.calledNumbers.forEach(num => autoDabCalledNumber(num));
+                checkAutoWinCondition();
             } else {
-                btn.classList.remove('ready');
+                icon.className = "fa-solid fa-hand text-amber-400 text-sm";
+                subtext.innerText = "Manual dabbing";
+                claimBtn.classList.remove('opacity-50');
             }
         }
 
-        function pressManualBingo(cartelaId) {
-            let btn = document.getElementById(`bingo-btn-${cartelaId}`);
-            if (btn && btn.classList.contains('ready')) {
-                if (!hasWonChecked) {
-                    hasWonChecked = true;
-                    triggerWinnerClaim(cartelaId);
-                }
-            } else {
-                alert('የዚህ ካርቴላ መስመር ገና አልሞላም!');
-            }
-        }
-
-        function beginEngineSync() {
-            if (syncTimer) clearInterval(syncTimer);
-            syncTimer = setInterval(fetchState, 1000);
-        }
-
-        function checkBingoLine(matrix, calledNumbers, cartelaId) {
-            let autoPlayOn = document.getElementById('autoPlayToggle').checked;
-            let manualList = manualMarkedMap[cartelaId] || [];
-
-            function isCellValid(val) {
-                if (val === 'FREE') return true;
-                let num = parseInt(val);
-                if (autoPlayOn) {
-                    return calledNumbers.includes(num);
-                } else {
-                    return manualList.includes(num);
-                }
-            }
+        function checkCardForWinningLines(cardMatrix) {
+            const isStrictlyValidCell = (cell) => {
+                if (!cell.marked) return false;
+                if (cell.isFree) return true;
+                return state.calledNumbers.includes(cell.number);
+            };
 
             for (let r = 0; r < 5; r++) {
-                let rowComplete = true;
-                for (let c = 0; c < 5; c++) {
-                    if (!isCellValid(matrix[r][c])) {
-                        rowComplete = false;
-                        break;
-                    }
+                if (cardMatrix[r].every(cell => isStrictlyValidCell(cell))) {
+                    return { winner: true, pattern: `Horizontal Row ${r + 1}` };
                 }
-                if (rowComplete) return true;
             }
 
             for (let c = 0; c < 5; c++) {
-                let colComplete = true;
+                let colMarked = true;
                 for (let r = 0; r < 5; r++) {
-                    if (!isCellValid(matrix[r][c])) {
-                        colComplete = false;
-                        break;
-                    }
+                    if (!isStrictlyValidCell(cardMatrix[r][c])) { colMarked = false; break; }
                 }
-                if (colComplete) return true;
+                if (colMarked) return { winner: true, pattern: `Vertical Column ${c + 1}` };
             }
 
             let diag1 = true;
             for (let i = 0; i < 5; i++) {
-                if (!isCellValid(matrix[i][i])) {
-                    diag1 = false;
-                    break;
-                }
+                if (!isStrictlyValidCell(cardMatrix[i][i])) { diag1 = false; break; }
             }
-            if (diag1) return true;
+            if (diag1) return { winner: true, pattern: "Diagonal (Top-Left to Bottom-Right)" };
 
             let diag2 = true;
             for (let i = 0; i < 5; i++) {
-                if (!isCellValid(matrix[i][4 - i])) {
-                    diag2 = false;
+                if (!isStrictlyValidCell(cardMatrix[i][4 - i])) { diag2 = false; break; }
+            }
+            if (diag2) return { winner: true, pattern: "Diagonal (Top-Right to Bottom-Left)" };
+
+            return { winner: false, pattern: null };
+        }
+
+        function checkAutoWinCondition() {
+            if (state.hasGameEnded) return;
+
+            for (let ticketNum of state.selectedTickets) {
+                const result = checkCardForWinningLines(state.cardsData[ticketNum]);
+                if (result.winner) {
+                    triggerBingoVictory(ticketNum, result.pattern);
                     break;
                 }
             }
-            if (diag2) return true;
-
-            return false;
         }
 
-        function fetchState() {
-            fetch('/state')
-                .then(res => res.json())
-                .then(data => {
-                    if(data.current !== undefined && data.current !== null) {
-                        let currentNum = parseInt(data.current);
-                        document.getElementById('currentBallDisplay').innerText = formatBingoBall(currentNum);
-                    }
-                    if(data.called) {
-                        let calledNums = data.called;
-                        window.lastCalledNums = calledNums;
-                        document.getElementById('countDisplay').innerText = calledNums.length + "/75";
+        function claimBingoManual() {
+            if (state.hasGameEnded) return;
 
-                        let historyContainer = document.getElementById('calledHistoryContainer');
-                        let historyHtml = '<span style="font-size: 9px; color: #8c9cb6; margin-right: 2px;">የወጡ:</span>';
+            let winnerTicket = null;
+            let winnerPattern = null;
 
-                        calledNums.forEach((num, index) => {
-                            let parsedNum = parseInt(num);
-                            if (!isNaN(parsedNum)) {
-                                let isLatest = (index === calledNums.length - 1);
-                                let ballClass = isLatest ? 'history-ball latest' : 'history-ball';
-                                let ballText = formatBingoBall(parsedNum);
-                                historyHtml += `<div class="${ballClass}">${ballText}</div>`;
-                            }
-                        });
-                        historyContainer.innerHTML = historyHtml;
-                        historyContainer.scrollLeft = historyContainer.scrollWidth;
+            for (let ticketNum of state.selectedTickets) {
+                const result = checkCardForWinningLines(state.cardsData[ticketNum]);
+                if (result.winner) {
+                    winnerTicket = ticketNum;
+                    winnerPattern = result.pattern;
+                    break;
+                }
+            }
 
-                        let autoPlayOn = document.getElementById('autoPlayToggle').checked;
-
-                        for (let id in userCartelasMap) {
-                            let gridEl = document.getElementById(`grid-${id}`);
-                            if(gridEl) {
-                                let cells = gridEl.querySelectorAll('.cell[data-val]');
-                                cells.forEach(cell => {
-                                    let val = cell.getAttribute('data-val');
-                                    if(val === 'FREE') {
-                                        cell.classList.add('marked');
-                                    } else {
-                                        let num = parseInt(val);
-                                        if (autoPlayOn) {
-                                            if(calledNums.includes(num)) {
-                                                cell.classList.add('marked');
-                                            }
-                                        } else {
-                                            if (manualMarkedMap[id] && manualMarkedMap[id].includes(num)) {
-                                                cell.classList.add('manual-marked');
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-
-                            if (!autoPlayOn) {
-                                updateManualBingoButtonState(id);
-                            }
-                        }
-
-                        if (autoPlayOn && !hasWonChecked && selectedCartelaIDs.length > 0) {
-                            for (let id in userCartelasMap) {
-                                if (checkBingoLine(userCartelasMap[id], calledNums, id)) {
-                                    hasWonChecked = true;
-                                    triggerWinnerClaim(id);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                })
-                .catch(err => console.log('Syncing...'));
+            if (winnerTicket) {
+                triggerBingoVictory(winnerTicket, winnerPattern);
+            } else {
+                showToast("⚠️ ውድቅ ቢንጎ! እባክዎን ካርቴላዎን በትክክል ያስተካክሉ ወይም የተጠሩትን ቁጥሮች ይመልከቱ።");
+                playSound('error');
+            }
         }
 
-        function triggerWinnerClaim(cartelaId) {
-            fetch('/claim_bingo', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cartela_id: cartelaId, username: currentUserName })
-            })
-            .then(res => res.json())
-            .then(data => {
-                showWinnerPopup(data.winner.name, data.winner.cartela_id);
+        function triggerBingoVictory(ticketNum, pattern) {
+            state.hasGameEnded = true;
+            clearInterval(state.liveCallerTimer);
+
+            const prizeETB = 1800;
+            state.mainBalance += prizeETB;
+            state.stats.totalWins++;
+            state.stats.totalWonETB += prizeETB;
+
+            state.transactions.unshift({
+                type: 'Win',
+                target: 'Main',
+                amount: prizeETB,
+                desc: `Bingo Round Winner Ticket #${ticketNum}`,
+                date: 'Just now',
+                status: 'Completed'
+            });
+
+            updateWalletUI();
+            playSound('win');
+
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+            }
+
+            document.getElementById('winningTicketNum').innerText = `Ticket #${ticketNum}`;
+            document.getElementById('winningPatternText').innerText = pattern;
+            document.getElementById('winningPrizeText').innerText = `+${prizeETB.toLocaleString()} ETB`;
+            document.getElementById('victoryModal').classList.remove('hidden');
+        }
+
+        function resetToHome() {
+            clearInterval(state.liveCallerTimer);
+            clearInterval(state.countdownTimer);
+
+            state.selectedTickets = [];
+            state.cardsData = {};
+            state.calledNumbers = [];
+            state.hasGameEnded = false;
+
+            document.getElementById('victoryModal').classList.add('hidden');
+            document.getElementById('liveBingoRoomSection').classList.add('hidden');
+            document.getElementById('ticketSelectionSection').classList.remove('hidden');
+
+            renderTicketsGrid();
+            updateSummaryBar();
+            startCountdownTimer();
+            switchTab('home');
+        }
+
+        function setTimeframe(tf) {
+            state.leaderboardTimeframe = tf;
+            document.getElementById('tfDailyBtn').className = tf === 'daily' ? "px-4 py-1.5 rounded-xl text-xs font-bold transition bg-purple-600 text-white shadow-md" : "px-4 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white";
+            document.getElementById('tfWeeklyBtn').className = tf === 'weekly' ? "px-4 py-1.5 rounded-xl text-xs font-bold transition bg-purple-600 text-white shadow-md" : "px-4 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white";
+            renderLeaderboardUI();
+        }
+
+        function setLeaderboardCategory(cat) {
+            state.leaderboardCategory = cat;
+
+            const btnP = document.getElementById('lbPlayersBtn');
+            const btnW = document.getElementById('lbWinnersBtn');
+            const btnI = document.getElementById('lbInvitersBtn');
+
+            btnP.className = "flex-1 py-2 rounded-xl text-xs font-extrabold transition text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+            btnW.className = "flex-1 py-2 rounded-xl text-xs font-extrabold transition text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+            btnI.className = "flex-1 py-2 rounded-xl text-xs font-extrabold transition text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+
+            if (cat === 'players') btnP.className = "flex-1 py-2 rounded-xl text-xs font-extrabold transition bg-purple-600/30 border border-purple-500/50 text-white shadow-sm flex items-center justify-center space-x-1.5";
+            else if (cat === 'winners') btnW.className = "flex-1 py-2 rounded-xl text-xs font-extrabold transition bg-amber-600/30 border border-amber-500/50 text-white shadow-sm flex items-center justify-center space-x-1.5";
+            else if (cat === 'inviters') btnI.className = "flex-1 py-2 rounded-xl text-xs font-extrabold transition bg-blue-600/30 border border-blue-500/50 text-white shadow-sm flex items-center justify-center space-x-1.5";
+
+            renderLeaderboardUI();
+        }
+
+        function renderLeaderboardUI() {
+            const listData = state.leaderboardData[state.leaderboardTimeframe][state.leaderboardCategory];
+            const podiumContainer = document.getElementById('podiumContainer');
+            const listContainer = document.getElementById('rankingsListContainer');
+
+            podiumContainer.innerHTML = '';
+            listContainer.innerHTML = '';
+
+            const top3 = listData.slice(0, 3);
+            const others = listData.slice(3);
+
+            const podiumOrder = [top3[1], top3[0], top3[2]];
+            const podiumHeights = ["h-32", "h-40", "h-28"];
+            const podiumBadges = ["🥈 2nd", "🥇 1st", "🥉 3rd"];
+
+            podiumOrder.forEach((item, idx) => {
+                if (!item) return;
+                const pBox = document.createElement('div');
+                pBox.className = `glass-panel p-3 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-between shadow-xl ${podiumHeights[idx]}`;
+                
+                pBox.innerHTML = `
+                    <span class="text-[10px] font-black uppercase tracking-wider block">${podiumBadges[idx]}</span>
+                    <div class="text-xl my-1">${item.avatar}</div>
+                    <div class="w-full">
+                        <span class="text-xs font-extrabold text-white block truncate">${item.name}</span>
+                        <span class="text-[10px] font-mono font-bold text-amber-400 block">${item.val}</span>
+                    </div>
+                `;
+                podiumContainer.appendChild(pBox);
+            });
+
+            others.forEach(item => {
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between p-2.5 rounded-2xl bg-slate-900/70 border border-slate-800 text-xs";
+                row.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="font-mono font-bold text-slate-500 w-5 text-center">#${item.rank}</span>
+                        <span class="text-base">${item.avatar}</span>
+                        <div>
+                            <span class="font-bold text-white block">${item.name}</span>
+                            <span class="text-[9px] text-slate-400">${item.handle}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-mono font-bold text-purple-300 block">${item.val}</span>
+                        <span class="text-[9px] text-slate-400">${item.sub}</span>
+                    </div>
+                `;
+                listContainer.appendChild(row);
             });
         }
 
-        function showWinnerPopup(winnerName, cartelaId) {
-            if (syncTimer) {
-                clearInterval(syncTimer);
-                syncTimer = null;
+        function claimPromoCode() {
+            const input = document.getElementById('promoCodeInput');
+            const code = input.value.trim().toUpperCase();
+
+            if (!code) {
+                showToast("⚠️ Please enter a coupon code!");
+                return;
             }
 
-            document.getElementById('winnerDetailsText').innerHTML = `አሸናፊ: <b>${winnerName}</b><br>ካርቴላ ቁጥር: <b>#${cartelaId}</b>`;
-            document.getElementById('winnerModal').style.display = 'flex';
+            if (state.claimedPromoCodes.includes(code)) {
+                showToast("❌ You have already claimed this coupon code!");
+                playSound('error');
+                return;
+            }
 
-            let count = 3;
-            let timerEl = document.getElementById('redirectTimer');
+            let bonus = 0;
+            if (code === 'BINGO2026') bonus = 100;
+            else if (code === 'BONUS100') bonus = 100;
+            else if (code === 'TELEGRAM50') bonus = 50;
 
-            let redirectInterval = setInterval(() => {
-                count--;
-                timerEl.innerText = count;
-                if (count <= 0) {
-                    clearInterval(redirectInterval);
-                    document.getElementById('winnerModal').style.display = 'none';
-                    leaveRoom();
-                }
-            }, 1000);
+            if (bonus > 0) {
+                state.playBalance += bonus;
+                state.claimedPromoCodes.push(code);
+                state.transactions.unshift({
+                    type: 'Bonus',
+                    target: 'Play',
+                    amount: bonus,
+                    desc: `Claimed Coupon Code ${code}`,
+                    date: 'Just now',
+                    status: 'Completed'
+                });
+
+                updateWalletUI();
+                input.value = '';
+                showToast(`🎉 Success! +${bonus} ETB added to your Play Balance!`);
+                playSound('win');
+            } else {
+                showToast("❌ Invalid or expired coupon code!");
+                playSound('error');
+            }
         }
 
-        function leaveRoom() {
-            if (syncTimer) {
-                clearInterval(syncTimer);
-                syncTimer = null;
+        function saveCustomPromoCode() {
+            const input = document.getElementById('customPromoInput');
+            const newCode = input.value.trim().toUpperCase();
+
+            if (!newCode) return;
+            state.customPromoCode = newCode;
+            document.getElementById('invitationLinkInput').value = `https://ethiobingo.app/join?ref=${newCode}`;
+            showToast("✅ Custom promo code saved!");
+            playSound('click');
+        }
+
+        function copyInviteLink() {
+            const linkInput = document.getElementById('invitationLinkInput');
+            linkInput.select();
+            document.execCommand('copy');
+            showToast("📋 Invitation link copied to clipboard!");
+            playSound('click');
+        }
+
+        function shareToTelegram() {
+            const link = document.getElementById('invitationLinkInput').value;
+            const text = encodeURIComponent(`🎮 Join me on Ethio Bingo! Use my promo code ${state.customPromoCode} to get 100 ETB Bonus!\n\nLink: ${link}`);
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`, '_blank');
+        }
+
+        function updateWalletUI() {
+            document.getElementById('navPlayBalance').innerText = `${state.playBalance.toLocaleString()} ETB`;
+            document.getElementById('navMainBalance').innerText = `${state.mainBalance.toLocaleString()} ETB`;
+
+            document.getElementById('walletPlayBalanceMain').innerText = `${state.playBalance.toLocaleString()}.00 ETB`;
+            document.getElementById('walletMainBalanceMain').innerText = `${state.mainBalance.toLocaleString()}.00 ETB`;
+
+            renderTransactionHistory();
+        }
+
+        function renderTransactionHistory() {
+            const list = document.getElementById('transactionHistoryList');
+            list.innerHTML = '';
+
+            if (state.transactions.length === 0) {
+                list.innerHTML = `<div class="text-xs text-slate-500 italic text-center py-3">No transactions found.</div>`;
+                return;
             }
 
-            fetch('/reset').catch(err => console.log('Reset error'));
+            state.transactions.forEach(tx => {
+                const isPositive = tx.amount > 0;
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs";
+                
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-7 h-7 rounded-lg ${isPositive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'} flex items-center justify-center">
+                            <i class="fa-solid ${isPositive ? 'fa-arrow-down' : 'fa-arrow-up'} text-[10px]"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-white block">${tx.desc}</span>
+                            <span class="text-[9px] text-slate-400">${tx.date} • ${tx.target} Bal</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-mono font-bold ${isPositive ? 'text-emerald-400' : 'text-slate-300'} block">
+                            ${isPositive ? '+' : ''}${tx.amount} ETB
+                        </span>
+                        <span class="text-[9px] text-emerald-400">${tx.status}</span>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
 
-            switchTab('homePage', document.querySelectorAll('.nav-link')[0]);
+        function openDepositModal(target) {
+            state.depositTarget = target || 'Play';
+            document.getElementById('depositTargetBalance').value = state.depositTarget;
+            document.getElementById('depositModal').classList.remove('hidden');
+        }
+        function closeDepositModal() { document.getElementById('depositModal').classList.add('hidden'); }
+        function openWithdrawModal() { document.getElementById('withdrawModal').classList.remove('hidden'); }
+        function closeWithdrawModal() { document.getElementById('withdrawModal').classList.add('hidden'); }
 
-            startHomeCountdown();
+        function processDeposit() {
+            const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
+            const target = document.getElementById('depositTargetBalance').value;
+            const provider = document.getElementById('depositProvider').value;
+
+            if (amount < 50) {
+                showToast("⚠️ Minimum deposit is 50 ETB");
+                return;
+            }
+
+            if (target === 'Play') {
+                state.playBalance += amount;
+            } else {
+                state.mainBalance += amount;
+            }
+
+            state.transactions.unshift({
+                type: 'Deposit',
+                target: target,
+                amount: amount,
+                desc: `${provider} Topup (${target} Bal)`,
+                date: 'Just now',
+                status: 'Completed'
+            });
+
+            updateWalletUI();
+            closeDepositModal();
+            showToast(`✅ Deposited ${amount} ETB into ${target} Balance via ${provider}!`);
+            playSound('win');
+        }
+
+        function processWithdraw() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+            const provider = document.getElementById('withdrawProvider').value;
+
+            if (amount > state.mainBalance) {
+                showToast("❌ Insufficient Main Balance for withdrawal!");
+                return;
+            }
+
+            state.mainBalance -= amount;
+            state.transactions.unshift({
+                type: 'Withdraw',
+                target: 'Main',
+                amount: -amount,
+                desc: `${provider} Withdrawal`,
+                date: 'Just now',
+                status: 'Pending'
+            });
+
+            updateWalletUI();
+            closeWithdrawModal();
+            showToast(`✅ Withdrawal request for ${amount} ETB submitted!`);
+            playSound('click');
+        }
+
+        function updateProfileUI() {
+            document.getElementById('statTotalGames').innerText = state.stats.totalPlayed;
+            document.getElementById('statTotalWins').innerText = state.stats.totalWins;
+            
+            const rate = state.stats.totalPlayed > 0 ? ((state.stats.totalWins / state.stats.totalPlayed) * 100).toFixed(1) : 0;
+            document.getElementById('statWinRate').innerText = `${rate}%`;
+            document.getElementById('statTotalWon').innerText = `${state.stats.totalWonETB.toLocaleString()} ETB`;
+
+            document.getElementById('statTotalInvited').innerText = `${state.stats.totalInvited} Players`;
+            document.getElementById('statInvitedDeposits').innerText = `${state.stats.invitedDepositsETB.toLocaleString()} ETB`;
+            document.getElementById('statEarnedCommission').innerText = `${state.stats.earnedCommissionETB.toLocaleString()} ETB`;
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            icon.className = state.soundEnabled ? "fa-solid fa-volume-high text-xs" : "fa-solid fa-volume-xmark text-slate-500 text-xs";
+        }
+
+        function playSound(type) {
+            if (!state.soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(450, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                    osc.start(); osc.stop(ctx.currentTime + 0.05);
+                } else if (type === 'dab') {
+                    osc.frequency.setValueAtTime(650, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    osc.start(); osc.stop(ctx.currentTime + 0.08);
+                } else if (type === 'call') {
+                    osc.frequency.setValueAtTime(320, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(580, ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    osc.start(); osc.stop(ctx.currentTime + 0.12);
+                } else if (type === 'win') {
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    osc.start(); osc.stop(ctx.currentTime + 0.4);
+                } else if (type === 'error') {
+                    osc.frequency.setValueAtTime(200, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    osc.start(); osc.stop(ctx.currentTime + 0.15);
+                }
+            } catch(e) {}
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-2xl z-50 animate-pop-in";
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
     </script>
 </body>
