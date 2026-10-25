@@ -63,7 +63,7 @@ def _mask_phone(phone):
 
 # --------------------------------------------------------------------- engine
 class GameEngine:
-    def __init__(self, wallet, min_players=1, selection_seconds=30, draw_interval=2.0,
+    def __init__(self, wallet, min_players=2, selection_seconds=30, draw_interval=2.0,
                  result_seconds=10, first_draw_delay=3.0, clock=time.time, rng=None):
         self.wallet = wallet
         self.min_players = max(1, int(min_players))
@@ -186,6 +186,16 @@ class GameEngine:
         self.phase = "selection"
         self.phase_ends_at = now + self.selection_seconds
         self.cartels = {}          # cartel -> uid (picks, then locked tickets)
+        
+        # --- 🤖 አውቶማቲክ ቦት (Bot) በየራውንዱ 2 የዘፈቀደ ካርቴሎችን እንዲይዝ ማድረግ ---
+        try:
+            bot_cartels = self.rng.sample(range(1, CARTEL_COUNT + 1), 2)
+            for c in bot_cartels:
+                self.cartels[c] = "bot_player"
+        except Exception:
+            pass
+        # ------------------------------------------------------------------------
+
         self.draw_order = []
         self.drawn = []
         self.next_draw_at = None
