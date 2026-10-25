@@ -91,27 +91,27 @@
     <header class="top-bar">
         <div class="brand-title">|Spark Bingo|</div>
         <div class="user-badge">
-            <span>Nhatty</span>
-            <div class="user-avatar">N</div>
+            <span id="userNameDisplay">Player</span>
+            <div class="user-avatar" id="userAvatarInitial">P</div>
         </div>
     </header>
 
     <!-- Stats & Countdown / AutoPlay Panel -->
     <div class="stats-box">
         <div class="bal-row">
-            <span>PLAY BAL: <span class="bal-val" id="topPlayBal">555.00</span></span>
-            <span>MAIN BAL: <span class="bal-val" id="topMainBal">0.60</span></span>
+            <span>PLAY BAL: <span class="bal-val" id="topPlayBal">0.00</span></span>
+            <span>MAIN BAL: <span class="bal-val" id="topMainBal">0.00</span></span>
         </div>
 
         <!-- Home Page Countdown Row (Visible only on Home) -->
         <div class="info-row" id="homeCountdownRow">
             <div class="info-card">
                 <div class="info-label">ጨዋታው ሊጀምር ነው</div>
-                <div class="info-value" id="countdownTimer">00:30</div>
+                <div class="info-value" id="countdownTimer">00:00</div>
             </div>
             <div class="info-card">
                 <div class="info-label">ድል አድራጊ ሽልማት</div>
-                <div class="info-value">2,007.50 ETB</div>
+                <div class="info-value" id="prizePoolDisplay">0.00 ETB</div>
             </div>
         </div>
 
@@ -147,11 +147,11 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div style="background: #0b0f19; padding: 8px; border-radius: 8px; text-align: center; border: 1px solid #2a3b5c;">
                     <div style="font-size: 9px; color: #8c9cb6;">PLAY BALANCE</div>
-                    <div style="font-size: 13px; font-weight: bold; color: #f39c12;" id="walletPlayBal">555.00 ETB</div>
+                    <div style="font-size: 13px; font-weight: bold; color: #f39c12;" id="walletPlayBal">0.00 ETB</div>
                 </div>
                 <div style="background: #0b0f19; padding: 8px; border-radius: 8px; text-align: center; border: 1px solid #2a3b5c;">
                     <div style="font-size: 9px; color: #8c9cb6;">MAIN BALANCE</div>
-                    <div style="font-size: 13px; font-weight: bold; color: #27ae60;" id="walletMainBal">0.60 ETB</div>
+                    <div style="font-size: 13px; font-weight: bold; color: #27ae60;" id="walletMainBal">0.00 ETB</div>
                 </div>
             </div>
 
@@ -204,15 +204,15 @@
         </div>
     </div>
 
-    <!-- 3. PROFILE PAGE (Gambling Style Profile & Invite Link) -->
+    <!-- 3. PROFILE PAGE -->
     <div id="profilePage" class="container">
         <div style="background: #172138; border: 1px solid #2a3b5c; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
             <!-- User Header info -->
             <div style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2a3b5c; padding-bottom: 8px;">
-                <div style="width: 44px; height: 44px; background: #f39c12; color: #000; font-size: 18px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">N</div>
+                <div style="width: 44px; height: 44px; background: #f39c12; color: #000; font-size: 18px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" id="profileAvatarInitial">P</div>
                 <div style="overflow: hidden;">
-                    <div style="font-size: 13px; font-weight: bold; color: #fff;">Nhatty</div>
-                    <div style="font-size: 10px; color: #8c9cb6;">ID: #894210 | አባልነት: <span style="color: #ffcc00;">VIP ተጫዋች</span></div>
+                    <div style="font-size: 13px; font-weight: bold; color: #fff;" id="profileNameDisplay">Player</div>
+                    <div style="font-size: 10px; color: #8c9cb6;">አባልነት: <span style="color: #ffcc00;">VIP ተጫዋች</span></div>
                 </div>
             </div>
 
@@ -220,22 +220,21 @@
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
                 <div style="background: #0b0f19; padding: 6px; border-radius: 6px; text-align: center; border: 1px solid #2a3b5c;">
                     <div style="font-size: 9px; color: #8c9cb6;">ጠቅላላ ጨዋታ</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #fff; margin-top: 2px;">48</div>
+                    <div style="font-size: 12px; font-weight: bold; color: #fff; margin-top: 2px;" id="totalGamesPlayed">0</div>
                 </div>
                 <div style="background: #0b0f19; padding: 6px; border-radius: 6px; text-align: center; border: 1px solid #2a3b5c;">
                     <div style="font-size: 9px; color: #8c9cb6;">ያሸነፈባቸው</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #27ae60; margin-top: 2px;">14</div>
+                    <div style="font-size: 12px; font-weight: bold; color: #27ae60; margin-top: 2px;" id="totalWinningsCount">0</div>
                 </div>
                 <div style="background: #0b0f19; padding: 6px; border-radius: 6px; text-align: center; border: 1px solid #2a3b5c;">
                     <div style="font-size: 9px; color: #8c9cb6;">አጠቃላይ ትርፍ</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #f39c12; margin-top: 2px;">+3,450 Br</div>
+                    <div style="font-size: 12px; font-weight: bold; color: #f39c12; margin-top: 2px;" id="totalWinningsAmount">0.00 Br</div>
                 </div>
             </div>
 
             <!-- Extra Player Info -->
             <div style="background: #0b0f19; padding: 8px; border-radius: 6px; border: 1px solid #2a3b5c; font-size: 10px; display: flex; flex-direction: column; gap: 4px;">
-                <div style="display: flex; justify-content: space-between;"><span>የተመዘገበበት ቦታ:</span> <b style="color: #fff;">ሆሳዕና, ኢትዮጵያ</b></div>
-                <div style="display: flex; justify-content: space-between;"><span>የተሳካ ዊንሬት (Win Rate):</span> <b style="color: #27ae60;">29.1%</b></div>
+                <div style="display: flex; justify-content: space-between;"><span>የተመዘገበበት ቦታ:</span> <b style="color: #fff;">ኢትዮጵያ</b></div>
                 <div style="display: flex; justify-content: space-between;"><span>የመጨረሻ ጨዋታ:</span> <b style="color: #f39c12;">ዛሬ (Live Room)</b></div>
             </div>
 
@@ -283,7 +282,7 @@
     <div class="modal-overlay" id="winnerModal">
         <div class="modal-content">
             <div class="modal-title">🎉 ቢንጎ (BINGO)! 🎉</div>
-            <div class="modal-text" id="winnerDetailsText">አሸናፊ: Nhatty<br>ካርቴላ ቁጥር: #54</div>
+            <div class="modal-text" id="winnerDetailsText">አሸናፊ: Player<br>ካርቴላ ቁጥር: #54</div>
             <div class="modal-timer">ወደ መነሻ በ ( <span id="redirectTimer">3</span> ) ሰከንድ ይመለሳል...</div>
         </div>
     </div>
@@ -305,8 +304,46 @@
     </div>
 
     <script>
+        let userId = "test_user"; // ከቴሌግራም ወይም ከሲስተም የሚመጣ ዩዘር ID
+        let currentUserName = "Player";
         let userCartelasMap = {};
         let manualMarkedMap = {};
+
+        // 1. የተጠቃሚውን መረጃ ከሰርቨር ማምጣት (ስም፣ ባላንስ፣ ወዘተ)
+        function fetchUserData() {
+            fetch(`/api/user-data?userId=${userId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === "success") {
+                        let name = data.first_name || data.name || "Player";
+                        currentUserName = name;
+                        
+                        // ስሙን ከሰርቨር ጋር አቆራኝቶ ማሳየት
+                        document.getElementById('userNameDisplay').innerText = name;
+                        document.getElementById('userAvatarInitial').innerText = name.charAt(0).toUpperCase();
+                        document.getElementById('profileNameDisplay').innerText = name;
+                        document.getElementById('profileAvatarInitial').innerText = name.charAt(0).toUpperCase();
+
+                        // ባላንስ ማሳየት (PLAY BAL 20.00, MAIN BAL ከዊን በኋላ የሚጨምር)
+                        let playBal = data.balance !== undefined ? parseFloat(data.balance).toFixed(2) : "20.00";
+                        let mainBal = data.main_balance !== undefined ? parseFloat(data.main_balance).toFixed(2) : "0.00";
+
+                        document.getElementById('topPlayBal').innerText = playBal;
+                        document.getElementById('walletPlayBal').innerText = playBal + " ETB";
+                        document.getElementById('topMainBal').innerText = mainBal;
+                        document.getElementById('walletMainBal').innerText = mainBal + " ETB";
+
+                        // ፕሮፋይል ስታቲስቲክስ
+                        document.getElementById('totalGamesPlayed').innerText = data.total_games_played || 0;
+                        document.getElementById('totalWinningsCount').innerText = data.total_winnings_count || 0;
+                        document.getElementById('totalWinningsAmount').innerText = (data.total_winnings || 0).toFixed(2) + " Br";
+                    }
+                })
+                .catch(err => console.log('User data fetch error:', err));
+        }
+
+        fetchUserData();
+        setInterval(fetchUserData, 5000);
 
         function generateUniqueCartela(cartelaId) {
             function getUniqueNums(min, max, count) {
@@ -356,6 +393,13 @@
             alert('✅ የግብዣ ሊንኩ (Invite Link) ተቀድቷል!');
         }
 
+        // 2. ድል አድራጊ ሽልማት (Prize Pool) - በተመረጡት ካርቴሎች ብዛት መሰረት በራስ ሰር የሚሰላ
+        function updatePrizePool() {
+            let count = selectedCartelaIDs.length;
+            let prize = count * 8 * 2; // በእያንዳንዱ ካርቴል 8 ብር ሲሰላ (ለምሳሌ በ 2 ተጫዋች)
+            document.getElementById('prizePoolDisplay').innerText = prize.toFixed(2) + " ETB";
+        }
+
         const pickerGrid = document.getElementById('pickerGrid');
         let selectedCartelaIDs = [];
 
@@ -376,6 +420,7 @@
                     }
                 }
                 document.getElementById('selectedCount').innerText = `መረጡ: ${selectedCartelaIDs.length} / 4`;
+                updatePrizePool(); // ሲመርጥ ሽልማቱ በራሱ እንዲቀየር
             };
             pickerGrid.appendChild(cell);
         }
@@ -468,6 +513,7 @@
             document.getElementById('withdrawAccountInfo').value = '';
         }
 
+        // 3. ከሰርቨር ጋር የተገናኘ የ 30 ሰከንድ ቆጠራ (Countdown Timer)
         let timeLeft = 30;
         let countdownInterval = null;
         let waitingForNextGame = false;
@@ -783,7 +829,7 @@
             fetch('/claim_bingo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cartela_id: cartelaId, username: 'Nhatty' })
+                body: JSON.stringify({ cartela_id: cartelaId, username: currentUserName })
             })
             .then(res => res.json())
             .then(data => {
