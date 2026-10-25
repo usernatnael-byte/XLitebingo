@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethio Bingo - Live Multiplayer</title>
+    <title>Ethio Bingo - Live Multiplayer & Telegram Integration</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -15,7 +15,7 @@
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Firebase App, Firestore & Analytics SDKs -->
+    <!-- Firebase App, Firestore SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -74,7 +74,7 @@
 </head>
 <body class="bg-mesh text-slate-100 min-h-screen font-sans flex flex-col justify-between pb-24">
 
-    <!-- TOP NAVBAR -->
+    <!-- TOP HEADER NAVBAR -->
     <header class="w-full glass-panel border-b border-slate-800/80 sticky top-0 z-40 px-3 sm:px-4 py-2.5">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchTab('profile')">
@@ -110,15 +110,15 @@
     <!-- MAIN CONTAINER -->
     <main class="max-w-7xl w-full mx-auto p-3 sm:p-6 flex-grow flex flex-col justify-start">
 
-        <!-- GLOBAL WAITING OVERLAY IF GAME RUNNING -->
+        <!-- GLOBAL GAME IN PROGRESS WAITING OVERLAY -->
         <div id="gameInProgressOverlay" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-amber-500/40 text-center space-y-4 shadow-2xl">
+            <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-amber-500/40 text-center space-y-4 shadow-2xl animate-pop-in">
                 <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl mx-auto flex items-center justify-center text-amber-400 text-2xl">
                     <i class="fa-solid fa-hourglass-half animate-spin"></i>
                 </div>
                 <h3 class="text-xl font-black text-white">ጨዋታ በመካሄድ ላይ ነው!</h3>
                 <p class="text-xs text-slate-300 leading-relaxed">
-                    እባኮት አሁን ጨዋታ ላይ ነን ቀጣይ ጨዋታ እስኪጀመር እዚው ይጠብቁ[span_2](start_span)[span_2](end_span)።
+                    እባኮት አሁን ጨዋታ ላይ ነን ቀጣይ ጨዋታ እስኪጀመር እዚው ይጠብቁ[span_1](start_span)[span_1](end_span)። ጨዋታው ሲጠናቀቅ አዲሱ ዙር በራሱ ጊዜ ይከፈታል!
                 </p>
             </div>
         </div>
@@ -128,11 +128,11 @@
             <section id="ticketSelectionSection" class="w-full space-y-5">
                 <div class="glass-panel p-5 sm:p-8 rounded-3xl border border-slate-800 text-center relative overflow-hidden shadow-2xl max-w-4xl mx-auto">
                     <span class="inline-block px-3.5 py-1 bg-purple-500/10 text-purple-300 rounded-full text-xs font-bold mb-2.5 border border-purple-500/20">
-                        🎟️ 1 TICKET = 10 ETB (CHOOSE 1 TO 4 CARDS)[span_3](start_span)[span_3](end_span)
+                        🎟️ 1 TICKET = 10 ETB (CHOOSE 1 TO 4 CARDS)[span_2](start_span)[span_2](end_span)
                     </span>
                     <h2 class="text-2xl sm:text-4xl font-black text-white">Select Bingo Cards</h2>
                     <p class="text-slate-400 text-xs sm:text-sm mt-1 max-w-lg mx-auto">
-                        የመጀመሪያ ስጦታዎ <b>10 ፕሌይ ብር</b> አለዎት! ካርቴላ በመምረጥ ጀምር[span_4](start_span)[span_4](end_span)።
+                        የመጀመሪያ ስጦታዎ <b>10 ፕሌይ ብር</b> አለዎት[span_3](start_span)[span_3](end_span)። ካርቴላ ሳይመርጡ ሰዓቱ ካለቀ እንደ ተመልካች (Spectator) ወደ ሩሙ ይገባሉ[span_4](start_span)[span_4](end_span)።
                     </p>
 
                     <div class="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -205,7 +205,14 @@
             </section>
         </div>
 
-        <!-- TAB 3: WALLET -->
+        <!-- TAB 2: LEADERBOARD -->
+        <div id="tabLeaderboard" class="hidden w-full max-w-4xl mx-auto space-y-5">
+            <div class="glass-panel p-5 rounded-3xl border border-slate-800">
+                <h2 class="text-xl font-black text-white">ቶፕ ሊደርቦርድ (Top Leaderboard)</h2>
+            </div>
+        </div>
+
+        <!-- TAB 3: WALLET (TELEBIRR DEPOSIT WORKFLOW) -->
         <div id="tabWallet" class="hidden w-full max-w-4xl mx-auto space-y-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="glass-panel p-5 rounded-3xl border border-blue-500/30">
@@ -222,10 +229,10 @@
             </div>
         </div>
 
-        <!-- TAB 4: PROFILE -->
+        <!-- TAB 4: PROFILE & TELEGRAM REFERRAL LINK -->
         <div id="tabProfile" class="hidden w-full max-w-4xl mx-auto space-y-5">
             <div class="glass-panel p-5 rounded-3xl border border-slate-800 shadow-xl flex items-center space-x-4">
-                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-amber-500 flex items-center justify-center text-2xl">👤</div>
+                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-amber-500 flex items-center justify-center text-2xl text-white">👤</div>
                 <div>
                     <h2 id="profileName" class="text-lg font-black text-white">Telegram Player</h2>
                     <p id="profileHandle" class="text-xs text-purple-400 font-mono">@player</p>
@@ -233,7 +240,8 @@
             </div>
 
             <div class="glass-panel p-5 rounded-3xl border border-purple-500/40 space-y-3">
-                <h3 class="text-sm font-extrabold text-white">የጓደኛ ማጣቀሻ ሊንክ (Invite Friends)</h3>
+                <h3 class="text-sm font-extrabold text-white">የጓደኛ ማጣቀሻ ሊንክ (Invite Friends & Earn)[span_8](start_span)[span_8](end_span)</h3>
+                <p class="text-xs text-slate-300">ይህንን ሊንክ ለጓደኞችዎ በመላክ ቦቱን እንዲጀምሩ ያድርጉ[span_9](start_span)[span_9](end_span)።</p>
                 <div class="flex items-center space-x-2">
                     <input type="text" id="inviteLinkInput" readonly class="flex-1 bg-slate-900 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-purple-300 font-mono font-bold">
                     <button onclick="copyInviteLink()" class="px-5 py-2.5 bg-purple-600 text-white font-black text-xs rounded-xl">Copy</button>
@@ -246,12 +254,17 @@
     <div id="depositModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-blue-500/40 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="font-extrabold text-white text-sm">Telebirr Deposit</h3>
+                <h3 class="font-extrabold text-white text-sm">Telebirr Deposit (ቴሌብር ዴፖዚት)[span_10](start_span)[span_10](end_span)</h3>
                 <button onclick="closeDepositModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="bg-slate-900 p-3 rounded-2xl border border-blue-500/30 text-xs space-y-1">
+                <p class="text-slate-300 font-bold">📌 መመሪያ:</p>
+                <p class="text-slate-400">ገንዘብ ወደ ቴሌብር ቁጥራችን ያስተላልፉ፡ <b class="text-blue-400 font-mono">0911223344</b></p>
+                <p class="text-slate-400">ከዛ የደረሰዎትን ኤስኤምኤስ ወይም ትራንዛክሽን ኮድ እዚህ ጋር ፔስት ያድርጉ[span_11](start_span)[span_11](end_span)።</p>
             </div>
             <textarea id="depositSmsInput" rows="3" placeholder="Transaction ID ወይም SMS ቴክስት..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs"></textarea>
             <button onclick="submitDepositRequest()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-black text-xs rounded-xl">
-                ✅ ክፍያ ፈጽሜያለሁ (Submit Payment)[span_8](start_span)[span_8](end_span)
+                ✅ ክፍያ ፈጽሜያለሁ (Submit Payment)[span_12](start_span)[span_12](end_span)
             </button>
         </div>
     </div>
@@ -266,7 +279,7 @@
         </div>
     </nav>
 
-    <!-- FIREBASE BACKEND SYNC SCRIPT -->
+    <!-- FIREBASE BACKEND & GAME ENGINE SCRIPT -->
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -274,8 +287,8 @@
         let currentUserTelegramId = "user_guest_" + Math.floor(Math.random() * 100000);
 
         let state = {
-            playBalance: 10, // ነባሪ የመጀመሪያ ስጦታ (10 ብር)
-            mainBalance: 0,  // ዋና ባላንስ ዜሮ ሆኖ ይጀምራል
+            playBalance: 10, // የመጀመሪያ ስጦታ (10 ብር)[span_13](start_span)[span_13](end_span)
+            mainBalance: 0,  // ዋና ባላንስ ዜሮ 
             selectedTickets: [],
             cardsData: {},
             countdownSec: 30,
@@ -294,7 +307,6 @@
                 document.getElementById('profileHandle').innerText = `${username} • ID: #${tgUser.id}`;
                 document.getElementById('inviteLinkInput').value = `https://t.me/Ethio_BingoBot?start=ref_${currentUserTelegramId}`;
 
-                // ከፋየርቤዝ የተጠቃሚውን ባላንስ መጫን (Fetch from Firebase)
                 loadUserDataFromFirebase(currentUserTelegramId);
             });
         }
@@ -307,7 +319,6 @@
                     state.playBalance = data.playBalance !== undefined ? data.playBalance : 10;
                     state.mainBalance = data.mainBalance !== undefined ? data.mainBalance : 0;
                 } else {
-                    // አዲስ ተጠቃሚ ከሆነ 10 ብር Play Balance እና 0 Main Balance በዳታቤዝ ይመዝግበዋል
                     userRef.set({
                         playBalance: 10,
                         mainBalance: 0,
@@ -319,7 +330,6 @@
                 updateWalletUI();
             });
 
-            // የባላንስ ለውጥ በቀጥታ ከእውነታው ጋር እንዲመሳሰል (Real-time Balance Listener)
             userRef.onSnapshot((doc) => {
                 if (doc.exists) {
                     const data = doc.data();
@@ -414,7 +424,7 @@
             const totalCost = state.selectedTickets.length * 10;
             if (totalCost > 0) {
                 if (state.playBalance < totalCost) {
-                    showToast("⚠️ የ Play Balance በቂ አይደለም! እባክዎን ዴፖዚት ያድርጉ[span_9](start_span)[span_9](end_span)።");
+                    showToast("⚠️ የ Play Balance በቂ አይደለም! እባክዎን ዴፖዚት ያድርጉ[span_14](start_span)[span_14](end_span)።");
                     switchTab('wallet');
                     return;
                 }
@@ -422,8 +432,26 @@
                 db.collection("users").doc(currentUserTelegramId).update({ playBalance: state.playBalance });
                 updateWalletUI();
             }
+
             document.getElementById('ticketSelectionSection').classList.add('hidden');
             document.getElementById('liveBingoRoomSection').classList.remove('hidden');
+            renderLiveCards();
+        }
+
+        // --- SPECTATOR MODE LOGIC IF NO CARDS SELECTED ---
+        function renderLiveCards() {
+            const container = document.getElementById('liveCardsContainer');
+            container.innerHTML = '';
+            if (state.selectedTickets.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full glass-panel p-8 rounded-3xl border border-slate-800 text-center space-y-3">
+                        <i class="fa-solid fa-eye text-amber-400 text-3xl animate-pulse"></i>
+                        <h3 class="text-base font-bold text-white">እንደ ተመልካች (Spectator Mode) ገብተዋል[span_15](start_span)[span_15](end_span)</h3>
+                        <p class="text-xs text-slate-400 max-w-sm mx-auto">በዚህ ዙር ካርቴላ ስለሌለዎት ቁጥሮቹን ብቻ እየተከታተሉ ማየት ይችላሉ[span_16](start_span)[span_16](end_span)!</p>
+                    </div>
+                `;
+                return;
+            }
         }
 
         function updateWalletUI() {
@@ -446,7 +474,7 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 closeDepositModal();
-                showToast("✅ የክፍያ ጥያቄዎ ለአድሚን ተልኳል[span_10](start_span)[span_10](end_span)!");
+                showToast("✅ የክፍያ ጥያቄዎ ለአድሚን ተልኳል[span_17](start_span)[span_17](end_span)! ሲጸድቅ ባላንሶ ይስተካከላል[span_18](start_span)[span_18](end_span)።");
             });
         }
 
