@@ -46,7 +46,7 @@
         }
     </script>
     <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #061a14; }
         ::-webkit-scrollbar-thumb { background: #134e3e; border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: #F59E0B; }
@@ -58,7 +58,7 @@
     <!-- LOGIN SCREEN OVERLAY                       -->
     <!-- ========================================== -->
     <div id="loginScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
-        <div class="max-w-md w-full bg-emerald-950/40 border border-emerald-800/60 p-8 rounded-3xl shadow-2xl space-y-6 backdrop-blur-xl">
+        <div class="max-w-md w-full bg-emerald-950/40 border border-emerald-800/60 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6 backdrop-blur-xl">
             <div class="text-center space-y-2">
                 <div class="w-16 h-16 bg-yellow-500/10 border border-yellow-500/30 rounded-2xl mx-auto flex items-center justify-center text-yellow-400 text-2xl shadow-lg">
                     <i class="fa-solid fa-shield-halved"></i>
@@ -94,21 +94,31 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MAIN ADMIN DASHBOARD (HIDDEN UNTIL LOGIN)  -->
-    <div id="adminDashboard" class="hidden flex h-screen overflow-hidden w-full">
+    <!-- MAIN ADMIN DASHBOARD                       -->
+    <!-- ========================================== -->
+    <div id="adminDashboard" class="hidden flex h-screen overflow-hidden w-full relative">
         
+        <!-- SIDEBAR OVERLAY FOR MOBILE -->
+        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden"></div>
+
         <!-- SIDEBAR NAVIGATION -->
-        <aside class="w-64 bg-emerald-950 border-r border-emerald-900/60 flex flex-col justify-between shadow-2xl">
+        <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-emerald-950 border-r border-emerald-900/60 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 shadow-2xl">
             <div>
                 <!-- Brand Header -->
-                <div class="p-4 border-b border-emerald-900/60 flex items-center space-x-3 bg-emerald-950/80">
-                    <div class="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 font-black">
-                        <i class="fa-solid fa-shield-halved"></i>
+                <div class="p-4 border-b border-emerald-900/60 flex items-center justify-between bg-emerald-950/90">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 font-black">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-extrabold text-sm text-yellow-400 tracking-wider">Nhatty Admin</h1>
+                            <p class="text-[9px] text-emerald-400 font-mono">Multiplayer Bingo Hub</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 class="font-extrabold text-sm text-yellow-400 tracking-wider">Nhatty Admin</h1>
-                        <p class="text-[9px] text-emerald-400 font-mono">Multiplayer Bingo Hub</p>
-                    </div>
+                    <!-- Close button for mobile sidebar -->
+                    <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-2">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
                 </div>
 
                 <!-- 11 Navigation Modules -->
@@ -158,22 +168,28 @@
         </aside>
 
         <!-- MAIN CONTENT AREA -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-900">
+        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-900 w-full">
             
-            <!-- Top Navigation Bar -->
-            <header class="bg-emerald-950 border-b border-emerald-900/60 p-4 flex justify-between items-center shadow-md">
-                <h2 id="pageTitle" class="text-base sm:text-lg font-black text-yellow-400 flex items-center space-x-2">
-                    <i class="fa-solid fa-chart-pie"></i><span>Platform Overview & Analytics</span>
-                </h2>
+            <!-- Top Navigation Bar with Toggle Hamburger Button -->
+            <header class="bg-emerald-950 border-b border-emerald-900/60 p-4 flex justify-between items-center shadow-md sticky top-0 z-20">
                 <div class="flex items-center space-x-3">
-                    <span class="px-3 py-1 bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 rounded-full text-xs font-bold">
-                        🟢 Live Sync Active
+                    <!-- Mobile Hamburger Toggle Button -->
+                    <button onclick="toggleSidebar()" class="md:hidden text-yellow-400 text-lg p-1.5 focus:outline-none">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 id="pageTitle" class="text-sm sm:text-lg font-black text-yellow-400 flex items-center space-x-2 truncate">
+                        <i class="fa-solid fa-chart-pie"></i><span>Platform Overview & Analytics</span>
+                    </h2>
+                </div>
+                <div class="flex items-center space-x-2 shrink-0">
+                    <span class="px-2.5 py-1 bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 rounded-full text-[10px] sm:text-xs font-bold">
+                        🟢 Live
                     </span>
                 </div>
             </header>
 
             <!-- CONTENT PANELS CONTAINER -->
-            <div class="p-4 sm:p-6 space-y-6 max-w-6xl w-full mx-auto flex-grow">
+            <div class="p-3 sm:p-6 space-y-6 max-w-6xl w-full mx-auto flex-grow">
 
                 <!-- 1. OVERVIEW PANEL -->
                 <div id="panel-overview" class="admin-panel space-y-6">
@@ -200,14 +216,14 @@
                         </div>
                     </div>
 
-                    <div class="bg-emerald-950/30 border border-emerald-800/60 p-5 rounded-3xl shadow-xl">
+                    <div class="bg-emerald-950/30 border border-emerald-800/60 p-4 sm:p-5 rounded-3xl shadow-xl">
                         <h3 class="font-extrabold text-white text-sm mb-3">Recent Platform Activity</h3>
                         <div class="space-y-2 text-xs">
-                            <div class="flex justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                            <div class="flex flex-col sm:flex-row justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 gap-1">
                                 <span class="text-slate-300">User <b class="text-white">@abebe_bingo</b> won Bingo Round #482</span>
                                 <span class="text-emerald-400 font-mono">+1,800 ETB Payout</span>
                             </div>
-                            <div class="flex justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                            <div class="flex flex-col sm:flex-row justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 gap-1">
                                 <span class="text-slate-300">User <b class="text-white">@helen_t</b> deposited via Telebirr</span>
                                 <span class="text-blue-400 font-mono">+500 ETB Play Bal</span>
                             </div>
@@ -217,7 +233,7 @@
 
                 <!-- 2. REAL USER REVENUE PANEL -->
                 <div id="panel-revenue" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-6 rounded-3xl shadow-xl space-y-4">
+                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 sm:p-6 rounded-3xl shadow-xl space-y-4">
                         <h3 class="font-extrabold text-yellow-400 text-sm">Revenue Analytics & House Commission Breakdown</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
@@ -262,9 +278,9 @@
                 <!-- 4. USERS MANAGEMENT PANEL -->
                 <div id="panel-users" class="admin-panel hidden space-y-6">
                     <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-4">
-                        <div class="flex justify-between items-center">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                             <h3 class="font-extrabold text-white text-sm">Player Accounts Management</h3>
-                            <input type="text" placeholder="Search user by phone/name..." class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-yellow-400">
+                            <input type="text" placeholder="Search user..." class="w-full sm:w-auto bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-yellow-400">
                         </div>
                         <div class="space-y-2 text-xs">
                             <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
@@ -301,8 +317,8 @@
                         <h3 class="font-extrabold text-white text-sm">Past Rounds & Winners Archive</h3>
                         <div class="space-y-2 text-xs">
                             <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex justify-between">
-                                <span>Round #482 • Winner: @abebe_bingo (Ticket #14)</span>
-                                <span class="text-emerald-400 font-mono">1,800 ETB Won</span>
+                                <span>Round #482 • Winner: @abebe_bingo</span>
+                                <span class="text-emerald-400 font-mono">1,800 ETB</span>
                             </div>
                         </div>
                     </div>
@@ -325,8 +341,8 @@
                     <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3 max-w-xl">
                         <h3 class="font-extrabold text-white text-sm">Global Announcement Broadcast</h3>
                         <div class="space-y-3 text-xs">
-                            <textarea rows="4" placeholder="Type notification message for all online players..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white"></textarea>
-                            <button onclick="alert('Broadcast sent to all active players!')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl">Send Global Alert</button>
+                            <textarea rows="4" placeholder="Type notification message..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white"></textarea>
+                            <button onclick="alert('Broadcast sent!')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl">Send Global Alert</button>
                         </div>
                     </div>
                 </div>
@@ -348,9 +364,9 @@
                     <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3">
                         <h3 class="font-extrabold text-white text-sm">Pending Withdrawal Requests Queue</h3>
                         <div class="space-y-2 text-xs">
-                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                                 <div>
-                                    <span class="font-bold text-white block">@sami_bingo • 1,500 ETB (Telebirr 0911******)</span>
+                                    <span class="font-bold text-white block">@sami_bingo • 1,500 ETB (Telebirr)</span>
                                     <span class="text-[10px] text-amber-400">Pending Review</span>
                                 </div>
                                 <div class="flex space-x-2">
@@ -379,17 +395,17 @@
                         </div>
                     </div>
 
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-6 rounded-3xl shadow-xl space-y-4">
+                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-4 sm:p-6 rounded-3xl shadow-xl space-y-4">
                         <h3 class="font-extrabold text-yellow-400 text-sm">🤖 Ethiopian Bot Names Manager (Up to 500 Names)</h3>
-                        <p class="text-xs text-slate-400">Enter or paste names separated by commas or new lines to simulate high room activity.</p>
+                        <p class="text-xs text-slate-400">Enter or paste names separated by commas or new lines.</p>
                         
                         <textarea id="botNamesArea" rows="7" class="w-full bg-slate-950 border border-emerald-800 rounded-2xl p-3 text-xs text-slate-200 focus:outline-none focus:border-yellow-400 font-mono">
 አበበ ከበደ, አልማዝ ተስፋዬ, ናቲ ጊርማ, ቃልኪዳን አስፋው, ዳንኤል ሰለሞን, ትግስት አለሙ, መሳይ በለጠ, ፍቅርተ መኮንን, ዮሐንስ ታደሰ, ሄለን ሃይሉ, ሳሙኤል አበራ, እቴነሽ መርዕድ, ብርሃኑ ነጋ, ማህሌት አሰፋ, ኪሮስ አያሌው, መቅደስ ታደሰ, ኤልያስ ዮሐንስ, ትዕግስት ገብሩ, ናትናኤል ግርማ, ቢለን ተስፋዬ
                         </textarea>
 
-                        <div class="flex justify-between items-center">
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                             <span id="nameCountIndicator" class="text-xs text-emerald-400 font-bold">Status: Ready for Firestore Sync</span>
-                            <button onclick="saveBotNamesToFirebase()" class="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold text-xs rounded-xl shadow transition">
+                            <button onclick="saveBotNamesToFirebase()" class="w-full sm:w-auto px-6 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold text-xs rounded-xl shadow transition">
                                 💾 Save Bot Names to Firebase
                             </button>
                         </div>
@@ -402,6 +418,13 @@
 
     <!-- ADMIN PANEL JAVASCRIPT & AUTHENTICATION -->
     <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
         function handleAdminLogin() {
             const user = document.getElementById('loginUsername').value.trim();
             const pass = document.getElementById('loginPassword').value.trim();
@@ -451,6 +474,11 @@
                 } else {
                     activeBtn.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-yellow-500 text-slate-950 font-bold shadow-md transition";
                 }
+            }
+
+            // On mobile, automatically close sidebar after choosing a tab
+            if (window.innerWidth < 768) {
+                toggleSidebar();
             }
 
             const titles = {
