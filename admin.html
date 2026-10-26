@@ -1,512 +1,437 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-[#0e1621]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethio Bingo - Admin Control Panel</title>
+    <title>1x Bingo - Admin Management Control Panel</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-    <!-- Firebase App, Firestore & Analytics SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
-
-    <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyBuUGJyt4XNYGnjGgXu7MeYSzgr-NmWU0s",
-          authDomain: "ethio-bingo-app.firebaseapp.com",
-          databaseURL: "https://ethio-bingo-app-default-rtdb.firebaseio.com",
-          projectId: "ethio-bingo-app",
-          storageBucket: "ethio-bingo-app.firebasestorage.app",
-          messagingSenderId: "922073990731",
-          appId: "1:922073990731:web:a96d4d36539bfae0cc6fce",
-          measurementId: "G-EVBKGZW29X"
-        };
-
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-    </script>
-
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
+                    colors: {
+                        'xbet-dark': '#0e1621',
+                        'xbet-card': '#17212b',
+                        'xbet-border': '#242f3d',
+                        'xbet-blue': '#1e2c3a',
+                        'xbet-teal': '#00b894',
+                        'xbet-green': '#00e676',
+                        'xbet-accent': '#2b5278'
                     }
                 }
             }
         }
     </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #061a14; }
-        ::-webkit-scrollbar-thumb { background: #134e3e; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #F59E0B; }
+        ::-webkit-scrollbar-track { background: #0e1621; }
+        ::-webkit-scrollbar-thumb { background: #242f3d; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans h-screen overflow-hidden flex flex-col">
+<body class="min-h-screen text-white font-sans antialiased bg-[#0e1621] p-3 sm:p-6 pb-20">
 
-    <!-- ========================================== -->
-    <!-- LOGIN SCREEN OVERLAY                       -->
-    <!-- ========================================== -->
-    <div id="loginScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
-        <div class="max-w-md w-full bg-emerald-950/40 border border-emerald-800/60 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6 backdrop-blur-xl">
-            <div class="text-center space-y-2">
-                <div class="w-16 h-16 bg-yellow-500/10 border border-yellow-500/30 rounded-2xl mx-auto flex items-center justify-center text-yellow-400 text-2xl shadow-lg">
-                    <i class="fa-solid fa-shield-halved"></i>
+    <div class="max-w-6xl mx-auto space-y-6">
+
+        <!-- ADMIN HEADER NAVBAR -->
+        <header class="bg-xbet-card border border-xbet-border p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-xl">
+            <div class="flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-[0_0_15px_rgba(0,184,148,0.3)]">
+                    <i class="fa-solid fa-user-shield"></i>
                 </div>
-                <h1 class="text-2xl font-black text-yellow-400 tracking-wider">ADMIN LOGIN</h1>
-                <p class="text-xs text-slate-400">Ethio Bingo Secure Management Control</p>
-            </div>
-
-            <div class="space-y-4 text-xs">
                 <div>
-                    <label class="font-bold text-slate-300 block mb-1">Username</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-500"></i>
-                        <input type="text" id="loginUsername" placeholder="Enter username..." class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-3 text-white focus:outline-none focus:border-yellow-400 font-bold">
-                    </div>
+                    <h1 class="text-lg sm:text-xl font-black text-white tracking-wide flex items-center gap-2">
+                        <span>1x Bingo Admin Dashboard</span>
+                        <span class="text-[10px] bg-teal-500/20 text-teal-300 border border-teal-500/40 px-2 py-0.5 rounded-full font-mono uppercase">Live Server Control</span>
+                    </h1>
+                    <p class="text-xs text-gray-400">የተጫዋቾች፣ የዲፖዚት፣ የባላንስ ማስተካከያ እና የብሮድካስት ማስተዳደሪያ ፓነል</p>
                 </div>
-
-                <div>
-                    <label class="font-bold text-slate-300 block mb-1">Password</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-500"></i>
-                        <input type="password" id="loginPassword" placeholder="Enter password..." class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-3 text-white focus:outline-none focus:border-yellow-400 font-bold">
-                    </div>
-                </div>
-
-                <div id="loginErrorMsg" class="text-red-400 text-center font-bold hidden">❌ Invalid Username or Password!</div>
             </div>
 
-            <button onclick="handleAdminLogin()" class="w-full py-3.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black text-sm rounded-xl shadow-lg transition transform active:scale-95 uppercase tracking-wider">
-                LOGIN TO ADMIN PANEL
-            </button>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- MAIN ADMIN DASHBOARD                       -->
-    <!-- ========================================== -->
-    <div id="adminDashboard" class="hidden flex h-screen overflow-hidden w-full relative">
-        
-        <!-- SIDEBAR OVERLAY FOR MOBILE -->
-        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden"></div>
-
-        <!-- SIDEBAR NAVIGATION -->
-        <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-emerald-950 border-r border-emerald-900/60 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 shadow-2xl">
-            <div>
-                <!-- Brand Header -->
-                <div class="p-4 border-b border-emerald-900/60 flex items-center justify-between bg-emerald-950/90">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 font-black">
-                            <i class="fa-solid fa-shield-halved"></i>
-                        </div>
-                        <div>
-                            <h1 class="font-extrabold text-sm text-yellow-400 tracking-wider">Nhatty Admin</h1>
-                            <p class="text-[9px] text-emerald-400 font-mono">Multiplayer Bingo Hub</p>
-                        </div>
-                    </div>
-                    <!-- Close button for mobile sidebar -->
-                    <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-2">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
-                </div>
-
-                <!-- 11 Navigation Modules -->
-                <nav class="p-3 space-y-1 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-140px)]">
-                    <button onclick="switchAdminTab('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-yellow-500 text-slate-950 font-bold shadow-md transition">
-                        <i class="fa-solid fa-chart-pie w-4"></i><span>Overview</span>
-                    </button>
-                    <button onclick="switchAdminTab('revenue')" id="nav-revenue" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
-                        <i class="fa-solid fa-chart-line w-4"></i><span>Real User Revenue</span>
-                    </button>
-                    <button onclick="switchAdminTab('transactions')" id="nav-transactions" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
-                        <i class="fa-solid fa-money-bill-transfer w-4"></i><span>Transactions</span>
-                    </button>
-                    <button onclick="switchAdminTab('users')" id="nav-users" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
-                        <i class="fa-solid fa-users w-4"></i><span>Users Management</span>
-                    </button>
-                    <button onclick="switchAdminTab('rooms')" id="nav-rooms" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
-                        <i class="fa-solid fa-dice w-4"></i><span>Live Rooms</span>
-                    </button>
-                    <button onclick="switchAdminTab('results')" id="nav-results" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
-                        <i class="fa-solid fa-trophy w-4"></i><span>Game Results</span>
-                    </button>
-                    <button onclick="switchAdminTab('sendmoney')" id="nav-sendmoney" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
-                        <i class="fa-solid fa-wallet w-4"></i><span>Send Money</span>
-                    </button>
-                    <button onclick="switchAdminTab('broadcast')" id="nav-broadcast" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
-                        <i class="fa-solid fa-bullhorn w-4"></i><span>Broadcast</span>
-                    </button>
-                    <button onclick="switchAdminTab('promotions')" id="nav-promotions" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
-                        <i class="fa-solid fa-gift w-4"></i><span>Promotions</span>
-                    </button>
-                    <button onclick="switchAdminTab('withdrawals')" id="nav-withdrawals" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition">
-                        <i class="fa-solid fa-money-check-dollar w-4"></i><span>Withdrawals</span>
-                    </button>
-                    <button onclick="switchAdminTab('bots')" id="nav-bots" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-yellow-300 bg-emerald-900/40 border border-yellow-500/30 transition">
-                        <i class="fa-solid fa-robot w-4 text-yellow-400"></i><span>Bot Settings & Names</span>
-                    </button>
-                </nav>
-            </div>
-
-            <!-- Logout Footer -->
-            <div class="p-3 border-t border-emerald-900/60">
-                <button onclick="handleAdminLogout()" class="w-full bg-red-950/40 border border-red-800/60 text-red-300 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 hover:bg-red-900/40 transition">
-                    <i class="fa-solid fa-right-from-bracket"></i><span>Log Out</span>
+            <div class="flex items-center space-x-2 self-end sm:self-auto">
+                <button onclick="loadAdminData()" class="bg-xbet-blue hover:bg-slate-700 text-teal-300 font-bold text-xs px-4 py-2.5 rounded-xl border border-xbet-border transition flex items-center space-x-2">
+                    <i class="fa-solid fa-arrows-rotate animate-spin-hover" id="refresh-icon"></i>
+                    <span>የመረጃ ዝርዝር አድስ (Refresh)</span>
                 </button>
             </div>
-        </aside>
+        </header>
 
-        <!-- MAIN CONTENT AREA -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-900 w-full">
-            
-            <!-- Top Navigation Bar with Toggle Hamburger Button -->
-            <header class="bg-emerald-950 border-b border-emerald-900/60 p-4 flex justify-between items-center shadow-md sticky top-0 z-20">
-                <div class="flex items-center space-x-3">
-                    <!-- Mobile Hamburger Toggle Button -->
-                    <button onclick="toggleSidebar()" class="md:hidden text-yellow-400 text-lg p-1.5 focus:outline-none">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <h2 id="pageTitle" class="text-sm sm:text-lg font-black text-yellow-400 flex items-center space-x-2 truncate">
-                        <i class="fa-solid fa-chart-pie"></i><span>Platform Overview & Analytics</span>
-                    </h2>
+        <!-- STATS OVERVIEW METRICS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-xbet-card border border-xbet-border p-4 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">የሚጠብቁ ዴፖዚቶች</span>
+                    <span id="statPendingDeposits" class="text-2xl font-black text-yellow-400 font-mono">0</span>
                 </div>
-                <div class="flex items-center space-x-2 shrink-0">
-                    <span class="px-2.5 py-1 bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 rounded-full text-[10px] sm:text-xs font-bold">
-                        🟢 Live
-                    </span>
+                <div class="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 text-lg">
+                    <i class="fa-solid fa-building-columns"></i>
                 </div>
-            </header>
-
-            <!-- CONTENT PANELS CONTAINER -->
-            <div class="p-3 sm:p-6 space-y-6 max-w-6xl w-full mx-auto flex-grow">
-
-                <!-- 1. OVERVIEW PANEL -->
-                <div id="panel-overview" class="admin-panel space-y-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="bg-emerald-950/50 border border-emerald-800/60 p-4 rounded-2xl shadow">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Total Active Players</span>
-                            <span class="text-2xl font-black text-white font-mono mt-1 block">1,482</span>
-                            <span class="text-[10px] text-emerald-400 mt-1 block">↑ 12% from last hour</span>
-                        </div>
-                        <div class="bg-emerald-950/50 border border-emerald-800/60 p-4 rounded-2xl shadow">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Today House Profit (15%)</span>
-                            <span class="text-2xl font-black text-yellow-400 font-mono mt-1 block">14,850 ETB</span>
-                            <span class="text-[10px] text-emerald-400 mt-1 block">Real-time commission</span>
-                        </div>
-                        <div class="bg-emerald-950/50 border border-emerald-800/60 p-4 rounded-2xl shadow">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Active Rooms</span>
-                            <span class="text-2xl font-black text-purple-400 font-mono mt-1 block">8 Rooms</span>
-                            <span class="text-[10px] text-slate-400 mt-1 block">90 Cards per room avg</span>
-                        </div>
-                        <div class="bg-emerald-950/50 border border-emerald-800/60 p-4 rounded-2xl shadow">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Pending Withdrawals</span>
-                            <span class="text-2xl font-black text-amber-400 font-mono mt-1 block">3,200 ETB</span>
-                            <span class="text-[10px] text-amber-400 mt-1 block">4 Requests waiting</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-emerald-950/30 border border-emerald-800/60 p-4 sm:p-5 rounded-3xl shadow-xl">
-                        <h3 class="font-extrabold text-white text-sm mb-3">Recent Platform Activity</h3>
-                        <div class="space-y-2 text-xs">
-                            <div class="flex flex-col sm:flex-row justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 gap-1">
-                                <span class="text-slate-300">User <b class="text-white">@abebe_bingo</b> won Bingo Round #482</span>
-                                <span class="text-emerald-400 font-mono">+1,800 ETB Payout</span>
-                            </div>
-                            <div class="flex flex-col sm:flex-row justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 gap-1">
-                                <span class="text-slate-300">User <b class="text-white">@helen_t</b> deposited via Telebirr</span>
-                                <span class="text-blue-400 font-mono">+500 ETB Play Bal</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. REAL USER REVENUE PANEL -->
-                <div id="panel-revenue" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 sm:p-6 rounded-3xl shadow-xl space-y-4">
-                        <h3 class="font-extrabold text-yellow-400 text-sm">Revenue Analytics & House Commission Breakdown</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
-                                <span class="text-[10px] text-slate-400 uppercase font-bold block">Gross Game Turnover</span>
-                                <span class="text-xl font-black text-white font-mono mt-1 block">98,500 ETB</span>
-                            </div>
-                            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
-                                <span class="text-[10px] text-slate-400 uppercase font-bold block">Total Winners Payout (85%)</span>
-                                <span class="text-xl font-black text-emerald-400 font-mono mt-1 block">83,725 ETB</span>
-                            </div>
-                            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
-                                <span class="text-[10px] text-slate-400 uppercase font-bold block">Net Platform Earnings (15%)</span>
-                                <span class="text-xl font-black text-yellow-400 font-mono mt-1 block">14,775 ETB</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. TRANSACTIONS PANEL -->
-                <div id="panel-transactions" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-4">
-                        <h3 class="font-extrabold text-white text-sm">All Platform Financial Transactions</h3>
-                        <div class="space-y-2 text-xs">
-                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
-                                <div>
-                                    <span class="font-bold text-white block">Telebirr Deposit - @sami_bingo</span>
-                                    <span class="text-[10px] text-slate-400">Ref: TRN-948201 • 2 mins ago</span>
-                                </div>
-                                <span class="font-mono font-bold text-emerald-400">+1,000 ETB</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
-                                <div>
-                                    <span class="font-bold text-white block">Withdrawal Approved - @dawit_y</span>
-                                    <span class="text-[10px] text-slate-400">Ref: WTH-102948 • 15 mins ago</span>
-                                </div>
-                                <span class="font-mono font-bold text-red-400">-2,500 ETB</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. USERS MANAGEMENT PANEL -->
-                <div id="panel-users" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-4">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <h3 class="font-extrabold text-white text-sm">Player Accounts Management</h3>
-                            <input type="text" placeholder="Search user..." class="w-full sm:w-auto bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-yellow-400">
-                        </div>
-                        <div class="space-y-2 text-xs">
-                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
-                                <div>
-                                    <span class="font-bold text-white block">Abebe Kebede (@abebe_bingo)</span>
-                                    <span class="text-[10px] text-slate-400">Play Bal: 500 ETB | Main Bal: 1,250 ETB</span>
-                                </div>
-                                <div class="flex space-x-2">
-                                    <button onclick="alert('User balance adjusted')" class="px-3 py-1 bg-yellow-500 text-slate-950 font-bold rounded-lg">Edit</button>
-                                    <button onclick="alert('User banned')" class="px-3 py-1 bg-red-950 text-red-300 border border-red-800 rounded-lg">Ban</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 5. LIVE ROOMS PANEL -->
-                <div id="panel-rooms" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-4">
-                        <h3 class="font-extrabold text-yellow-400 text-sm">Live Bingo Rooms Configuration</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2">
-                                <span class="font-bold text-white block">Room #1 (Standard 10 ETB)</span>
-                                <p class="text-slate-400">Ticket Price: 10 ETB | Caller Speed: 3.2s</p>
-                                <button onclick="alert('Room settings saved')" class="mt-2 px-4 py-1.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl">Configure Room</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 6. GAME RESULTS PANEL -->
-                <div id="panel-results" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3">
-                        <h3 class="font-extrabold text-white text-sm">Past Rounds & Winners Archive</h3>
-                        <div class="space-y-2 text-xs">
-                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex justify-between">
-                                <span>Round #482 • Winner: @abebe_bingo</span>
-                                <span class="text-emerald-400 font-mono">1,800 ETB</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 7. SEND MONEY PANEL -->
-                <div id="panel-sendmoney" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3 max-w-xl">
-                        <h3 class="font-extrabold text-yellow-400 text-sm">Direct Manual Bonus Credit</h3>
-                        <div class="space-y-3 text-xs">
-                            <input type="text" placeholder="Username or Phone (e.g. @abebe_bingo)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
-                            <input type="number" placeholder="Amount in ETB" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
-                            <button onclick="alert('Funds credited successfully!')" class="w-full py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl">Credit User Account</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 8. BROADCAST PANEL -->
-                <div id="panel-broadcast" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3 max-w-xl">
-                        <h3 class="font-extrabold text-white text-sm">Global Announcement Broadcast</h3>
-                        <div class="space-y-3 text-xs">
-                            <textarea rows="4" placeholder="Type notification message..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white"></textarea>
-                            <button onclick="alert('Broadcast sent!')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl">Send Global Alert</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 9. PROMOTIONS PANEL -->
-                <div id="panel-promotions" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3 max-w-xl">
-                        <h3 class="font-extrabold text-yellow-400 text-sm">Create Promo / Coupon Voucher</h3>
-                        <div class="space-y-3 text-xs">
-                            <input type="text" placeholder="Coupon Code (e.g. ETHIO2026)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white uppercase font-mono">
-                            <input type="number" placeholder="Bonus Amount (ETB)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
-                            <button onclick="alert('Promo code created successfully!')" class="w-full py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl">Save Promo Code</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 10. WITHDRAWALS PANEL -->
-                <div id="panel-withdrawals" class="admin-panel hidden space-y-6">
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-5 rounded-3xl shadow-xl space-y-3">
-                        <h3 class="font-extrabold text-white text-sm">Pending Withdrawal Requests Queue</h3>
-                        <div class="space-y-2 text-xs">
-                            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                                <div>
-                                    <span class="font-bold text-white block">@sami_bingo • 1,500 ETB (Telebirr)</span>
-                                    <span class="text-[10px] text-amber-400">Pending Review</span>
-                                </div>
-                                <div class="flex space-x-2">
-                                    <button onclick="alert('Withdrawal approved')" class="px-3 py-1 bg-emerald-600 text-white font-bold rounded-lg">Approve</button>
-                                    <button onclick="alert('Withdrawal rejected')" class="px-3 py-1 bg-red-900 text-white font-bold rounded-lg">Reject</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 11. BOT SETTINGS & ETHIOPIAN NAMES MANAGER -->
-                <div id="panel-bots" class="admin-panel hidden space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-emerald-950/60 border border-emerald-800/60 p-4 rounded-2xl shadow">
-                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Loaded Bot Names</span>
-                            <span class="text-2xl font-black text-yellow-400 mt-1 block">500 Names</span>
-                        </div>
-                        <div class="bg-emerald-950/60 border border-emerald-800/60 p-4 rounded-2xl shadow">
-                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Simulated Activity</span>
-                            <span class="text-2xl font-black text-emerald-400 mt-1 block">Active</span>
-                        </div>
-                        <div class="bg-emerald-950/60 border border-emerald-800/60 p-4 rounded-2xl shadow">
-                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Bot Win Rate Cap</span>
-                            <span class="text-2xl font-black text-yellow-400 mt-1 block">15%</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-emerald-950/40 border border-emerald-800/60 p-4 sm:p-6 rounded-3xl shadow-xl space-y-4">
-                        <h3 class="font-extrabold text-yellow-400 text-sm">🤖 Ethiopian Bot Names Manager (Up to 500 Names)</h3>
-                        <p class="text-xs text-slate-400">Enter or paste names separated by commas or new lines.</p>
-                        
-                        <textarea id="botNamesArea" rows="7" class="w-full bg-slate-950 border border-emerald-800 rounded-2xl p-3 text-xs text-slate-200 focus:outline-none focus:border-yellow-400 font-mono">
-አበበ ከበደ, አልማዝ ተስፋዬ, ናቲ ጊርማ, ቃልኪዳን አስፋው, ዳንኤል ሰለሞን, ትግስት አለሙ, መሳይ በለጠ, ፍቅርተ መኮንን, ዮሐንስ ታደሰ, ሄለን ሃይሉ, ሳሙኤል አበራ, እቴነሽ መርዕድ, ብርሃኑ ነጋ, ማህሌት አሰፋ, ኪሮስ አያሌው, መቅደስ ታደሰ, ኤልያስ ዮሐንስ, ትዕግስት ገብሩ, ናትናኤል ግርማ, ቢለን ተስፋዬ
-                        </textarea>
-
-                        <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
-                            <span id="nameCountIndicator" class="text-xs text-emerald-400 font-bold">Status: Ready for Firestore Sync</span>
-                            <button onclick="saveBotNamesToFirebase()" class="w-full sm:w-auto px-6 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold text-xs rounded-xl shadow transition">
-                                💾 Save Bot Names to Firebase
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
-        </main>
+
+            <div class="bg-xbet-card border border-xbet-border p-4 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">የሚጠብቁ ዊዝድሮዎች</span>
+                    <span id="statPendingWithdraws" class="text-2xl font-black text-rose-400 font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 text-lg">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                </div>
+            </div>
+
+            <div class="bg-xbet-card border border-xbet-border p-4 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">ጠቅላላ የተመዘገቡ ተጫዋቾች</span>
+                    <span id="statTotalUsers" class="text-2xl font-black text-teal-400 font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 text-lg">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+
+            <div class="bg-xbet-card border border-xbet-border p-4 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">ዛሬ የተደረጉ ጨዋታዎች</span>
+                    <span id="statTotalGames" class="text-2xl font-black text-cyan-300 font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-300 text-lg">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 1: PENDING DEPOSIT REQUESTS -->
+        <section class="bg-xbet-card border border-xbet-border rounded-2xl p-4 sm:p-5 shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-xbet-border pb-3">
+                <h2 class="text-sm sm:text-base font-black text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i>
+                    <span>የዲፖዚት ጥያቄዎች ማረጋገጫ (Pending Deposits)</span>
+                </h2>
+                <span class="text-xs text-gray-400 font-mono">Telebirr / SMS Transfers</span>
+            </div>
+
+            <div id="depositRequestsContainer" class="space-y-2.5">
+                <div class="text-center text-gray-500 text-xs py-6">የዲፖዚት ጥያቄዎችን በመጫን ላይ...</div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: PENDING WITHDRAWAL REQUESTS -->
+        <section class="bg-xbet-card border border-xbet-border rounded-2xl p-4 sm:p-5 shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-xbet-border pb-3">
+                <h2 class="text-sm sm:text-base font-black text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-rose-400"></i>
+                    <span>የገንዘብ ማውጫ ጥያቄዎች (Pending Withdrawals)</span>
+                </h2>
+                <span class="text-xs text-gray-400 font-mono">Main Balance Withdrawals</span>
+            </div>
+
+            <div id="withdrawRequestsContainer" class="space-y-2.5">
+                <div class="text-center text-gray-500 text-xs py-6">የዊዝድሮው ጥያቄዎችን በመጫን ላይ...</div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PLAYER BALANCE ADJUSTMENT TOOL -->
+        <section class="bg-xbet-card border border-xbet-border rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+            <div class="border-b border-xbet-border pb-3">
+                <h2 class="text-sm sm:text-base font-black text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-user-pen text-teal-400"></i>
+                    <span>የተጫዋች ሂሳብ ማስተካከያ (Manual Balance Modifier)</span>
+                </h2>
+                <p class="text-xs text-gray-400 mt-0.5">ለማንኛውም ተጫዋች በስልክ ቁጥሩ ወይም በቴሌግራም ID ገንዘብ መጨመር ወይም መቀነስ ይችላሉ።</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                    <label class="text-[11px] font-bold text-gray-400 block mb-1">Telegram User ID / Phone</label>
+                    <input type="text" id="adjUserId" placeholder="e.g., 922073990 or test_user" class="w-full bg-xbet-dark border border-xbet-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-teal-400 font-mono">
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-bold text-gray-400 block mb-1">መጠን (Amount in ETB)</label>
+                    <input type="number" id="adjAmount" placeholder="e.g., 100" class="w-full bg-xbet-dark border border-xbet-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-teal-400 font-mono font-bold">
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-bold text-gray-400 block mb-1">የቦርሳ አይነት (Wallet Type)</label>
+                    <select id="adjWalletType" class="w-full bg-xbet-dark border border-xbet-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-teal-400">
+                        <option value="play">Play Wallet (መጫወቻ ሂሳብ)</option>
+                        <option value="main">Main Wallet (ዋና ሂሳብ / ወጪ የሚደረግ)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end space-x-2">
+                    <button onclick="submitBalanceAdjustment('add')" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 text-slate-950 font-black text-xs py-2.5 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>ገንዘብ ጨምር</span>
+                    </button>
+                    <button onclick="submitBalanceAdjustment('sub')" class="flex-1 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 text-white font-black text-xs py-2.5 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-minus"></i>
+                        <span>ገንዘብ ቀንሺ</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: BROADCAST MESSAGE ANNOUNCEMENTS -->
+        <section class="bg-xbet-card border border-xbet-border rounded-2xl p-4 sm:p-5 shadow-xl space-y-3">
+            <div class="border-b border-xbet-border pb-3">
+                <h2 class="text-sm sm:text-base font-black text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-bullhorn text-amber-400"></i>
+                    <span>ለሙሉ ተጫዋቾች ማስታወቂያ መላኪያ (Broadcast Message)</span>
+                </h2>
+                <p class="text-xs text-gray-400 mt-0.5">እዚህ የሚፅፉት መልእክት በቴሌግራም ቦቱ በኩል ለሁሉም የተመዘገቡ ተጫዋቾች በሙሉ ይላካል።</p>
+            </div>
+
+            <textarea id="broadcastTextInput" rows="3" placeholder="የማስታወቂያውን ፅሁፍ እዚህ ይፃፉ... (e.g., 🔥 አዲስ ጨዋታ ተጀምሯል! አሁኑኑ በመግባት ይጫወቱ!)" class="w-full bg-xbet-dark border border-xbet-border rounded-xl p-3 text-xs text-white focus:outline-none focus:border-amber-400"></textarea>
+
+            <div class="flex justify-end">
+                <button onclick="sendGlobalBroadcast()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 font-black text-xs px-6 py-2.5 rounded-xl shadow-lg transition active:scale-95 flex items-center space-x-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>ለሙሉም ተጫዋቾች ላክ (Send Broadcast)</span>
+                </button>
+            </div>
+        </section>
+
     </div>
 
-    <!-- ADMIN PANEL JAVASCRIPT & AUTHENTICATION -->
+    <!-- ADMIN JAVASCRIPT ENGINE -->
     <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-        }
+        const API_BASE = 'https://onex-bingo-backend.onrender.com';
 
-        function handleAdminLogin() {
-            const user = document.getElementById('loginUsername').value.trim();
-            const pass = document.getElementById('loginPassword').value.trim();
-            const errorMsg = document.getElementById('loginErrorMsg');
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAdminData();
+            // Auto refresh every 10 seconds
+            setInterval(loadAdminData, 10000);
+        });
 
-            if (user === 'Nhatty' && pass === '2121') {
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                sessionStorage.setItem('isAdminLoggedIn', 'true');
-            } else {
-                errorMsg.classList.remove('hidden');
+        async function loadAdminData() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/pending-requests`);
+                if (!res.ok) throw new Error("Server error");
+                const data = await res.json();
+
+                // 1. Update Metrics
+                document.getElementById('statPendingDeposits').innerText = data.deposits ? data.deposits.length : 0;
+                document.getElementById('statPendingWithdraws').innerText = data.withdraws ? data.withdraws.length : 0;
+                document.getElementById('statTotalUsers').innerText = data.totalUsers || 0;
+                document.getElementById('statTotalGames').innerText = data.totalGames || 0;
+
+                // 2. Render Deposits
+                renderDepositsList(data.deposits || []);
+
+                // 3. Render Withdrawals
+                renderWithdrawsList(data.withdraws || []);
+
+            } catch (err) {
+                console.error("Admin poll error:", err);
             }
         }
 
-        function handleAdminLogout() {
-            sessionStorage.removeItem('isAdminLoggedIn');
-            document.getElementById('adminDashboard').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('loginErrorMsg').classList.add('hidden');
+        function renderDepositsList(deposits) {
+            const container = document.getElementById('depositRequestsContainer');
+            if (deposits.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-500 text-xs py-4">ምንም የሚጠብቅ የዲፖዚት ጥያቄ የለም (No pending deposit requests).</div>`;
+                return;
+            }
+
+            container.innerHTML = deposits.map(dep => `
+                <div class="bg-xbet-dark border border-xbet-border p-3 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-teal-400 font-mono">User ID: #${dep.userId}</span>
+                            <span class="text-[10px] bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded font-mono">${dep.timestamp || 'Just now'}</span>
+                        </div>
+                        <div class="text-xs text-gray-300 font-mono bg-xbet-card/80 p-2 rounded border border-xbet-border/60">
+                            ${escHtml(dep.smsDetails)}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2 self-end sm:self-center">
+                        <div class="text-right mr-2">
+                            <span class="text-xs text-gray-400 block leading-none">የተጠየቀው</span>
+                            <span class="text-sm font-black text-emerald-400 font-mono">${dep.amount} ETB</span>
+                        </div>
+                        <button onclick="approveDeposit('${dep.id}', '${dep.userId}', ${dep.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl transition shadow">
+                            Approve
+                        </button>
+                        <button onclick="rejectDeposit('${dep.id}')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow">
+                            Reject
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        window.onload = function() {
-            if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
+        function renderWithdrawsList(withdraws) {
+            const container = document.getElementById('withdrawRequestsContainer');
+            if (withdraws.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-500 text-xs py-4">ምንም የሚጠብቅ የገንዘብ ማውጫ ጥያቄ የለም (No pending withdrawal requests).</div>`;
+                return;
             }
-        };
 
-        function switchAdminTab(tabId) {
-            const panels = document.querySelectorAll('.admin-panel');
-            panels.forEach(p => p.classList.add('hidden'));
+            container.innerHTML = withdraws.map(w => `
+                <div class="bg-xbet-dark border border-xbet-border p-3 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-rose-400 font-mono">User ID: #${w.userId}</span>
+                            <span class="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded font-mono">${w.timestamp || 'Just now'}</span>
+                        </div>
+                        <div class="text-xs text-gray-300 font-mono">
+                            መቀበያ ስልክ / አካውንት: <b class="text-white">${escHtml(w.accountNumber || w.phone || 'N/A')}</b>
+                        </div>
+                    </div>
 
-            const targetPanel = document.getElementById(`panel-${tabId}`);
-            if (targetPanel) targetPanel.classList.remove('hidden');
+                    <div class="flex items-center space-x-2 self-end sm:self-center">
+                        <div class="text-right mr-2">
+                            <span class="text-xs text-gray-400 block leading-none">የሚወጣው</span>
+                            <span class="text-sm font-black text-rose-400 font-mono">${w.amount} ETB</span>
+                        </div>
+                        <button onclick="approveWithdrawal('${w.id}', '${w.userId}', ${w.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl transition shadow">
+                            Confirm Paid
+                        </button>
+                        <button onclick="rejectWithdrawal('${w.id}', '${w.userId}', ${w.amount})" class="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow">
+                            Decline
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-            const navButtons = document.querySelectorAll('aside nav button');
-            navButtons.forEach(btn => {
-                btn.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-emerald-900/60 hover:text-white transition";
-            });
-
-            const activeBtn = document.getElementById(`nav-${tabId}`);
-            if (activeBtn) {
-                if (tabId === 'bots') {
-                    activeBtn.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-yellow-300 bg-emerald-900/40 border border-yellow-500/30 transition";
+        async function approveDeposit(reqId, userId, amount) {
+            if (!confirm(`Are you sure you want to approve ${amount} ETB deposit for User #${userId}?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/approve-deposit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reqId, userId, amount })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast("✅ ዲፖዚቱ በተሳካ ሁኔታ ጸድቋል!");
+                    loadAdminData();
                 } else {
-                    activeBtn.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-yellow-500 text-slate-950 font-bold shadow-md transition";
+                    alert("Error: " + data.message);
                 }
+            } catch (err) {
+                alert("Network error processing deposit approval.");
             }
-
-            // On mobile, automatically close sidebar after choosing a tab
-            if (window.innerWidth < 768) {
-                toggleSidebar();
-            }
-
-            const titles = {
-                'overview': 'Platform Overview & Analytics',
-                'revenue': 'Real User Revenue & House Profits',
-                'transactions': 'Financial Transactions Log',
-                'users': 'Player Accounts Management',
-                'rooms': 'Live Rooms & Card Pricing',
-                'results': 'Game Results Archive',
-                'sendmoney': 'Manual Bonus & Money Sender',
-                'broadcast': 'Global Player Announcements',
-                'promotions': 'Promos & Coupon Vouchers',
-                'withdrawals': 'Withdrawal Requests Queue',
-                'bots': 'Bot Settings & Ethiopian Names Manager'
-            };
-            document.getElementById('pageTitle').innerHTML = `<i class="fa-solid fa-gear"></i><span>${titles[tabId] || 'Admin Control Panel'}</span>`;
         }
 
-        function saveBotNamesToFirebase() {
-            const namesText = document.getElementById('botNamesArea').value;
-            db.collection("settings").doc("botNames").set({
-                namesList: namesText,
-                updatedAt: new Date()
-            }).then(() => {
-                alert("✅ Bot names successfully saved and synced to Firebase Firestore!");
-            }).catch((error) => {
-                alert("❌ Error saving to Firestore: " + error.message);
-            });
+        async function rejectDeposit(reqId) {
+            if (!confirm("Are you sure you want to reject this deposit?")) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/reject-deposit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reqId })
+                });
+                showToast("❌ ጥያቄው ተሰርዟል!");
+                loadAdminData();
+            } catch (err) {
+                alert("Network error processing deposit rejection.");
+            }
+        }
+
+        async function approveWithdrawal(reqId, userId, amount) {
+            if (!confirm(`Confirm that you have transferred ${amount} ETB to User #${userId}?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/approve-withdraw`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reqId, userId, amount })
+                });
+                showToast("✅ የዊዝድሮው ጥያቄ ተጸድቋል!");
+                loadAdminData();
+            } catch (err) {
+                alert("Network error.");
+            }
+        }
+
+        async function rejectWithdrawal(reqId, userId, amount) {
+            if (!confirm(`Refund ${amount} ETB back to User #${userId} Main Balance?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/reject-withdraw`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reqId, userId, amount })
+                });
+                showToast("↩️ ዊዝድሮው ውድቅ ሆኖ ገንዘቡ ለተጫዋቹ ተመልሷል!");
+                loadAdminData();
+            } catch (err) {
+                alert("Network error.");
+            }
+        }
+
+        async function submitBalanceAdjustment(type) {
+            const userId = document.getElementById('adjUserId').value.trim();
+            const amountVal = parseFloat(document.getElementById('adjAmount').value);
+            const walletType = document.getElementById('adjWalletType').value;
+
+            if (!userId || isNaN(amountVal) || amountVal <= 0) {
+                alert("እባክዎን ትክክለኛ User ID እና መጠን ያስገቡ!");
+                return;
+            }
+
+            const finalAmount = type === 'sub' ? -amountVal : amountVal;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/adjust-balance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, amount: finalAmount, walletType })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast(`✅ ${amountVal} ETB successfully ${type === 'add' ? 'added to' : 'deducted from'} User #${userId}!`);
+                    document.getElementById('adjUserId').value = '';
+                    document.getElementById('adjAmount').value = '';
+                    loadAdminData();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (err) {
+                alert("Network error while adjusting balance.");
+            }
+        }
+
+        async function sendGlobalBroadcast() {
+            const text = document.getElementById('broadcastTextInput').value.trim();
+            if (!text) {
+                alert("እባክዎን የማስታወቂያውን ፅሁፍ ያስገቡ!");
+                return;
+            }
+
+            if (!confirm("Are you sure you want to broadcast this message to ALL players?")) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/broadcast`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast("📢 ብሮድካስት ለሁሉም ተጫዋቾች ተልኳል!");
+                    document.getElementById('broadcastTextInput').value = '';
+                } else {
+                    alert("Error sending broadcast.");
+                }
+            } catch (err) {
+                alert("Network error sending broadcast.");
+            }
+        }
+
+        function escHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = "fixed bottom-5 right-5 bg-teal-500 text-slate-950 text-xs font-black px-4 py-3 rounded-xl shadow-2xl z-50 animate-bounce";
+            t.innerText = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3500);
         }
     </script>
 </body>
