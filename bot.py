@@ -8,10 +8,11 @@ from flask import Flask, request, jsonify, send_file, g
 from flask_cors import CORS
 import os
 import hmac
+import hashlib
+import urllib.parse
 import time
 import logging
 from urllib.parse import urlparse
-from tg_auth import require_telegram_auth
 from game_engine import GameEngine, TICKET_PRICE, PRIZE_PER_CARTEL, MAX_SELECTION
 from wallet_firestore import FirestoreWallet
 from collections import defaultdict, deque
@@ -83,35 +84,6 @@ def process_transaction(user_id, tx_type, amount, bonus_add=0.0):
             pass
     return result
 
-def update_profile_stats(user_id, round_id=None, win_amount=0.0):
-    user_ref = db.collection('users').document(str(user_id))
-    user_doc = user_ref.get()
-    
-    if not user_doc.exists:
-        return {"error": "User not found"}
-        
-    user_data = user_doc.to_dict()
-    updates = {}
-    
-    if float(win_amount) > 0:
-        current_winnings = float(user_data.get('total_winnings', 0.0))
-        updates['total_winnings'] = current_winnings + float(win_amount)
-        
-    if round_id:
-        last_round = str(user_data.get('last_played_round', ''))
-        current_round = str(round_id)
-        if current_round != last_round:
-            current_games = int(user_data.get('total_games_played', 0))
-            updates['total_games_played'] = current_games + 1
-            updates['last_played_round'] = current_round
-            
-    if updates:
-        user_ref.set(updates, merge=True)
-        
-    return updates
-
-print("✅ Successfully connected to Firebase Database!")
-
 # Configuration Constants
 TOKEN = os.environ.get("BOT_TOKEN", "8747562686:AAGQCIOwD3ahfjVY21PY4gvftQCtxaq0UNA")  
 WEBAPP_URL = os.environ.get("WEBAPP_URL", "https://xlitebingo.onrender.com")  
@@ -129,6 +101,36 @@ CANCEL_BUTTONS = [
     "🎁 ጋብዝ እና አግኝ (Refer)",
     "🎧 እርዳታ ማዕከል (Help & Support)"
 ]
+
+# Built-in Telegram WebApp Authentication Decorator
+def require_telegram_auth(f):
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get('X-Telegram-Init-Data', '')
+        if not auth_header:
+            return jsonify({"status": "error", "message": "Unauthorized"}), 401
+        try:
+            parsed = urllib.parse.parse_qsl(auth_header, keep_blank_values=True)
+            data_check_string = sorted([f"{k}={v}" for k, v in parsed if k != 'hash'])
+            data_check_string = "\n".join(data_check_string)
+            
+            hash_val = dict(parsed).get('hash', '')
+            secret_key = hashlib.sha256(TOKEN.encode()).digest()
+            calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+            
+            if not hmac.compare_digest(calculated_hash, hash_val):
+                return jsonify({"status": "error", "message": "Invalid auth signature"}), 401
+                
+            user_data_str = dict(parsed).get('user', '{}')
+            user_json = json.loads(user_data_str) if isinstance(user_data_str, str) else {}
+            g.tg_user_id = str(user_json.get('id', ''))
+            if not g.tg_user_id:
+                return jsonify({"status": "error", "message": "User ID missing"}), 401
+        except Exception as e:
+            logger.error(f"Auth validation error: {e}")
+            return jsonify({"status": "error", "message": "Authentication failed"}), 401
+        return f(*args, **kwargs)
+    decorated.__name__ = f.__name__
+    return decorated
 
 def get_main_menu():
     markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
@@ -307,6 +309,7 @@ def start_cmd(message):
 
 @bot.message_handler(content_types=['contact'])
 def handle_contact(message):
+    import json
     if message.contact is not None:
         if message.contact.user_id != message.from_user.id:
             bot.send_message(message.chat.id, "⚠️ እባክዎን በታች ባለው ቁልፍ የራስዎን ስልክ ቁጥር ብቻ ያጋሩ።")
