@@ -26,7 +26,7 @@ app = Flask(__name__)
 CORS(app)
 
 # ==========================================
-# FLASK ROUTES & WEBAPP APIS (Correctly Positioned)
+# FLASK ROUTES & WEBAPP APIS
 # ==========================================
 @app.route('/')
 def index():
@@ -64,7 +64,7 @@ ADMIN_ID = int(os.environ.get("ADMIN_ID", "7396414604"))
 bot = telebot.TeleBot(TOKEN)
 
 # ==========================================
-# FIREBASE INITIALIZATION WITH 'default' DATABASE
+# FIREBASE INITIALIZATION (Fixed for 'default' database)
 # ==========================================
 if not firebase_admin._apps:
     cred_path = os.getenv("FIREBASE_CREDENTIALS", "firebase_key.json")
@@ -73,14 +73,14 @@ if not firebase_admin._apps:
         
     if os.path.exists(cred_path):
         cred = credentials.Certificate(cred_path)
-        firebase_admin.initialize_app(cred)
+        firebase_admin.initialize_app(cred, {'databaseURL': f'https://ethio-bingo-app.firebaseio.com'})
     else:
         firebase_admin.initialize_app()
 
-# Explicitly connect to the 'default' Firestore database to fix 404 errors
+# Correctly connect to the 'default' Firestore database
 try:
-    db = firestore.client(database_id='default')
-    logger.info("Firebase initialized successfully with 'default' database.")
+    db = firestore.client()
+    logger.info("Firebase initialized successfully.")
 except Exception as e:
     logger.error(f"Firestore initialization error: {e}")
     db = None
@@ -334,7 +334,7 @@ if __name__ == '__main__':
     def run_bot():
         try:
             logger.info("🤖 1X Bingo Bot is starting polling...")
-            bot.infinity_polling(skip_pending=True)
+            bot.infinity_polling(skip_pending=True, remove_webhook=True)
         except Exception as e:
             logger.error(f"Bot polling error: {e}")
 
