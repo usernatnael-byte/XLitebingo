@@ -25,6 +25,35 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
+# ==========================================
+# FLASK ROUTES & WEBAPP APIS (Correctly Positioned)
+# ==========================================
+@app.route('/')
+def index():
+    return render_template('index.html')  # የቢንጎ ጨዋታ ዌብ ገጽዎን ያሳየዋል
+
+@app.route('/api/round', methods=['GET'])
+def get_round():
+    return jsonify({"status": "active", "round": 1}), 200
+
+@app.route('/api/user-data', methods=['GET'])
+def get_user_data():
+    user_id = request.args.get('userId', 'test_user')
+    if db:
+        try:
+            user_ref = db.collection('users').document(str(user_id))
+            user_doc = user_ref.get()
+            if user_doc.exists:
+                return jsonify(user_doc.to_dict()), 200
+        except Exception as e:
+            logger.error(f"Error fetching user data: {e}")
+    return jsonify({"balance": 0, "username": "Player", "bonus": 0}), 200
+
+@app.route('/api/leaderboard', methods=['GET'])
+def get_leaderboard():
+    return jsonify([]), 200
+
+
 # Telegram Bot Token from Environment Variables
 TOKEN = os.environ.get("BOT_TOKEN", "8747562686:AAGQCIOwD3ahfjVY21PY4gvftQCtxaq0UNA")  
 WEBAPP_URL = os.environ.get("WEBAPP_URL", "https://xlitebingo.onrender.com")  
@@ -129,34 +158,6 @@ def get_main_menu():
     markup.add(btn_deposit, btn_withdraw)
     markup.add(btn_help)
     return markup
-
-# ==========================================
-# FLASK ROUTES & WEBAPP APIS
-# ==========================================
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/api/round', methods=['GET'])
-def get_round():
-    return jsonify({"status": "active", "round": 1}), 200
-
-@app.route('/api/user-data', methods=['GET'])
-def get_user_data():
-    user_id = request.args.get('userId', 'test_user')
-    if db:
-        try:
-            user_ref = db.collection('users').document(str(user_id))
-            user_doc = user_ref.get()
-            if user_doc.exists:
-                return jsonify(user_doc.to_dict()), 200
-        except Exception as e:
-            logger.error(f"Error fetching user data: {e}")
-    return jsonify({"balance": 0, "username": "Player", "bonus": 0}), 200
-
-@app.route('/api/leaderboard', methods=['GET'])
-def get_leaderboard():
-    return jsonify([]), 200
 
 # ==========================================
 # TELEGRAM BOT COMMANDS & HANDLERS
@@ -289,7 +290,7 @@ def process_deposit_amount(message, method):
             bot.register_next_step_handler(msg, process_deposit_amount, method)
         else:
             instructions = (
-                f"ମ መሙላት የፈለጉት መጠን: **{amount:g} ETB**\n\n"
+                f"መሙላት የፈለጉት መጠን: **{amount:g} ETB**\n\n"
                 f"እባክዎ ከታች ወዳለው የ{method} አካውንት ብሩን ያስገቡ።\n"
                 f"👤 ስም: **Zeid**\n"
                 f"📱 አካውንት: **0935084226**\n\n"
@@ -314,7 +315,6 @@ def receive_payment_proof(message, method, amount):
         bot.register_next_step_handler(msg, receive_payment_proof, method, amount)
         return
 
-    # Process deposit transaction and credit balance
     bonus_add = amount * 0.1 if amount >= 100 else 0.0
     updated = process_transaction(user_id, 'deposit', amount, bonus_add=bonus_add)
 
