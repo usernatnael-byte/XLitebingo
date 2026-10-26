@@ -23,6 +23,24 @@ import re
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Firebase Initialization
+if not firebase_admin._apps:
+    cred_path = os.getenv("FIREBASE_CREDENTIALS", "firebase_key.json")
+    if os.path.exists(cred_path):
+        cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred)
+    else:
+        firebase_admin.initialize_app()
+
+# Explicitly connect to the 'default' Firestore database to fix 404 errors
+try:
+    db = firestore.client(database_id='default')
+    logger.info("Firebase initialized successfully with 'default' database.")
+except Exception as e:
+    logger.error(f"Firestore initialization error: {e}")
+    db = None
+
+
 # Initialize Firebase Connection (Checking standard Render secret file mount paths)
 cred_path = os.environ.get("FIREBASE_KEY_PATH", "firebase_key.json")
 if not os.path.exists(cred_path) and os.path.exists("/etc/secrets/firebase_key.json"):
