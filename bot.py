@@ -106,10 +106,10 @@ print("✅ Successfully connected to Firebase Database!")
 
 
 BOT_TOKEN = os.environ["TELEGRAM_TOKEN"]  
-WEBAPP_URL = os.environ["https://xlitebingo.onrender.com"]  
+WEBAPP_URL = os.environ["WEBAPP_URL"]  
 _u = urlparse(WEBAPP_URL)
 WEBAPP_ORIGIN = f"{_u.scheme}://{_u.netloc}"
-RESET_TOKEN = os.environ.get("MySuperSecretBingoTokenN2026", "")  
+RESET_TOKEN = os.environ.get("RESET_TOKEN", "")  
 
 bot = telebot.TeleBot(TOKEN)
 
