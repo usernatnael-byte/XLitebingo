@@ -111,7 +111,7 @@ _u = urlparse(WEBAPP_URL)
 WEBAPP_ORIGIN = f"{_u.scheme}://{_u.netloc}"
 RESET_TOKEN = os.environ.get("RESET_TOKEN", "")  
 
-bot = telebot.TeleBot(TOKEN)
+bot = telebot.TeleBot(BOT_TOKEN)
 
 ADMIN_ID = 7396414604  # <--- ከ "7396414604" ይልቅ የእርስዎን ትክክለኛ የቴሌግራም ID ያስገቡ
 
