@@ -1446,7 +1446,7 @@ def serve_webapp():
 # 🎰 SHARED GAME ROUND (one round for every player)
 # The server runs the round; the Mini App only displays it and sends picks.
 # ==========================================================
-wallet = FirestoreWallet(db)
+wallet = FirestoreWallet()
 engine = GameEngine(wallet, min_players=int(os.environ.get("MIN_PLAYERS", "2")))
 engine.on_round_result = send_win_alert     # admin message after every round (see /winalerts)
 
