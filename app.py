@@ -154,7 +154,7 @@ RESET_TOKEN = os.environ.get("RESET_TOKEN", "")
 bot = telebot.TeleBot(BOT_TOKEN)
 # ⚙️ CONFIGURATION & INITIALIZATION
 # ==========================================
-BOT_TOKEN = "9259192547:AAG9qLWP0-tYrJvQFRyK8oRpHawfccr0NBw"
+BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 WEBAPP_URL = "https://xlitebingo.onrender.com"
 
 ADMIN_ID = 7396414604  # <--- ከ "7396414604" ይልቅ የእርስዎን ትክክለኛ የቴሌግራም ID ያስገቡ
