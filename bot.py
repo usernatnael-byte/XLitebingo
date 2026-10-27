@@ -105,7 +105,7 @@ def update_profile_stats(user_id, round_id=None, win_amount=0.0):
 print("✅ Successfully connected to Firebase Database!")
 
 
-TOKEN = os.environ["8747562686:AAGQCIOwD3ahfjVY21PY4gvftQCtxaq0UNA"]  
+BOT_TOKEN = os.environ["8747562686:AAGQCIOwD3ahfjVY21PY4gvftQCtxaq0UNA"]  
 WEBAPP_URL = os.environ["https://xlitebingo.onrender.com"]  
 _u = urlparse(WEBAPP_URL)
 WEBAPP_ORIGIN = f"{_u.scheme}://{_u.netloc}"
