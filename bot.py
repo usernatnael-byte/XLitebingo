@@ -17,7 +17,47 @@ from collections import defaultdict, deque
 # Initialize Firebase Connection
 cred = credentials.Certificate(os.environ.get("FIREBASE_KEY_PATH", "firebase_key.json"))
 firebase_admin.initialize_app(cred)
+import os
+import hmac
+import hashlib
+from functools import wraps
 
+
+# ቴሌግራም ቶከን ከ Environment Variable ማንበብ
+BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
+
+def verify_telegram_init_data(init_data: str, bot_token: str) -> bool:
+    """ቴሌግራም የላከውን initData ትክክለኛነት ያጣራል።"""
+    try:
+        from urllib.parse import parse_qsl
+        parsed_data = dict(parse_qsl(init_data))
+        hash_to_check = parsed_data.pop('hash', None)
+        if not hash_to_check:
+            return False
+        
+        data_check_string = "\n".join([f"{k}={v}" for k, v in sorted(parsed_data.items())])
+        secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+        calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+        
+        return hmac.compare_digest(calculated_hash, hash_to_check)
+    except Exception as e:
+        return False
+
+def require_telegram_auth(f):
+    """ተጠቃሚው ከቴሌግራም መሆኑን የሚያረጋግጥ ዴኮሬተር (Decorator)"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        init_data = request.headers.get("X-Telegram-Init-Data") or (request.json.get("initData") if request.is_json else None)
+        
+        if not init_data:
+            return jsonify({"error": "Unauthorized: No Telegram Init Data provided"}), 401
+            
+        if not verify_telegram_init_data(init_data, BOT_TOKEN):
+            return jsonify({"error": "Unauthorized: Invalid Telegram authentication"}), 401
+            
+        return f(*args, **kwargs)
+    return decorated_function
+        
 # Create the database object
 db = firestore.client()
 
