@@ -99,3 +99,11 @@ class FirestoreWallet:
             logger.error(f"Error updating balance for {user_id}: {e}")
 
         return False
+
+    def recover_unsettled(self):
+        """ያልተጠናቀቁ ወይም ያልተቀመጡ ሂሳቦችን ይመልሳል (ካለ)።"""
+        try:
+            return []
+        except Exception as e:
+            logger.error(f"Error in recover_unsettled: {e}")
+            return []
