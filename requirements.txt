@@ -1,6 +1,9 @@
-pyTelegramBotAPI==4.15.2
 Flask==3.0.0
-flask-cors==4.0.0
+Flask-Cors==4.0.0
+pyTelegramBotAPI==4.15.2
 firebase-admin==6.3.0
+google-cloud-firestore==2.34.1
 gunicorn==21.2.0
 requests==2.31.0
+
+
