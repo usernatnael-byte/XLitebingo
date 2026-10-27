@@ -9,7 +9,6 @@ from flask_cors import CORS
 import os
 import hmac
 from urllib.parse import urlparse
-from tg_auth import require_telegram_auth
 from game_engine import GameEngine, TICKET_PRICE, PRIZE_PER_CARTEL, MAX_SELECTION
 from wallet_firestore import FirestoreWallet
 import time
