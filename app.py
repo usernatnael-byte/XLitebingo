@@ -26,11 +26,11 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 # ቴሌግራም ቶከን እና ዌብአፕ ዩአርኤል ከ Environment Variables ማንበብ
-BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
+BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN", "9259192547:AAG9qLWP0-tYrJvQFRyK8oRpHawfccr0NBw")
 WEBAPP_URL = os.environ.get("WEBAPP_URL", "https://xlitebingo.onrender.com")
 _u = urlparse(WEBAPP_URL)
 WEBAPP_ORIGIN = f"{_u.scheme}://{_u.netloc}"
-RESET_TOKEN = os.environ.get("RESET_TOKEN", "")  
+RESET_TOKEN = os.environ.get("RESET_TOKEN", "MySuperSecretBingoTokenN2026")  
 ADMIN_ID = 7396414604  # የእርስዎን ትክክለኛ የቴሌግራም ID ያስገቡ
 
 bot = telebot.TeleBot(BOT_TOKEN)
