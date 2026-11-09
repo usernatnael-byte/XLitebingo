@@ -719,3 +719,221 @@
       if (!mine && userPlayBalance < TICKET_PRICE) { alert(pickErrorText('balance')); return; }
       pickBusy = true;
       try {
+        const res = await api(mine ? '/api/round/unpick' : '/api/round/pick', {
+          method: 'POST',
+          body: JSON.stringify({ cartel: id })
+        });
+        if (res.balance != null) { serverBalance = Number(res.balance); serverBonus = Number(res.bonus) || 0; }
+        if (res.state) applyRound(res.state);
+        if (res.status !== 'success') {
+          const msg = pickErrorText(res.code);
+          if (msg) alert(msg);
+        }
+      } catch (err) {
+        console.error('pick failed', err);
+        alert(pickErrorText('network'));
+      } finally {
+        pickBusy = false;
+      }
+    }
+
+    function updateUI() {
+      const reserved = (round && round.phase === 'selection') ? selectedTickets.length * TICKET_PRICE : 0;
+      // serverBalance is the main wallet; serverBonus is the bonus wallet.
+      // Pending card selections consume bonus first, then main balance.
+      userPlayBalance = serverBalance + serverBonus - reserved;
+      const fromBonus = Math.min(serverBonus, reserved);
+      const playShown = Math.max(0, serverBonus - fromBonus);
+      const mainShown = Math.max(0, serverBalance - Math.max(0, reserved - fromBonus));
+      if (!balanceRefreshing) {
+        playWalletDisplay.innerText = playShown.toFixed(2);
+        walletPagePlay.innerText = playShown.toFixed(2) + ' ETB';
+        mainWalletDisplay.innerText = mainShown.toFixed(2);
+        walletPageMain.innerText = mainShown.toFixed(2);
+      }
+      selectedCountDisplay.innerText = selectedTickets.length;
+
+      const poolPrize = round ? Number(round.pool) : 0;
+      document.getElementById('jackpot-display').innerText = poolPrize.toFixed(2);
+      document.getElementById('floating-jackpot').innerText = `${poolPrize.toFixed(2)} ETB`;
+      ticketPrizePool.innerText = `${poolPrize.toFixed(2)} ETB`;
+
+      if (selectedTickets.length > 0) {
+        navTicketBadge.innerText = selectedTickets.length;
+        navTicketBadge.classList.remove('hidden');
+        ticketEmptyMsg.classList.add('hidden');
+        ticketMatricesContainer.classList.remove('hidden');
+      } else {
+        navTicketBadge.classList.add('hidden');
+        ticketEmptyMsg.classList.remove('hidden');
+        ticketMatricesContainer.classList.add('hidden');
+      }
+    }
+
+    function seededRandom(seed) { let x = Math.sin(seed++) * 10000; return x - Math.floor(x); }
+
+    function generateMatrix(ticketId) {
+      const matrix = []; let currentSeed = ticketId * 1573;
+      for (let col = 0; col < 5; col++) {
+        const colNumbers = []; const min = col * 15 + 1;
+        while (colNumbers.length < 5) {
+          const rand = Math.floor(seededRandom(currentSeed++) * 15);
+          const val = min + rand;
+          if (!colNumbers.includes(val)) colNumbers.push(val);
+        }
+        matrix.push(colNumbers);
+      }
+      return matrix;
+    }
+
+    function renderPopupCartels() {
+      if (selectedTickets.length === 0 || isDrawingPhase || currentPage !== 'home') {
+        popupPanel.classList.add('hidden');
+        return;
+      }
+      popupPanel.classList.remove('hidden');
+      document.getElementById('popup-cartel-count').innerText = selectedTickets.length;
+      document.getElementById('popup-total-price').innerText = `${selectedTickets.length * TICKET_PRICE} ETB`;
+      popupCardsWrapper.innerHTML = '';
+
+      selectedTickets.forEach(ticketId => {
+        const matrix = generateMatrix(ticketId);
+        const card = document.createElement('div');
+        card.className = 'flex-shrink-0 bg-white text-black rounded-lg p-1.5 w-32 shadow-2xl border-2 border-xbet-teal relative group';
+        let html = `
+          <button onclick="toggleCartel(${ticketId})" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow-md hover:bg-red-700 z-10">&times;</button>
+          <div class="text-center font-black text-xs border-b border-gray-300 pb-0.5 mb-1">#${ticketId}</div>
+          <div class="grid grid-cols-5 gap-0.5 text-center font-mono font-bold text-[9px]">
+        `;
+        for (let row = 0; row < 5; row++) {
+          for (let col = 0; col < 5; col++) {
+            if (row === 2 && col === 2) {
+              html += `<div class="bg-amber-100 text-amber-500 border border-gray-200 h-5 flex items-center justify-center rounded-sm"><i class="fa-solid fa-star text-[8px]"></i></div>`;
+            } else {
+              const num = matrix[col][row];
+              const isMarked = drawnNumbers.includes(num);
+              const bgClass = isMarked ? 'bg-emerald-500 text-white' : 'bg-gray-50 border border-gray-200';
+              html += `<div class="${bgClass} h-5 flex items-center justify-center rounded-sm">${num}</div>`;
+            }
+          }
+        }
+        card.innerHTML = html + `</div>`;
+        popupCardsWrapper.appendChild(card);
+      });
+    }
+
+    function renderTicketMatrices() {
+      ticketMatricesContainer.innerHTML = '';
+      if (selectedTickets.length === 0) return;
+      ticketMatricesContainer.className = "grid grid-cols-2 gap-1.5 p-1.5";
+      selectedTickets.forEach(ticketId => {
+        const matrix = generateMatrix(ticketId);
+        const card = document.createElement('div');
+        card.className = 'bg-xbet-card border border-xbet-border rounded-lg p-1.5 shadow-lg relative';
+        let html = `
+          <div class="flex justify-between items-center mb-1 pb-1 border-b border-xbet-border">
+              <span class="font-bold text-xs text-teal-400 flex items-center space-x-1">
+                  <i class="fa-solid fa-ticket text-[10px]"></i><span>ካርቴላ #${ticketId}</span>
+              </span>
+          </div>
+          <div class="grid grid-cols-5 gap-1 text-center font-black text-xs text-yellow-400 mb-1">
+              <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+          </div>
+          <div class="grid grid-cols-5 gap-1 text-center text-xs font-mono font-bold">
+        `;
+        for (let row = 0; row < 5; row++) {
+          for (let col = 0; col < 5; col++) {
+            if (row === 2 && col === 2) {
+              html += `<div class="bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 font-black p-2 rounded shadow flex items-center justify-center text-[10px]">FREE</div>`;
+            } else {
+              const num = matrix[col][row];
+              const isMarked = drawnNumbers.includes(num);
+              const style = isMarked ? 'bg-emerald-500 text-black border-2 border-white scale-105 text-sm p-1' : 'bg-xbet-blue text-white border border-gray-600 text-sm p-1';
+              html += `<div class="${style} p-2 rounded transition-all duration-200 flex items-center justify-center">${num}</div>`;
+            }
+          }
+        }
+        card.innerHTML = html + `</div>`;
+        ticketMatricesContainer.appendChild(card);
+      });
+    }
+
+    let lastUserRefresh = 0;
+    function refreshUserDataSoon() {
+      if (Date.now() - lastUserRefresh > 60000) refreshUserData();
+    }
+
+    function applyUserData(d) {
+      lastUserRefresh = Date.now();
+      serverBalance = Number(d.balance) || 0;
+      serverBonus = Number(d.bonus) || 0;
+      renderTransactionHistory(d.transactions || []);
+      window.currentUserPhone = d.phone_number || 'Not Provided';
+      ['header-user-phone', 'profile-user-phone'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = window.currentUserPhone;
+      });
+      const played = document.getElementById('stat-games-played');
+      if (played) played.innerText = d.total_games_played || 0;
+      const won = document.getElementById('stat-games-won');
+      if (won) won.innerText = (Number(d.total_winnings) || 0).toFixed(2) + ' ETB';
+      updateUI();
+    }
+
+    async function refreshUserData() {
+      balanceRefreshing = true;
+      try {
+        const d = await api('/api/user-data');
+        if (d.status === 'success') applyUserData(d);
+      } catch (err) {
+        console.error('Could not refresh balance', err);
+      } finally {
+        balanceRefreshing = false;
+        updateUI();
+      }
+    }
+
+    function markMaster(num) {
+      const cell = document.getElementById(`master-num-${num}`);
+      if (!cell) return;
+      const activeBg = cell.getAttribute('data-active-bg');
+      cell.className = `h-5 ${activeBg} text-white font-mono font-black text-[11px] flex items-center justify-center border border-slate-900 shadow-inner`;
+    }
+
+    function showBall(num, count, speak) {
+      ticketDrawCount.innerText = `${count}/75`;
+      ticketBallText.innerText = num;
+      ticketCurrentBall.classList.remove('animate-ball');
+      void ticketCurrentBall.offsetWidth;
+      ticketCurrentBall.classList.add('animate-ball');
+      const letter = num <= 15 ? 'B' : num <= 30 ? 'I' : num <= 45 ? 'N' : num <= 60 ? 'G' : 'O';
+      if (speak) playCall(num);
+      ticketStatusText.innerHTML = `የወጣው ቁጥር: <strong class="text-white ml-1 text-lg">${letter} - ${num}</strong>`;
+    }
+
+    function statusText(s) {
+      if (s.phase === 'selection') {
+        return s.players < s.min_players
+          ? `ተጫዋቾችን በመጠበቅ ላይ (${s.players}/${s.min_players})`
+          : 'ጨዋታው ሊጀምር ነው';
+      }
+      if (s.phase === 'locking') return 'ካርቴሎች እየተቆለፉ ነው...';
+      if (s.phase === 'result') return 'ጨዋታው ተጠናቋል';
+      return 'ጨዋታው ተጀምሯል (እጣ እየወጣ ነው)';
+    }
+
+    function showResult(s) {
+      const winners = s.winners || [];
+      if (s.no_winner || winners.length === 0) {
+        ticketStatusText.innerText = 'ምንም አሸናፊ አልተገኘም';
+        return;
+      }
+      const cartels = winners.map(w => `#${w.cartel}`).join(', ');
+      ticketStatusText.innerHTML = `ቢንጎ! አሸናፊ ካርቴል: <strong class="text-white ml-1">${esc(cartels)}</strong>`;
+      if (selectedTickets.length === 0) return;
+      if (winners.some(w => w.mine)) refreshUserData();
+      playCall('bingo');
+      document.getElementById('winner-total-prize').innerText = `${Number(s.pool).toFixed(2)} ETB`;
+      document.getElementById('winner-share-status').innerText = winners.length > 1 ? 'በጋራ አሸንፈዋል!' : '';
+      document.getElementById('winners-count-label').innerText = `አሸናፊዎች (${winners.length})`;
+      winnersListContainer.innerHTML = winners.map(w => `
