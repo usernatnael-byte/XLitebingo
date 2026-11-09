@@ -513,3 +513,209 @@
             });
         }
     });
+        const MAX_SELECTION = 4;
+    const TICKET_PRICE = 10;
+    const API_BASE = ''; // Use the current Render host; do not hard-code a deployment URL.
+
+    let serverBonus = 0;
+    let serverBalance = 0;
+    let userPlayBalance = 0;
+    let balanceRefreshing = false;
+    let selectedTickets = [];
+    let takenCartels = new Set();
+    let isDrawingPhase = false;
+    let drawnNumbers = [];
+    let currentPage = 'home';
+
+    let round = null;
+    let clockOffset = 0;
+    let lastRoundId = null;
+    let lastPhase = null;
+    let lastSeq = -1;
+    let lastDrawnCount = 0;
+    let shownResultFor = null;
+    let pollBusy = false;
+    let pickBusy = false;
+    let gridState = [];
+
+    const pageHome = document.getElementById('page-home');
+    const pageTicket = document.getElementById('page-ticket');
+    const pageWallet = document.getElementById('page-wallet');
+    const pageRank = document.getElementById('page-rank');
+    const pageProfile = document.getElementById('page-profile');
+
+    const navHome = document.getElementById('nav-home');
+    const navTicket = document.getElementById('nav-ticket');
+    const navWallet = document.getElementById('nav-wallet');
+    const navRank = document.getElementById('nav-rank');
+    const navProfile = document.getElementById('nav-profile');
+    const navTicketBadge = document.getElementById('nav-ticket-badge');
+
+    const gridContainer = document.getElementById('cartel-grid');
+    const selectedCountDisplay = document.getElementById('selected-count');
+    const playWalletDisplay = document.getElementById('play-wallet');
+    const gameStatusLabel = document.getElementById('game-status-label');
+    const popupPanel = document.getElementById('cartel-popup-panel');
+    const popupCardsWrapper = document.getElementById('popup-cards-wrapper');
+
+    const masterBoardGrid = document.getElementById('master-board-grid');
+    const collapsibleMasterBoard = document.getElementById('collapsible-master-board');
+    const masterBoardChevron = document.getElementById('master-board-chevron');
+    const ticketEmptyMsg = document.getElementById('ticket-empty-msg');
+    const ticketMatricesContainer = document.getElementById('ticket-matrices-container');
+    const ticketDrawCount = document.getElementById('ticket-draw-count');
+    const ticketPrizePool = document.getElementById('ticket-prize-pool');
+    const ticketCurrentBall = document.getElementById('ticket-current-ball');
+    const ticketBallText = document.getElementById('ticket-ball-text');
+    const ticketStatusText = document.getElementById('ticket-status-text');
+
+    const walletPagePlay = document.getElementById('wallet-page-play');
+    const mainWalletDisplay = document.getElementById('main-wallet');
+    const walletPageMain = document.getElementById('wallet-page-main');
+
+    const winnerModal = document.getElementById('winner-modal');
+    const winnersListContainer = document.getElementById('winners-list-container');
+
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    async function api(path, options = {}) {
+      const res = await fetch(API_BASE + path, {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          'Content-Type': 'application/json',
+          'X-Telegram-Init-Data': (window.Telegram?.WebApp?.initData || '')
+        }
+      });
+      return res.json();
+    }
+
+    function switchPage(page) {
+      currentPage = page;
+      if (page === 'wallet' || page === 'profile') refreshUserDataSoon();
+
+      pageHome.classList.add('hidden');
+      pageTicket.classList.add('hidden');
+      pageWallet.classList.add('hidden');
+      pageRank.classList.add('hidden');
+      pageProfile.classList.add('hidden');
+
+      navHome.classList.remove('nav-active');
+      navTicket.classList.remove('nav-active');
+      navWallet.classList.remove('nav-active');
+      navRank.classList.remove('nav-active');
+      navProfile.classList.remove('nav-active');
+
+      popupPanel.classList.add('hidden');
+
+      if (page === 'home') {
+        pageHome.classList.remove('hidden');
+        navHome.classList.add('nav-active');
+        if (selectedTickets.length > 0 && !isDrawingPhase) popupPanel.classList.remove('hidden');
+      } else if (page === 'ticket') {
+        pageTicket.classList.remove('hidden');
+        navTicket.classList.add('nav-active');
+        renderTicketMatrices();
+      } else if (page === 'wallet') {
+        pageWallet.classList.remove('hidden');
+        navWallet.classList.add('nav-active');
+        updateUI();
+      } else if (page === 'rank') {
+        pageRank.classList.remove('hidden');
+        navRank.classList.add('nav-active');
+        fetchAndRenderLeaderboard();
+      } else if (page === 'profile') {
+        pageProfile.classList.remove('hidden');
+        navProfile.classList.add('nav-active');
+      }
+    }
+
+    function toggleMasterBoard() {
+      collapsibleMasterBoard.classList.toggle('hidden');
+      if (collapsibleMasterBoard.classList.contains('hidden')) {
+        masterBoardChevron.classList.remove('rotate-180');
+      } else {
+        masterBoardChevron.classList.add('rotate-180');
+      }
+    }
+
+    const CLS_FREE  = 'h-9 bg-xbet-blue hover:bg-slate-700 text-white font-bold text-xs rounded border border-xbet-border/80 flex items-center justify-center transition-all duration-150 active:scale-95 shadow-sm';
+    const CLS_MINE  = 'h-9 bg-xbet-green text-black font-black text-xs rounded border border-green-300 flex items-center justify-center';
+    const CLS_TAKEN = 'h-9 bg-slate-800 text-slate-600 font-bold text-xs rounded border border-slate-700 flex items-center justify-center opacity-50 cursor-not-allowed';
+
+    function initGrid() {
+      gridContainer.innerHTML = '';
+      gridState = [];
+      for (let i = 1; i <= 500; i++) {
+        const btn = document.createElement('button');
+        btn.id = `cartel-${i}`;
+        btn.className = CLS_FREE;
+        btn.innerText = i;
+        btn.onclick = () => toggleCartel(i);
+        gridContainer.appendChild(btn);
+      }
+    }
+
+    function paintGrid() {
+      const mine = new Set(selectedTickets);
+      for (let i = 1; i <= 500; i++) {
+        const st = mine.has(i) ? 'mine' : (takenCartels.has(i) ? 'taken' : 'free');
+        if (gridState[i] === st) continue;
+        gridState[i] = st;
+        const btn = document.getElementById(`cartel-${i}`);
+        if (btn) btn.className = st === 'mine' ? CLS_MINE : st === 'taken' ? CLS_TAKEN : CLS_FREE;
+      }
+    }
+
+    function initMasterBoard() {
+      masterBoardGrid.innerHTML = '';
+      const columns = [
+        { letter: 'B', bg: 'bg-blue-600', text: 'text-white' },
+        { letter: 'I', bg: 'bg-indigo-500', text: 'text-white' },
+        { letter: 'N', bg: 'bg-purple-500', text: 'text-white' },
+        { letter: 'G', bg: 'bg-emerald-500', text: 'text-white' },
+        { letter: 'O', bg: 'bg-orange-500', text: 'text-white' }
+      ];
+
+      columns.forEach((col, idx) => {
+        const colDiv = document.createElement('div');
+        colDiv.className = 'flex flex-col';
+        const header = document.createElement('div');
+        header.className = `${col.bg} ${col.text} text-center font-black text-[11px] py-1 border border-slate-900`;
+        header.innerText = col.letter;
+        colDiv.appendChild(header);
+
+        for (let r = 1; r <= 15; r++) {
+          const num = idx * 15 + r;
+          const cell = document.createElement('div');
+          cell.id = `master-num-${num}`;
+          cell.className = `h-5 bg-xbet-card/50 ${col.text} font-mono font-bold text-[10px] flex items-center justify-center border border-slate-800 transition-colors`;
+          cell.innerText = num;
+          cell.setAttribute('data-active-bg', col.bg);
+          colDiv.appendChild(cell);
+        }
+        masterBoardGrid.appendChild(colDiv);
+      });
+    }
+
+    function pickErrorText(code) {
+      switch (code) {
+        case 'taken':     return 'ይህ ካርቴል ቀድሞ ተመርጧል!';
+        case 'full':      return `ቢበዛ ${MAX_SELECTION} ካርቴል ብቻ መምረጥ ይችላሉ`;
+        case 'balance':   return 'የጨዋታ ሂሳብዎ በቂ አይደለም!';
+        case 'phase':     return 'ምርጫ ተዘግቷል፣ ቀጣዩን ዙር ይጠብቁ';
+        case 'slow_down': return '';
+        default:          return 'አልተሳካም፣ እንደገና ይሞክሩ';
+      }
+    }
+
+    async function toggleCartel(id) {
+      if (!round || round.phase !== 'selection' || pickBusy) return;
+      const mine = selectedTickets.includes(id);
+      if (!mine && takenCartels.has(id)) { alert(pickErrorText('taken')); return; }
+      if (!mine && selectedTickets.length >= MAX_SELECTION) { alert(pickErrorText('full')); return; }
+      if (!mine && userPlayBalance < TICKET_PRICE) { alert(pickErrorText('balance')); return; }
+      pickBusy = true;
+      try {
