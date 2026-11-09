@@ -1190,3 +1190,149 @@
       applySoundIcon();
       loadCalls();
     });
+    function playCall(key) {
+      if (!soundOn || !callBuffer || !audioCtx) return;
+      const slot = CALL_MAP[key];
+      if (!slot) return;
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        stopCall();
+        const src = audioCtx.createBufferSource();
+        src.buffer = callBuffer;
+        src.connect(audioCtx.destination);
+        src.start(0, slot[0], slot[1]);
+        currentCall = src;
+        src.onended = () => { if (currentCall === src) currentCall = null; };
+      } catch (e) { console.warn('Could not play call', e); }
+    }
+
+    async function fetchAndRenderLeaderboard() {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+        const sundayDate = new Date(today);
+        sundayDate.setDate(today.getDate() + daysUntilSunday);
+
+        const formattedDate = `${sundayDate.getMonth() + 1}/${sundayDate.getDate()}/${sundayDate.getFullYear()}`;
+        const subtitleEl = document.getElementById('rank-date-subtitle');
+
+        if (subtitleEl) {
+            subtitleEl.innerText = `WEEKLY TOP • VALID UNTIL ${formattedDate}`;
+        }
+
+        try {
+            const response = await fetch('/api/leaderboard', {
+                method: 'GET',
+                headers: {
+                    'X-Telegram-Init-Data': (window.Telegram?.WebApp?.initData || '')
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    renderLeaderboardUI(data.leaderboard);
+                }
+            }
+        } catch (error) {
+            console.error("Error loading leaderboard:", error);
+        }
+    }
+
+    function renderLeaderboardUI(players) {
+        const podiumContainer = document.getElementById('rank-podium-container');
+        const listContainer = document.getElementById('rank-list-container');
+
+        if (!podiumContainer || !listContainer) return;
+
+        const fullList = [...players];
+
+        while (fullList.length < 10) {
+            fullList.push({ name: '---', cartels: 0 });
+        }
+
+        const p1 = fullList[0];
+        const p2 = fullList[1];
+        const p3 = fullList[2];
+
+        podiumContainer.innerHTML = `
+            <div class="flex-1 bg-gray-800/80 border border-slate-600 rounded-2xl p-3 flex flex-col items-center justify-between h-36 relative">
+                <div class="w-8 h-8 rounded-full bg-slate-300 text-slate-900 font-bold flex items-center justify-center -mt-7 border-2 border-slate-400 text-sm">2</div>
+                <div class="text-xs font-semibold text-white truncate max-w-[80px]">${esc(p2.name)}</div>
+                <div class="text-[11px] font-bold text-amber-500">${p2.cartels} CARTELS</div>
+            </div>
+
+            <div class="flex-1 bg-gray-800/90 border border-yellow-500/80 rounded-2xl p-3 flex flex-col items-center justify-between h-44 relative shadow-lg shadow-yellow-500/10">
+                <div class="w-9 h-9 rounded-full bg-yellow-400 text-yellow-950 font-black flex items-center justify-center -mt-8 border-2 border-yellow-300 text-base">
+                    <i class="fas fa-crown text-yellow-950"></i>
+                </div>
+                <div class="text-xs font-bold text-yellow-400 truncate max-w-[80px]">${esc(p1.name)}</div>
+                <div class="text-xs font-extrabold text-amber-400">${p1.cartels} CARTELS</div>
+            </div>
+
+            <div class="flex-1 bg-gray-800/80 border border-amber-700/60 rounded-2xl p-3 flex flex-col items-center justify-between h-32 relative">
+                <div class="w-8 h-8 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center -mt-7 border-2 border-amber-500 text-sm">3</div>
+                <div class="text-xs font-semibold text-white truncate max-w-[80px]">${esc(p3.name)}</div>
+                <div class="text-[11px] font-bold text-amber-500">${p3.cartels} CARTELS</div>
+            </div>
+        `;
+
+        listContainer.innerHTML = fullList.slice(3, 10).map((player, index) => {
+            const rankNum = index + 4;
+
+            return `
+                <div class="flex items-center justify-between p-3 bg-gray-800/60 rounded-xl border border-gray-700/50">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center">
+                            ${rankNum}
+                        </div>
+                        <div class="text-sm font-semibold text-white truncate max-w-[140px]">${esc(player.name)}</div>
+                    </div>
+                    <div class="text-xs font-bold text-emerald-400">${player.cartels} CARTELS</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchAndRenderLeaderboard);
+
+    async function displayUserReferralLink() {
+        const linkBox = document.getElementById("referral-link-display");
+        if (!linkBox) return;
+
+        try {
+            const result = await api('/api/referral-link');
+
+            if (result.status === 'success' && result.url) {
+                linkBox.innerText = result.url;
+            }
+        } catch (error) {
+            console.error('Could not load referral link', error);
+        }
+    }
+
+    setTimeout(displayUserReferralLink, 500);
+
+    function copyReferralLink() {
+        const linkBox = document.getElementById("referral-link-display");
+        const copyBtn = document.getElementById("btn-copy-link");
+
+        if (linkBox) {
+            navigator.clipboard.writeText(linkBox.innerText).then(() => {
+                if (copyBtn) {
+                    const originalText = copyBtn.innerText;
+                    copyBtn.innerText = "Copied!";
+
+                    setTimeout(() => {
+                        copyBtn.innerText = originalText;
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error("Failed to copy link: ", err);
+            });
+        }
+    }
+  </script>
+</body>
+</html>
