@@ -937,3 +937,256 @@
       document.getElementById('winner-share-status').innerText = winners.length > 1 ? 'በጋራ አሸንፈዋል!' : '';
       document.getElementById('winners-count-label').innerText = `አሸናፊዎች (${winners.length})`;
       winnersListContainer.innerHTML = winners.map(w => `
+          <div class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-xs"><i class="fa-solid fa-user"></i></div>
+          <div>
+            <div class="text-xs text-teal-300 font-bold">${esc(w.name)}${w.mine ? ' (እርስዎ)' : ''}</div>
+            <div class="text-[9px] text-gray-400 font-mono">${w.phone ? 'ስልክ: ' + esc(w.phone) + ' | ' : ''}ካርቴል: <span class="text-teal-400 font-bold">#${w.cartel}</span></div>
+          </div>
+        </div>
+        <div class="text-xs font-black text-yellow-400 font-mono tracking-wide">${Number(w.prize).toFixed(2)} ETB</div>
+      </div>`).join('');
+      winnerModal.classList.remove('hidden');
+    }
+
+    function applyRound(s) {
+      if (round && s.round_id === round.round_id && s.seq < round.seq) return;
+
+      clockOffset = s.server_time - Date.now() / 1000;
+      const newRound = s.round_id !== lastRoundId;
+      const phaseChanged = lastPhase !== null && lastPhase !== s.phase;
+      const prevPhase = lastPhase;
+
+      round = s;
+      selectedTickets = s.my_cartels.slice();
+      takenCartels = new Set(s.taken);
+      isDrawingPhase = s.phase !== 'selection';
+      drawnNumbers = s.drawn;
+      lastPhase = s.phase;
+
+      if (newRound) {
+        lastRoundId = s.round_id;
+        lastDrawnCount = 0;
+        gridState = [];
+        initMasterBoard();
+        ticketBallText.innerText = '--';
+        ticketStatusText.innerText = 'ገና አልጀመረም...';
+        ticketDrawCount.innerText = '0/75';
+        winnerModal.classList.add('hidden');
+      }
+
+      const n = s.drawn.length;
+      if (n < lastDrawnCount) lastDrawnCount = 0;
+      if (n > lastDrawnCount) {
+        const fresh = s.drawn.slice(lastDrawnCount);
+        fresh.forEach(markMaster);
+        showBall(s.drawn[n - 1], n, fresh.length <= 3);
+        lastDrawnCount = n;
+      }
+
+      gameStatusLabel.innerText = statusText(s);
+
+      if (s.phase === 'drawing' && prevPhase !== 'drawing' && selectedTickets.length > 0 && currentPage === 'home') {
+        switchPage('ticket');
+      }
+
+      if (s.phase === 'result' && shownResultFor !== s.round_id) {
+        shownResultFor = s.round_id;
+        showResult(s);
+      }
+
+      paintGrid();
+      updateUI();
+
+      if (s.seq !== lastSeq || phaseChanged) {
+        lastSeq = s.seq;
+        renderPopupCartels();
+        renderTicketMatrices();
+      }
+    }
+
+    async function pollRound() {
+      if (pollBusy) return;
+      pollBusy = true;
+
+      try {
+        const res = await api('/api/round');
+        if (res.balance != null) {
+          serverBalance = Number(res.balance);
+          serverBonus = Number(res.bonus) || 0;
+        }
+        if (res.state) applyRound(res.state);
+      } catch (err) {
+        console.error('round poll failed', err);
+      } finally {
+        pollBusy = false;
+      }
+    }
+
+    function tickCountdown() {
+      if (!round) return;
+
+      const countdownEl = document.getElementById('countdown');
+      const bar = document.getElementById('timer-bar');
+
+      if (round.phase === 'selection') {
+        const left = Math.max(
+          0,
+          Math.ceil(round.phase_ends_at - (Date.now() / 1000 + clockOffset))
+        );
+
+        const waiting = round.players < round.min_players;
+        const mm = String(Math.floor(left / 60)).padStart(2, '0');
+        const ss = String(left % 60).padStart(2, '0');
+
+        countdownEl.innerText = waiting ? '--:--' : `${mm}:${ss}`;
+        bar.style.width = waiting
+          ? '100%'
+          : `${Math.min(100, (left / round.selection_seconds) * 100)}%`;
+      } else {
+        countdownEl.innerText = '00:00';
+        bar.style.width = '0%';
+      }
+    }
+
+    function closeWinnerModal() {
+      winnerModal.classList.add('hidden');
+      switchPage('home');
+    }
+
+    initGrid();
+    initMasterBoard();
+    updateUI();
+
+    setInterval(tickCountdown, 250);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setInterval(pollRound, 1000);
+      pollRound();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        pollRound();
+      }
+    });
+
+    function renderTransactionHistory(transactions) {
+      const historyContainer = document.getElementById('transaction-history-list');
+      if (!historyContainer) return;
+
+      if (!transactions || transactions.length === 0) {
+        historyContainer.innerHTML = `<div class="text-center text-gray-500 text-sm py-4">ምንም የግብይት ታሪክ የለም (No transactions yet).</div>`;
+        return;
+      }
+
+      const sortedTx = transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      historyContainer.innerHTML = sortedTx.map(tx => {
+        const isDeposit = ['deposit', 'win', 'refund', 'bonus', 'deposit_bonus'].includes(tx.type);
+        const colorClass = isDeposit ? 'text-xbet-green' : 'text-red-500';
+        const sign = isDeposit ? '+' : '-';
+
+        const dateStr = new Date(tx.timestamp).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        return `
+        <div class="bg-xbet-dark border border-xbet-border rounded-lg p-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full ${isDeposit ? 'bg-teal-500/20 text-teal-400' : 'bg-red-500/20 text-red-400'} flex items-center justify-center">
+                    <i class="fa-solid ${isDeposit ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-bold text-gray-300 uppercase tracking-wider">${String(tx.type).replace('_', ' ')}</div>
+                    <div class="text-[10px] text-gray-500 font-mono">${dateStr}</div>
+                </div>
+            </div>
+            <div class="font-mono font-black ${colorClass}">
+                ${sign}${tx.amount.toFixed(2)} ETB
+            </div>
+        </div>
+        `;
+      }).join('');
+    }
+  </script>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <script>
+    window.Telegram?.WebApp?.expand();
+
+    function triggerDeposit() {
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.openTelegramLink("https://t.me/my_1x_bingo_bot?start=deposit");
+            window.Telegram.WebApp.close();
+        }
+    }
+
+    function triggerWithdraw() {
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.openTelegramLink("https://t.me/my_1x_bingo_bot?start=withdraw");
+            window.Telegram.WebApp.close();
+        }
+    }
+
+    const CALL_FILE = 'calls.mp3';
+    const CALL_MAP = {"1":[0.0,1.47],"2":[1.57,1.48],"3":[3.15,1.49],"4":[4.74,1.49],"5":[6.33,1.51],"6":[7.94,1.56],"7":[9.6,1.6],"8":[11.3,1.42],"9":[12.82,1.35],"10":[14.27,1.4],"11":[15.77,1.51],"12":[17.38,1.43],"13":[18.91,1.57],"14":[20.58,1.65],"15":[22.33,1.63],"16":[24.06,1.76],"17":[25.92,1.81],"18":[27.83,1.8],"19":[29.73,1.61],"20":[31.44,1.32],"21":[32.86,1.6],"22":[34.56,1.54],"23":[36.2,1.61],"24":[37.91,1.63],"25":[39.64,1.54],"26":[41.28,1.71],"27":[43.09,1.64],"28":[44.83,1.61],"29":[46.54,1.52],"30":[48.16,1.47],"31":[49.73,1.5],"32":[51.33,1.93],"33":[53.36,1.87],"34":[55.33,1.85],"35":[57.28,1.73],"36":[59.11,1.73],"37":[60.94,1.85],"38":[62.89,1.88],"39":[64.87,1.67],"40":[66.64,1.4],"41":[68.14,1.65],"42":[69.891,1.85],"43":[71.841,1.7],"44":[73.641,1.64],"45":[75.381,1.66],"46":[77.141,1.95],"47":[79.191,1.7],"48":[80.991,2.15],"49":[83.241,1.58],"50":[84.921,1.38],"51":[86.401,1.55],"52":[88.051,1.84],"53":[89.991,1.54],"54":[91.631,1.87],"55":[93.601,1.66],"56":[95.361,1.58],"57":[97.041,1.74],"58":[98.881,1.79],"59":[100.771,1.65],"60":[102.521,1.42],"61":[104.041,1.52],"62":[105.661,1.8],"63":[107.561,1.42],"64":[109.081,1.69],"65":[110.871,1.43],"66":[112.401,1.65],"67":[114.151,1.74],"68":[115.991,1.61],"69":[117.701,1.48],"70":[119.281,1.25],"71":[120.631,1.86],"72":[122.591,1.66],"73":[124.351,1.51],"74":[125.961,1.64],"75":[127.701,1.5],"bingo":[129.301,1.09]};
+    let audioCtx = null, callBuffer = null, callsLoading = false, currentCall = null;
+    let soundOn = true;
+    try { soundOn = localStorage.getItem('bingo_sound') !== 'off'; } catch (e) {}
+
+    function applySoundIcon() {
+      const icon = document.getElementById('sound-icon');
+      const btn = document.getElementById('sound-btn');
+      if (icon) icon.className = soundOn ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+      if (btn) {
+        btn.classList.toggle('text-teal-300', soundOn);
+        btn.classList.toggle('text-gray-500', !soundOn);
+      }
+    }
+
+    function stopCall() {
+      if (currentCall) { try { currentCall.stop(); } catch (e) {} currentCall = null; }
+    }
+
+    function toggleSound() {
+      soundOn = !soundOn;
+      try { localStorage.setItem('bingo_sound', soundOn ? 'on' : 'off'); } catch (e) {}
+      if (soundOn) unlockAudio(); else stopCall();
+      applySoundIcon();
+    }
+
+    async function loadCalls() {
+      if (callBuffer || callsLoading) return;
+      callsLoading = true;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const res = await fetch(CALL_FILE);
+        const data = await res.arrayBuffer();
+        callBuffer = await new Promise((ok, fail) => audioCtx.decodeAudioData(data, ok, fail));
+      } catch (e) {
+        console.warn('Voice file could not load', e);
+      } finally {
+        callsLoading = false;
+      }
+    }
+
+    function unlockAudio() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (!callBuffer) loadCalls();
+      } catch (e) {}
+    }
+
+    ['pointerdown', 'touchstart', 'click'].forEach(ev =>
+      document.addEventListener(ev, unlockAudio, { passive: true })
+    );
+
+    document.addEventListener('DOMContentLoaded', () => {
+      applySoundIcon();
+      loadCalls();
+    });
