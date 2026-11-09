@@ -1,7 +1,7 @@
 const { Telegraf, Markup } = require('telegraf');
 const admin = require('firebase-admin');
 
-const BOT_TOKEN = process.env.BOT_TOKEN || "8747562686:AAGQCIOwD3ahfjVY21PY4gvftQCtxaq0UNA";
+const BOT_TOKEN = process.env.BOT_TOKEN || "8895593691:AAHI_NMo_J7uim5GHSmfMEorvuYSH2I1el0";
 const WEBAPP_URL = process.env.WEBAPP_URL || "https://xlitebingo.onrender.com";
 const ADMIN_ID = 7396414604;
 
