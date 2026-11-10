@@ -206,10 +206,21 @@
             <span>ዋና ሂሳብ</span>
             <span id="wallet-page-main" class="text-yellow-400 font-mono text-base">0.00</span>
           </div>
-          <div class="text-sm font-bold text-gray-300 mb-8 flex items-center space-x-2">
+          <div class="text-sm font-bold text-gray-300 mb-6 flex items-center space-x-2">
             <span>መጫወቻ ሂሳብ:</span>
             <span id="wallet-page-play" class="text-cyan-400 font-mono text-base">0.00 ETB</span>
           </div>
+
+          <!-- 🎁 Promo Code Box Inside Wallet -->
+          <div class="w-full bg-xbet-dark/80 border border-xbet-border rounded-xl p-3 mb-6">
+            <label class="block text-xs font-bold text-teal-400 mb-1">🎁 ፕሮሞ / ኩፖን ኮድ አለዎት?</label>
+            <div class="flex space-x-2">
+              <input id="promo-code-input" type="text" placeholder="ኮዱን እዚህ ይጻፉ" class="flex-1 bg-xbet-card border border-xbet-border rounded-lg px-3 py-2 text-xs text-white uppercase font-mono">
+              <button onclick="redeemPromoCode()" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs px-4 py-2 rounded-lg">Apply</button>
+            </div>
+            <p id="promo-redeem-result" class="text-[11px] mt-1.5 font-medium"></p>
+          </div>
+
           <div class="flex space-x-4 w-full">
             <button onclick="triggerDeposit()" class="flex-1 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 text-black font-black py-3 rounded-xl shadow-[0_4px_15px_rgba(20,184,166,0.4)]">
               <i class="fa-solid fa-plus text-lg"></i>
@@ -676,11 +687,11 @@
         masterBoardChevron.classList.add('rotate-180');
       }
     }
-const CLS_FREE  = 'h-9 bg-xbet-blue hover:bg-slate-700 text-white font-bold text-xs rounded border border-xbet-border/80 flex items-center justify-center transition-all duration-150 active:scale-95 shadow-sm';
-const CLS_MINE  = 'h-9 bg-emerald-700 text-white font-bold text-xs rounded border border border-emerald-500 flex items-center justify-center';
-const CLS_TAKEN = 'h-9 bg-emerald-700 text-white font-bold text-xs rounded border border-emerald-500 flex items-center justify-center opacity-100 cursor-not-allowed';
-    
-    
+
+    // የቦቶች እና የተጠቃሚዎች ከለር አረንጓዴ እንዲሆን የተስተካከለው
+    const CLS_FREE  = 'h-9 bg-xbet-blue hover:bg-slate-700 text-white font-bold text-xs rounded border border-xbet-border/80 flex items-center justify-center transition-all duration-150 active:scale-95 shadow-sm';
+    const CLS_MINE  = 'h-9 bg-emerald-700 text-white font-bold text-xs rounded border border-emerald-500 flex items-center justify-center';
+    const CLS_TAKEN = 'h-9 bg-emerald-700 text-white font-bold text-xs rounded border border-emerald-500 flex items-center justify-center opacity-100 cursor-not-allowed';
 
     function initGrid() {
       gridContainer.innerHTML = '';
@@ -1143,7 +1154,7 @@ const CLS_TAKEN = 'h-9 bg-emerald-700 text-white font-bold text-xs rounded borde
       const rows = (transactions || []).filter(t => historyFilter==='all' || (historyFilter==='deposit' ? t.type==='deposit' : t.type==='withdrawal'));
       if (!rows.length) { box.innerHTML = '<div class="text-center text-gray-500 text-sm py-5">No transactions found.</div>'; return; }
       box.innerHTML = rows.map(t => {
-        const deposit = t.type==='deposit' || ['win','winnings','refund','bonus','deposit_bonus'].includes(t.type);
+        const deposit = t.type==='deposit' || ['win','winnings','refund','bonus','deposit_bonus','promo_bonus','auto_deposit_bonus'].includes(t.type);
         const pending = t.status==='pending';
         const rejected = t.status==='rejected';
         const statusLabel = pending ? 'PENDING' : rejected ? 'REJECTED' : 'APPROVED';
@@ -1157,6 +1168,31 @@ const CLS_TAKEN = 'h-9 bg-emerald-700 text-white font-bold text-xs rounded borde
           <div class="font-mono font-black whitespace-nowrap ${deposit?'text-emerald-400':'text-rose-400'}">${sign}${Number(t.amount||0).toFixed(2)} ETB</div>
         </div>`;
       }).join('');
+    }
+
+    async function redeemPromoCode() {
+      const codeInput = document.getElementById('promo-code-input');
+      const resultEl = document.getElementById('promo-redeem-result');
+      const code = codeInput.value.trim();
+      if(!code) { resultEl.className = 'text-[11px] mt-1.5 text-rose-400 font-medium'; resultEl.innerText = 'እባክዎ ኮድ ያስገቡ'; return; }
+      
+      resultEl.className = 'text-[11px] mt-1.5 text-gray-300 font-medium';
+      resultEl.innerText = 'በመፈተሽ ላይ...';
+      
+      try {
+        const res = await api('/api/promo/redeem', {
+          method: 'POST',
+          body: JSON.stringify({ code })
+        });
+        if(res.status !== 'success') throw new Error(res.message || 'ክዋኔው አልተሳካም');
+        resultEl.className = 'text-[11px] mt-1.5 text-emerald-400 font-bold';
+        resultEl.innerText = `✅ ${res.message} (+${res.bonusAdded} ETB Bonus)`;
+        codeInput.value = '';
+        refreshUserData();
+      } catch(e) {
+        resultEl.className = 'text-[11px] mt-1.5 text-rose-400 font-medium';
+        resultEl.innerText = '❌ ' + e.message;
+      }
     }
   </script>
 
