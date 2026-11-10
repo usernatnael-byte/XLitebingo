@@ -96,86 +96,90 @@ async function showMainMenu(ctx) {
 
 async function completeRegistration(ctx, phoneNumber) {
     const uid = String(ctx.from.id);
+
     const userRef = db.collection('users').doc(uid);
     const pendingRef = db.collection('pending_registrations').doc(uid);
 
     await db.runTransaction(async tx => {
         const userSnap = await tx.get(userRef);
         const pendingSnap = await tx.get(pendingRef);
-        const existingUser = userSnap.exists ? userSnap.data() : {};
-        const pending = pendingSnap.exists ? pendingSnap.data() : {};
 
-        // A referral can only be attributed once, to a different, existing inviter.
-        const candidateReferrerId = String(pending.referrer_id || '');
-        const canAttributeReferral = Boolean(
-            candidateReferrerId && candidateReferrerId !== uid &&
-            !existingUser.referred_by && !existingUser.phone_number
-        );
-        const referrerRef = canAttributeReferral
-            ? db.collection('users').doc(candidateReferrerId)
-            : null;
-        const referrerSnap = referrerRef ? await tx.get(referrerRef) : null;
-        const validReferrer = Boolean(referrerSnap?.exists);
-        const now = new Date().toISOString();
-
-        if (!userSnap.exists) {
+        if (userSnap.exists) {
             tx.set(userRef, {
-                telegram_id: uid,
-                first_name: ctx.from.first_name || '',
-                username: ctx.from.username || '',
                 phone_number: phoneNumber,
-                balance: 0,
-                bonus: REGISTRATION_BONUS,
-                channel_joined: true,
-                has_deposited: false,
-                referral_code: uid,
-                referred_by: validReferrer ? candidateReferrerId : null,
-                created_at: Date.now(),
-                transactions: [{
-                    type: 'bonus', amount: REGISTRATION_BONUS,
-                    source: 'registration', timestamp: now
-                }]
-            });
-        } else {
-            // Older bot versions may have created the user record before phone verification.
-            // Preserve existing balances and award registration bonus only if not already recorded.
-            const txs = Array.isArray(existingUser.transactions) ? existingUser.transactions : [];
-            const hasRegistrationBonus = txs.some(t => t && t.type === 'bonus' && t.source === 'registration');
-            const updates = {
-                phone_number: phoneNumber,
-                channel_joined: true,
-                first_name: existingUser.first_name || ctx.from.first_name || '',
-                username: existingUser.username || ctx.from.username || ''
-            };
-            if (!hasRegistrationBonus && existingUser.phone_number == null) {
-                updates.bonus = Number(existingUser.bonus || 0) + REGISTRATION_BONUS;
-                updates.transactions = [...txs, {
-                    type: 'bonus', amount: REGISTRATION_BONUS,
-                    source: 'registration', timestamp: now
-                }];
-            }
-            if (validReferrer) updates.referred_by = candidateReferrerId;
-            tx.update(userRef, updates);
+                channel_joined: true
+            }, { merge: true });
+
+            return;
         }
 
-        if (validReferrer) {
+        const pending = pendingSnap.exists ? pendingSnap.data() : {};
+
+        const referrerId =
+            pending.referrer_id && String(pending.referrer_id) !== uid
+                ? String(pending.referrer_id)
+                : null;
+
+        const referrerRef = referrerId
+            ? db.collection('users').doc(referrerId)
+            : null;
+
+        const referrerSnap = referrerRef
+            ? await tx.get(referrerRef)
+            : null;
+
+        const now = new Date().toISOString();
+
+        tx.set(userRef, {
+            telegram_id: uid,
+            first_name: ctx.from.first_name || '',
+            username: ctx.from.username || '',
+            phone_number: phoneNumber,
+            balance: 0,
+            bonus: REGISTRATION_BONUS,
+            channel_joined: true,
+            has_deposited: false,
+            referral_code: uid,
+            referred_by: referrerSnap?.exists ? referrerId : null,
+            created_at: Date.now(),
+            transactions: [{
+                type: 'bonus',
+                amount: REGISTRATION_BONUS,
+                source: 'registration',
+                timestamp: now
+            }]
+        });
+
+        if (referrerSnap?.exists) {
             const rd = referrerSnap.data();
-            const referred = Array.isArray(rd.referred_users) ? rd.referred_users : [];
+
+            const referred = Array.isArray(rd.referred_users)
+                ? rd.referred_users
+                : [];
+
             if (!referred.includes(uid)) {
-                const referrerTransactions = Array.isArray(rd.transactions) ? rd.transactions : [];
+                const txs = Array.isArray(rd.transactions)
+                    ? rd.transactions
+                    : [];
+
+                txs.push({
+                    type: 'bonus',
+                    amount: REFERRAL_BONUS,
+                    source: 'referral',
+                    referred_user: uid,
+                    timestamp: now
+                });
+
                 tx.update(referrerRef, {
                     bonus: Number(rd.bonus || 0) + REFERRAL_BONUS,
                     referred_users: [...referred, uid],
                     referral_count: Number(rd.referral_count || 0) + 1,
-                    transactions: [...referrerTransactions, {
-                        type: 'bonus', amount: REFERRAL_BONUS,
-                        source: 'referral', referred_user: uid, timestamp: now
-                    }]
+                    transactions: txs
                 });
             }
         }
 
-        if (pendingSnap.exists) tx.delete(pendingRef);
+        tx.delete(pendingRef);
     });
 }
 
@@ -190,11 +194,10 @@ bot.start(async ctx => {
             if (referrerId && referrerId !== uid) {
                 const existing = await db.collection('users').doc(uid).get();
 
-                const existingData = existing.exists ? existing.data() : {};
-                if (!existingData.phone_number && !existingData.referred_by) {
+                if (!existing.exists) {
                     await db.collection('pending_registrations')
                         .doc(uid)
-                        .set({ referrer_id: referrerId, created_at: Date.now() }, { merge: true });
+                        .set({ referrer_id: referrerId }, { merge: true });
                 }
             }
         }

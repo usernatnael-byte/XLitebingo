@@ -168,19 +168,29 @@ app.get('/api/wallet/history', async (req,res) => {
         const userId = String(req.telegramUserId);
         const userSnap = await db.collection('users').doc(userId).get();
         const user = userSnap.exists ? userSnap.data() : {};
+        // RTDB compatibility store supports collection.get(), not Firestore where().
+        // Filter request records in JavaScript to avoid the history endpoint returning 500.
         const [deposits, withdrawals] = await Promise.all([
-            db.collection('deposit_requests').where('user_id', '==', userId).get(),
-            db.collection('withdrawal_requests').where('user_id', '==', userId).get()
+            db.collection('deposit_requests').get(),
+            db.collection('withdrawal_requests').get()
         ]);
         const requestIds = new Set();
         const items = [];
+        const toIso = value => {
+            const d = new Date(typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value)) ? Number(value) : (value || Date.now()));
+            return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+        };
         for (const doc of deposits.docs) {
-            const r = doc.data(); requestIds.add(doc.id);
-            items.push({id:doc.id, type:'deposit', amount:Number(r.amount||0), reference:r.reference||'', status:r.status||'pending', timestamp:r.created_at_iso || new Date(Number(r.created_at||Date.now())).toISOString(), wallet:'bonus'});
+            const r = doc.data();
+            if (String(r.user_id) !== userId) continue;
+            requestIds.add(doc.id);
+            items.push({id:doc.id, type:'deposit', amount:Number(r.amount||0), reference:r.reference||'', status:r.status||'pending', timestamp:r.created_at_iso || toIso(r.created_at), wallet:'bonus'});
         }
         for (const doc of withdrawals.docs) {
-            const r = doc.data(); requestIds.add(doc.id);
-            items.push({id:doc.id, type:'withdrawal', amount:Number(r.amount||0), reference:doc.id, status:r.status||'pending', timestamp:new Date(Number(r.created_at||Date.now())).toISOString(), wallet:'main'});
+            const r = doc.data();
+            if (String(r.user_id) !== userId) continue;
+            requestIds.add(doc.id);
+            items.push({id:doc.id, type:'withdrawal', amount:Number(r.amount||0), reference:doc.id, status:r.status||'pending', timestamp:toIso(r.created_at), wallet:'main'});
         }
         for (const t of (Array.isArray(user.transactions) ? user.transactions : [])) {
             if (t.request_id && requestIds.has(String(t.request_id))) continue;
