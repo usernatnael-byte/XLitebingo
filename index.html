@@ -101,8 +101,8 @@
             <span class="text-[10px] text-gray-400 font-semibold">ETB</span>
           </div>
           <div class="bg-xbet-blue/80 border border-xbet-border rounded-lg p-2 text-center flex flex-col justify-center items-center shadow">
-            <span class="text-[9px] text-gray-400 leading-tight mb-1">የደራሽ ቦነስ በቅርብ ቀን ይጀመራል</span>
-            <i class="fa-solid fa-hourglass-half text-yellow-500 text-sm animate-pulse"></i>
+            <span class="text-[9px] text-gray-400 leading-tight mb-1">የተጫዋቾች ብዛት</span>
+            <div id="active-players-count" class="text-sm font-black text-yellow-400 font-mono">0</div>
           </div>
         </div>
       </div>
@@ -540,9 +540,9 @@
             });
         }
     });
-        const MAX_SELECTION = 4;
+    const MAX_SELECTION = 4;
     const TICKET_PRICE = 10;
-    const API_BASE = ''; // Use the current Render host; do not hard-code a deployment URL.
+    const API_BASE = '';
 
     let serverBonus = 0;
     let serverBalance = 0;
@@ -679,7 +679,7 @@
 
     const CLS_FREE  = 'h-9 bg-xbet-blue hover:bg-slate-700 text-white font-bold text-xs rounded border border-xbet-border/80 flex items-center justify-center transition-all duration-150 active:scale-95 shadow-sm';
     const CLS_MINE  = 'h-9 bg-xbet-green text-black font-black text-xs rounded border border-green-300 flex items-center justify-center';
-    const CLS_TAKEN = 'h-9 bg-slate-800 text-slate-600 font-bold text-xs rounded border border-slate-700 flex items-center justify-center opacity-50 cursor-not-allowed';
+    const CLS_TAKEN = 'h-9 bg-rose-900/80 text-rose-300 font-bold text-xs rounded border border-rose-700/80 flex items-center justify-center opacity-80 cursor-not-allowed';
 
     function initGrid() {
       gridContainer.innerHTML = '';
@@ -775,8 +775,6 @@
 
     function updateUI() {
       const reserved = (round && round.phase === 'selection') ? selectedTickets.length * TICKET_PRICE : 0;
-      // serverBalance is the main wallet; serverBonus is the bonus wallet.
-      // Pending card selections consume bonus first, then main balance.
       userPlayBalance = serverBalance + serverBonus - reserved;
       const fromBonus = Math.min(serverBonus, reserved);
       const playShown = Math.max(0, serverBonus - fromBonus);
@@ -789,10 +787,14 @@
       }
       selectedCountDisplay.innerText = selectedTickets.length;
 
-      const poolPrize = round ? Number(round.pool) : 0;
+      const poolPrize = round ? Number(round.pool || 0) : 0;
       document.getElementById('jackpot-display').innerText = poolPrize.toFixed(2);
       document.getElementById('floating-jackpot').innerText = `${poolPrize.toFixed(2)} ETB`;
       ticketPrizePool.innerText = `${poolPrize.toFixed(2)} ETB`;
+
+      if (round && document.getElementById('active-players-count')) {
+        document.getElementById('active-players-count').innerText = round.players || 0;
+      }
 
       if (selectedTickets.length > 0) {
         navTicketBadge.innerText = selectedTickets.length;
