@@ -135,6 +135,12 @@ async function requireTelegramUser(req, res, next) {
 const wallet = new FirestoreWallet(db);
 const engine = new GameEngine(wallet, 2);
 
+db.collection('settings').doc('bot_settings').get().then(doc => {
+    if (doc.exists) {
+        engine.setBotSettings(doc.data());
+    }
+}).catch(err => console.warn('Could not load bot settings at startup:', err));
+
 wallet.recover_unsettled()
     .then(() => engine.start())
     .catch(error => {
@@ -242,7 +248,6 @@ function requireAdmin(req, res, next) {
 }
 app.use('/api/admin', requireAdmin);
 
-// 🤖 አድሚን የሮቦት ሴቲንግ መቀበያ እና ማከማቻ Endpoint
 app.get('/api/admin/bot-settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('bot_settings').get();
@@ -373,7 +378,7 @@ app.post('/api/admin/broadcast', async(req,res)=>{
                 else await bot.telegram.sendMessage(id,message,extra);
                 sent++;
             }catch(e){failed++;}
-            await new Promise(resolve=>setTimeout(resolve,45));
+                await new Promise(resolve=>setTimeout(resolve,45));
         }
         await db.collection('admin_audit').doc().set({admin_id:req.telegramUserId,action:'broadcast',audience,has_photo:Boolean(photoBuffer),has_button:Boolean(buttonUrl),sent,failed,total:ids.length,at:Date.now()});
         res.json({status:'success',total:ids.length,sent,failed});
