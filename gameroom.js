@@ -6,7 +6,7 @@ const BALLS = 75;
 
 const matrixCache = {};
 
-// የኢትዮጵያዊ ስሞች ዝርዝር ለሮቦቶች (ቦቶች) ትክክለኛ የሰው ስም አሳይተው እንዲጫወቱ
+// የኢትዮጵያዊ ስሞች ዝርዝር ለሮቦቶች (ቦቶች)
 const ETHIOPIAN_NAMES = [
     "አበበ ከበደ", "መሰረት ሀይሌ", "ዳዊት መኮንን", "ትግስት አሰፋ", "ዮናስ ታደሰ",
     "ሰላም አበበ", "ከማል መሀመድ", "ሔለን ዮሴፍ", "ናትናኤል ሰለሞን", "ቤተልሄም አያሌው",
@@ -76,11 +76,6 @@ function checkBingo(m, drawnSet) {
     return false;
 }
 
-function maskPhone(phone) {
-    let digits = String(phone || '').replace(/\D/g, '');
-    return digits.length >= 4 ? '***' + digits.slice(-4) : '';
-}
-
 class GameEngine {
     constructor(wallet, min_players = 2, selection_seconds = 30, draw_interval = 2.0, result_seconds = 10) {
         this.wallet = wallet;
@@ -94,7 +89,6 @@ class GameEngine {
         this._threadRunning = false;
         this.on_round_result = null;
 
-        // የሮቦት ነባሪ ሴቲንግ
         this.botSettings = {
             botCount: 30,
             botWinPercent: 20
@@ -139,13 +133,14 @@ class GameEngine {
         this.phase = 'selection';
         this.phase_ends_at = now + this.selection_seconds;
         this.cartels = {};
-        this.botProfiles = {}; // የሮቦቶች ስም እና መረጃ ማከማቻ
+        this.botProfiles = {};
         this.draw_order = [];
         this.drawn = [];
         this.next_draw_at = null;
         this.winners = [];
         this.no_winner = false;
         this._pending = null;
+        this._botsInjected = false;
 
         this._seq++;
     }
@@ -215,11 +210,7 @@ class GameEngine {
             }));
         }
 
-        // ሮቦቶችን ጨምሮ ጠቅላላ የተጫዋቾች ብዛት ማሳየት
         const uniquePlayers = new Set(Object.values(this.cartels));
-        for (let botId of Object.keys(this.botProfiles)) {
-            uniquePlayers.add(botId);
-        }
 
         return {
             round_id: this.round_id,
@@ -244,12 +235,15 @@ class GameEngine {
         let now = Date.now() / 1000;
 
         if (this.phase === 'selection') {
-            if (now >= this.phase_ends_at) {
-                // ጨዋታው ከመጀመሩ በፊት አድሚኑ ያስቀመጣቸውን ሮቦቶች (ቦቶች) እንጨምራለን
+            // በየጊዜው ቦቶች ገብተው እንዲጫወቱና ለሪል ፕሌየር እንዲታዩ ማድረግ
+            if (!this._botsInjected) {
                 this._injectBots();
+                this._botsInjected = true;
+                this._seq++;
+            }
 
+            if (now >= this.phase_ends_at) {
                 let activePlayers = new Set(Object.values(this.cartels)).size;
-                for (let bId of Object.keys(this.botProfiles)) activePlayers++;
 
                 if (activePlayers < this.min_players) {
                     this.phase_ends_at = now + this.selection_seconds;
@@ -278,7 +272,6 @@ class GameEngine {
         }
     }
 
-    // 🤖 አድሚኑ ያስገባውን የሮቦት ብዛት እና ስሞች በጨዋታው ውስጥ መሙላት
     _injectBots() {
         const targetBotCount = Math.min(400, Math.max(0, this.botSettings.botCount || 0));
         this.botProfiles = {};
@@ -391,7 +384,6 @@ class GameEngine {
             }
         }
 
-        // 🤖 የሮቦት ማሸነፊያ ፐርሰንት (Bot Win Percentage) አስተካካይ ሎጂክ
         if (winning.length === 0 && this.drawn.length >= 25) {
             const botWinChance = Number(this.botSettings.botWinPercent) || 0;
             if (Math.random() * 100 < botWinChance) {
@@ -487,7 +479,6 @@ class GameEngine {
 
         if (this.on_round_result) {
             let uniquePlayers = new Set(Object.values(tickets));
-            for (let bId of Object.keys(this.botProfiles)) uniquePlayers.add(bId);
 
             this.on_round_result({
                 round_id: rid,
