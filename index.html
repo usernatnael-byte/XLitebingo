@@ -44,7 +44,7 @@
 </head>
 <body class="h-full text-white font-sans antialiased flex flex-col overflow-x-hidden select-none">
 
-  <!-- MODERN MELBET TOP HEADER -->
+  <!-- TOP HEADER -->
   <header class="px-4 py-3 bg-[#0d0d0d] border-b border-mel-border flex justify-between items-center sticky top-0 z-30 shadow-lg">
     <div class="flex items-center space-x-3">
       <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center font-black text-slate-950 shadow-md">
@@ -74,8 +74,6 @@
 
   <!-- ==================== PAGE: HOME ==================== -->
   <div id="page-home" class="flex-1 flex flex-col max-w-md mx-auto w-full pb-24 px-3 pt-2">
-    
-    <!-- BRAND BANNER & STATUS CARD -->
     <div class="bg-gradient-to-b from-[#161616] to-[#0a0a0a] border border-mel-border rounded-2xl p-4 mb-3 shadow-xl relative overflow-hidden">
       <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl"></div>
       
@@ -109,7 +107,6 @@
       </div>
     </div>
 
-    <!-- SELECTION HEADER -->
     <div class="flex justify-between items-center px-1 mb-2">
       <div class="font-extrabold text-sm tracking-wide text-gray-200">
         ካርቴል ይምረጡ <span class="text-xs text-yellow-400 font-normal">(እስከ 4)</span>
@@ -119,14 +116,10 @@
       </div>
     </div>
 
-    <!-- 500 CARTELS GRID CONTAINER -->
     <div class="bg-[#101010] border border-mel-border rounded-2xl p-3 flex-1 h-[48vh] overflow-y-auto shadow-inner relative">
-      <div id="cartel-grid" class="grid grid-cols-10 gap-1.5 pb-20">
-        <!-- Dynamically generated via JS -->
-      </div>
+      <div id="cartel-grid" class="grid grid-cols-10 gap-1.5 pb-20"></div>
     </div>
 
-    <!-- FLOATING JACKPOT BADGE -->
     <div class="absolute bottom-20 right-5 z-20 pointer-events-none">
       <div class="bg-gradient-to-r from-yellow-500 to-amber-600 text-slate-950 font-black text-xs px-3.5 py-2 rounded-2xl shadow-2xl flex items-center space-x-2 border border-yellow-300">
         <i class="fa-solid fa-fire text-sm"></i>
@@ -147,7 +140,6 @@
       </div>
     </div>
 
-    <!-- LIVE BALL DISPLAY BOX -->
     <div class="bg-[#141414] border border-mel-border rounded-2xl p-4 mb-3 shadow-lg flex items-center space-x-4">
       <div class="relative w-14 h-14 flex-shrink-0 flex items-center justify-center">
         <div class="absolute inset-0 bg-yellow-500/20 rounded-full blur-md"></div>
@@ -161,7 +153,6 @@
       </div>
     </div>
 
-    <!-- MASTER BOARD ACCORDION -->
     <div class="mb-3">
       <button onclick="toggleMasterBoard()" class="w-full bg-[#161616] border border-mel-border hover:bg-[#222] text-yellow-400 font-bold py-2.5 px-4 rounded-xl flex items-center justify-between transition-colors text-xs">
         <span class="flex items-center space-x-2"><i class="fa-solid fa-eye"></i><span>ሙሉ ቦርድ (Master Board)</span></span>
@@ -172,7 +163,6 @@
       </div>
     </div>
 
-    <!-- TICKETS CONTAINER -->
     <div class="flex-1">
       <div id="ticket-empty-msg" class="text-center text-gray-500 text-sm py-16">እስካሁን ካርቴል አልገዙም</div>
       <div id="ticket-matrices-container" class="grid grid-cols-1 gap-3 hidden"></div>
@@ -194,7 +184,6 @@
       <div class="text-xs font-bold text-gray-400 mb-4">መጫወቻ ሂሳብ (Play Balance)</div>
       <div id="wallet-page-play" class="text-lg font-black text-yellow-400 font-mono mb-5">0.00 ETB</div>
 
-      <!-- PROMO CODE BOX -->
       <div class="w-full bg-[#0a0a0a] border border-mel-border rounded-xl p-3 mb-5">
         <label class="block text-xs font-bold text-yellow-400 mb-1.5">🎁 ፕሮሞ / ኩፖን ኮድ</label>
         <div class="flex space-x-2">
@@ -214,7 +203,6 @@
       </div>
     </div>
 
-    <!-- TRANSACTION HISTORY -->
     <div>
       <h3 class="text-gray-200 font-bold text-xs mb-3">የግብይት ታሪክ</h3>
       <div class="grid grid-cols-3 gap-2 mb-3">
@@ -364,7 +352,7 @@
     </button>
   </nav>
 
-  <!-- JAVASCRIPT LOGIC (FULLY PRESERVED) -->
+  <!-- JAVASCRIPT LOGIC (SYNCED WITH BACKEND API) -->
   <script>
     window.currentUserName = "Player";
     window.currentUserPhone = "Unknown";
