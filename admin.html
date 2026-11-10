@@ -8,11 +8,15 @@
   <div class="two">
     <div>
       <label>በአንድ ዙር የሚገቡ የሮቦቶች ብዛት (Max Bots)</label>
-      <input id="botCountInput" type="number" min="0" max="400" value="50" placeholder="ለምሳሌ: 200 ወይም 300">
+      <input id="botCountInput" type="number" min="0" max="400" value="50" placeholder="ለምሳሌ: 50">
     </div>
     <div>
       <label>የሮቦቶች ማሸነፊያ ፐርሰንት (%)</label>
       <input id="botWinPercentInput" type="number" min="0" max="100" value="20" placeholder="ለምሳሌ: 20%">
+    </div>
+    <div>
+      <label>አንድ ሮቦት የሚይዘው የካርቴል ብዛት (Cards Per Bot)</label>
+      <input id="botCardsPerUser" type="number" min="1" max="4" value="2" placeholder="ለምሳሌ: 2 (እስከ 4)">
     </div>
   </div>
   <div class="row" style="margin-top:12px;">
@@ -71,8 +75,9 @@ async function loadBotSettings() {
   try {
     const d = await api('/api/admin/bot-settings');
     if(d.settings) {
-      document.getElementById('botCountInput').value = d.settings.botCount || 50;
-      document.getElementById('botWinPercentInput').value = d.settings.botWinPercent || 20;
+      document.getElementById('botCountInput').value = d.settings.botCount ?? 50;
+      document.getElementById('botWinPercentInput').value = d.settings.botWinPercent ?? 20;
+      document.getElementById('botCardsPerUser').value = d.settings.botCardsPerUser ?? 2;
     }
   } catch(e) { console.error('Failed to load bot settings', e); }
 }
@@ -80,10 +85,11 @@ async function loadBotSettings() {
 async function saveBotSettings() {
   const botCount = Number(document.getElementById('botCountInput').value);
   const botWinPercent = Number(document.getElementById('botWinPercentInput').value);
+  const botCardsPerUser = Number(document.getElementById('botCardsPerUser').value);
   try {
     await api('/api/admin/bot-settings', {
       method: 'POST',
-      body: JSON.stringify({ botCount, botWinPercent })
+      body: JSON.stringify({ botCount, botWinPercent, botCardsPerUser })
     });
     success('የሮቦት ሴቲንግ በተሳካ ሁኔታ ተስተካክሏል!');
   } catch(e) { fail(e); }
