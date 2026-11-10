@@ -6,7 +6,6 @@ const BALLS = 75;
 
 const matrixCache = {};
 
-// የኢትዮጵያዊ ስሞች ዝርዝር ለሮቦቶች (ቦቶች)
 const ETHIOPIAN_NAMES = [
     "አበበ ከበደ", "መሰረት ሀይሌ", "ዳዊት መኮንን", "ትግስት አሰፋ", "ዮናስ ታደሰ",
     "ሰላም አበበ", "ከማል መሀመድ", "ሔለን ዮሴፍ", "ናትናኤል ሰለሞን", "ቤተልሄም አያሌው",
@@ -235,7 +234,6 @@ class GameEngine {
         let now = Date.now() / 1000;
 
         if (this.phase === 'selection') {
-            // በየጊዜው ቦቶች ገብተው እንዲጫወቱና ለሪል ፕሌየር እንዲታዩ ማድረግ
             if (!this._botsInjected) {
                 this._injectBots();
                 this._botsInjected = true;
