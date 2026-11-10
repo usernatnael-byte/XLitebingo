@@ -1,8 +1,8 @@
 <!doctype html><html lang="am"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>XLiteBingo Admin</title><script src="https://telegram.org/js/telegram-web-app.js"></script><style>
-*{box-sizing:border-box}body{margin:0;background:#08111f;color:#e5eefb;font:15px system-ui,sans-serif}main{max-width:1200px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:23px;margin:8px 0}h2{font-size:18px;margin:0 0 12px}.muted{color:#91a4bd}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:16px 0}.card,section{background:#111f32;border:1px solid #263a55;border-radius:14px;padding:14px}.num{font-size:23px;font-weight:800;margin-top:6px}input,textarea,select,button{border:1px solid #38516f;border-radius:9px;padding:10px;background:#0a1728;color:#fff;max-width:100%}input,textarea,select{width:100%}textarea{min-height:110px;resize:vertical}button{cursor:pointer;background:#126b63;border:0;font-weight:700;margin:3px}button.danger{background:#a73548}button.secondary{background:#344963}section{margin:14px 0;overflow:auto}.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.row>*{flex:1}.notice{padding:12px;border-radius:10px;background:#3a2630;color:#ffd6df;margin:12px 0;display:none}.ok{background:#153d35;color:#c9ffea}table{width:100%;border-collapse:collapse;min-width:720px}td,th{text-align:left;padding:9px;border-bottom:1px solid #293b52;font-size:13px;vertical-align:top}th{color:#9db1ca}.status{font-weight:700}.small{font-size:12px;white-space:pre-wrap;max-width:280px;overflow-wrap:anywhere}.pill{display:inline-block;padding:3px 7px;border-radius:20px;background:#263b54;font-size:11px}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.bar{height:12px;background:#263b54;border-radius:20px;overflow:hidden}.bar>i{display:block;height:100%;background:#25b99c;width:0}
+*{box-sizing:border-box}body{margin:0;background:#08111f;color:#e5eefb;font:15px system-ui,sans-serif}main{max-width:1200px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:23px;margin:8px 0}h2{font-size:18px;margin:0 0 12px}.muted{color:#91a4bd}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:16px 0}.card,section{background:#111f32;border:1px solid #263a55;border-radius:14px;padding:14px}.num{font-size:23px;font-weight:800;margin-top:6px}input,textarea,select,button{border:1px solid #38516f;border-radius:9px;padding:10px;background:#0a1728;color:#fff;max-width:100%}input,textarea,select{width:100%}textarea{min-height:110px;resize:vertical}button{cursor:pointer;background:#126b63;border:0;font-weight:700;margin:3px}button.danger{background:#a73548}button.secondary{background:#344963}section{margin:14px 0;overflow:auto}.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.row>*{flex:1}.notice{padding:12px;border-radius:10px;background:#3a2630;color:#ffd6df;margin:12px 0;display:none}.ok{background:#153d35;color:#c9ffea}table{width:100%;border-collapse:collapse;min-width:720px}td,th{text-align:left;padding:9px;border-bottom:1px solid #293b52;font-size:13px;vertical-align:top}th{color:#9db1ca}.status{font-weight:700}.small{font-size:12px;white-space:pre-wrap;max-width:280px;overflow-wrap:anywhere}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.bar{height:12px;background:#263b54;border-radius:20px;overflow:hidden}.bar>i{display:block;height:100%;background:#25b99c;width:0}
 </style></head><body><main><div class="top"><div><h1>🛠 XLiteBingo Admin</h1><div class="muted">በTelegram አካውንትዎ የተረጋገጠ የአድሚን ፓነል</div></div><button onclick="loadAll()">↻ አድስ</button></div><div id="notice" class="notice"></div><div class="grid" id="stats"></div>
 
-<!-- 🤖 ሮቦት / ቦት ሲቲንግ (Robot / Bot Settings) -->
+<!-- 🤖 ሮቦት / ቦት ሴቲንግ (Robot Settings) -->
 <section>
   <h2>🤖 የሮቦት / ቦት ሴቲንግ (Robot Settings)</h2>
   <div class="two">
@@ -18,10 +18,48 @@
   <div class="row" style="margin-top:12px;">
     <button onclick="saveBotSettings()">💾 የሮቦት ሴቲንግ አስቀምጥ</button>
   </div>
-  <div class="muted">አድሚኑ ከዚህ ሆኖ በጌም ሩሙ ውስጥ የሚሳተፉ የሮቦቶች ብዛት እና የማሸነፍ እድል መቶኛ ማስተካከል ይችላል። ተጫዋቾች ብዙ እንዲመስሉ እና ፖሉ ከፍ እንዲል ያደርጋል።</div>
 </section>
 
-<div class="two"><section><h2>📊 የ7 ቀን ሪፖርት</h2><div id="weekly"></div></section><section><h2>📢 ብሮድካስት</h2><label>ተቀባዮች</label><select id="broadcastAudience"><option value="all">All — ሁሉም የተመዘገቡ (ከታገዱ በስተቀር)</option><option value="verified">Verified — ስልክ ያረጋገጡ</option><option value="unverified">Unverified — ስልክ ያላረጋገጡ</option></select><label>ፎቶ (JPG/PNG/WEBP፣ ከ7MB በታች)</label><input id="broadcastImage" type="file" accept="image/jpeg,image/png,image/webp"><label>ጽሑፍ / Caption</label><textarea id="broadcastText" placeholder="መልዕክትዎን እዚህ ይጻፉ..."></textarea><div class="row"><input id="broadcastButtonText" placeholder="Inline Button ስም (ለምሳሌ: ይጫኑ)"><input id="broadcastButtonUrl" placeholder="https://example.com"></div><button onclick="broadcast()">📢 አሁን ላክ</button><div class="muted">ፎቶ + Caption + ከታች Inline URL Button በአንድ መልዕክት ይላካሉ። ስልክ ቁጥር መመዝገብን እንደ Verified እንጠቀማለን። የታገዱ ሰዎች አይቀበሉም።</div></section></div>
+<!-- 🎁 አውቶ ዲፖዚት ቦነስ እና ፕሮሞ ኮድ ሴቲንግ (Auto Bonus & Promo Codes) -->
+<section>
+  <h2>🎁 አውቶ ዲፖዚት ቦነስ እና ፕሮሞ ኮድ አስተዳደር</h2>
+  <div class="two">
+    <div style="background:#0a1728; padding:12px; border-radius:10px; border:1px solid #263a55;">
+      <h3>⚡ አውቶማቲክ ዲፖዚት ቦነስ (Auto Deposit Bonus)</h3>
+      <label>ሁኔታው</label>
+      <select id="autoBonusEnabled"><option value="yes">በርቷል (Active)</option><option value="no">ጠፍቷል (Disabled)</option></select>
+      <label>የቦነስ ዓይነት</label>
+      <select id="autoBonusType"><option value="percent">ፐርሰንት (%)</option><option value="fixed">ቋሚ ገንዘብ (Fixed ETB)</option></select>
+      <label>የቦነስ መጠን (Value)</label>
+      <input id="autoBonusValue" type="number" placeholder="ለምሳሌ: 10 (ለ %) ወይም 50 (ለ ETB)">
+      <label>ዝቅተኛ ዲፖዚት (Min Deposit Limit)</label>
+      <input id="autoBonusMinDeposit" type="number" placeholder="ከዚህ በላይ ዲፖዚት ሲያደርጉ (ለምሳሌ: 100)">
+      <button onclick="saveAutoBonus()" style="margin-top:10px;">💾 አውቶ ቦነስ ሴቲንግ አስቀምጥ</button>
+    </div>
+
+    <div style="background:#0a1728; padding:12px; border-radius:10px; border:1px solid #263a55;">
+      <h3>🎟 አዲስ ፕሮሞ / ኩፖን ኮድ መፍጠር</h3>
+      <label>የኮዱ ስም (Promo Code)</label>
+      <input id="promoCodeInput" type="text" placeholder="ለምሳሌ: BINGO2026">
+      <label>የቦነስ ዓይነት</label>
+      <select id="promoType"><option value="percent">ፐርሰንት (%)</option><option value="fixed">ቋሚ ገንዘብ (Fixed ETB)</option></select>
+      <label>የቦነስ መጠን (Value)</label>
+      <input id="promoValue" type="number" placeholder="ለምሳሌ: 20 ወይም 100">
+      <label>የዲፖዚት ሊሚት (Min Deposit Required - 0 ከሆኑ ለሁሉም ነፃ ነው)</label>
+      <input id="promoMinDeposit" type="number" value="0" placeholder="ዲፖዚት ላደረጉ ብቻ ከዚህ በላይ (0 = ለሁሉም)">
+      <label>የአጠቃቀም ገደብ (Max Uses)</label>
+      <input id="promoMaxUses" type="number" value="100" placeholder="ስንት ሰው ይጠቀመው">
+      <button onclick="createPromoCode()" style="margin-top:10px; background:#1b7b34;">➕ ፕሮሞ ኮድ ፍጠር</button>
+    </div>
+  </div>
+
+  <div style="margin-top:15px;">
+    <h3>📋 ነባር ፕሮሞ ኮዶች ዝርዝር</h3>
+    <div id="promoCodesList">መረጃ በመጫን ላይ...</div>
+  </div>
+</section>
+
+<div class="two"><section><h2>📊 የ7 ቀን ሪፖርት</h2><div id="weekly"></div></section><section><h2>📢 ብሮድካስት</h2><label>ተቀባዮች</label><select id="broadcastAudience"><option value="all">All — ሁሉም የተመዘገቡ (ከታገዱ በስተቀር)</option><option value="verified">Verified — ስልክ ያረጋገጡ</option><option value="unverified">Unverified — ስልክ ያላረጋገጡ</option></select><label>ፎቶ (JPG/PNG/WEBP፣ ከ7MB በታች)</label><input id="broadcastImage" type="file" accept="image/jpeg,image/png,image/webp"><label>ጽሑፍ / Caption</label><textarea id="broadcastText" placeholder="መልዕክትዎን እዚህ ይጻፉ..."></textarea><div class="row"><input id="broadcastButtonText" placeholder="Inline Button ስም (ለምሳሌ: ይጫኑ)"><input id="broadcastButtonUrl" placeholder="https://example.com"></div><button onclick="broadcast()">📢 አሁን ላክ</button></section></div>
 <section><h2>📥 Deposit / 📤 Withdrawal ጥያቄዎች</h2><div id="requests">በመጫን ላይ…</div></section>
 <section><h2>👥 የተጠቃሚ አስተዳደር</h2><div class="row"><input id="search" placeholder="Telegram ID፣ ስም፣ username ወይም ስልክ"><button onclick="loadUsers()">ፈልግ</button></div><div id="users">ተጠቃሚ ለማየት ፈልግ።</div></section>
 <script>
@@ -51,11 +89,74 @@ async function saveBotSettings() {
   } catch(e) { fail(e); }
 }
 
-async function loadOverview(){const d=await api('/api/admin/overview');const s=d.stats;document.getElementById('stats').innerHTML=[['ተጠቃሚዎች',s.users],['Main Balance',Number(s.mainBalance).toFixed(2)+' ETB'],['Bonus Balance',Number(s.bonusBalance).toFixed(2)+' ETB'],['Pending Deposit',s.pendingDeposits],['Pending Withdrawal',s.pendingWithdrawals],['የጨዋታ ዙሮች',s.rounds]].map(x=>`<div class="card"><div class="muted">${x[0]}</div><div class="num">${x[1]}</div></div>`).join('');const vals=[['Deposit',s.weeklyDeposits],['Withdrawal requests',s.weeklyWithdrawals],['Winnings recorded',s.weeklyWinnings]];const max=Math.max(1,...vals.map(x=>Number(x[1])));document.getElementById('weekly').innerHTML=vals.map(x=>`<p>${x[0]} — <b>${Number(x[1]).toFixed(2)} ETB</b></p><div class="bar"><i style="width:${Math.max(0,Number(x[1])/max*100)}%"></i></div>`).join('')+'<p class="muted">የሪፖርቱ ጊዜ: ያለፉት 7 ቀናት። Winnings በtransaction ውስጥ win/winnings ተብሎ ከተመዘገበ ብቻ ይታያል።'}
-async function loadRequests(){const d=await api('/api/admin/requests');const rows=d.requests.map(r=>`<tr><td>${esc(r.type)}</td><td>${esc(r.user_id)}</td><td>${Number(r.amount||0).toFixed(2)} ETB</td><td class="status">${esc(r.status)}</td><td>${r.created_at?new Date(Number(r.created_at)).toLocaleString():''}</td><td class="small">${esc(r.reference||r.receipt_text||'')}${r.receipt_image?'<br><a target="_blank" href="'+r.receipt_image+'">📷 View receipt</a>':''}${r.photo_file_id?'📷 የደረሰኝ ፎቶ በTelegram ተልኳል':''}${r.payout_name?'\nተቀባይ: '+esc(r.payout_name):''}${r.payout_account?'\nTelebirr: '+esc(r.payout_account):''}</td><td>${r.status==='pending'?`<button onclick="review('${esc(r.id)}','${r.type}',true)">Approve</button><button class="danger" onclick="review('${esc(r.id)}','${r.type}',false)">Reject</button>`:'—'}</td></tr>`).join('');document.getElementById('requests').innerHTML=`<table><thead><tr><th>Type</th><th>User ID</th><th>Amount</th><th>Status</th><th>Created</th><th>Receipt / SMS</th><th>Action</th></tr></thead><tbody>${rows||'<tr><td colspan="7">ምንም ጥያቄ የለም።</td></tr>'}</tbody></table><p class="muted">Deposit ሲፀድቅ Bonus Balance ይጨመራል። Withdrawal ሲፀድቅ አድሚኑ በTelebirr ክፍያውን በእጅ መላክ አለበት። Withdrawal ሲፀድቅ ክፍያውን በእጅ መላክ አለብዎት።</p>`}
+async function loadPromoAndBonusSettings() {
+  try {
+    const d = await api('/api/admin/promos');
+    if(d.autoBonus) {
+      document.getElementById('autoBonusEnabled').value = d.autoBonus.enabled ? 'yes' : 'no';
+      document.getElementById('autoBonusType').value = d.autoBonus.type || 'percent';
+      document.getElementById('autoBonusValue').value = d.autoBonus.value || '';
+      document.getElementById('autoBonusMinDeposit').value = d.autoBonus.minDeposit || '';
+    }
+    renderPromoList(d.promos || []);
+  } catch(e) { console.error('Failed to load promos', e); }
+}
+
+async function saveAutoBonus() {
+  const enabled = document.getElementById('autoBonusEnabled').value === 'yes';
+  const type = document.getElementById('autoBonusType').value;
+  const value = Number(document.getElementById('autoBonusValue').value);
+  const minDeposit = Number(document.getElementById('autoBonusMinDeposit').value);
+  try {
+    await api('/api/admin/autobonus', {
+      method: 'POST',
+      body: JSON.stringify({ enabled, type, value, minDeposit })
+    });
+    success('አውቶ ዲፖዚት ቦነስ ሴቲንግ ተቀምጧል!');
+  } catch(e) { fail(e); }
+}
+
+async function createPromoCode() {
+  const code = document.getElementById('promoCodeInput').value.trim();
+  const type = document.getElementById('promoType').value;
+  const value = Number(document.getElementById('promoValue').value);
+  const minDeposit = Number(document.getElementById('promoMinDeposit').value);
+  const maxUses = Number(document.getElementById('promoMaxUses').value);
+  if(!code) return alert('እባክዎ የኮድ ስም ያስገቡ');
+  try {
+    await api('/api/admin/promos/create', {
+      method: 'POST',
+      body: JSON.stringify({ code, type, value, minDeposit, maxUses })
+    });
+    success('ፕሮሞ ኮድ በተሳካ ሁኔታ ተፈጠረ!');
+    document.getElementById('promoCodeInput').value = '';
+    document.getElementById('promoValue').value = '';
+    loadPromoAndBonusSettings();
+  } catch(e) { fail(e); }
+}
+
+async function deletePromo(code) {
+  if(!confirm(`ፕሮሞ ኮድ ${code} መሰረዝ ይፈልጋሉ?`)) return;
+  try {
+    await api('/api/admin/promos/delete', { method: 'POST', body: JSON.stringify({ code }) });
+    success('ፕሮሞ ኮድ ተሰርዟል።');
+    loadPromoAndBonusSettings();
+  } catch(e) { fail(e); }
+}
+
+function renderPromoList(promos) {
+  const box = document.getElementById('promoCodesList');
+  if(!promos.length) { box.innerHTML = '<div class="muted">ምንም ፕሮሞ ኮድ የለም።</div>'; return; }
+  box.innerHTML = `<table><thead><tr><th>ኮድ</th><th>ዓይነት</th><th>መጠን</th><th>ሚን. ዲፖዚት ሊሚት</th><th>사용 / Max</th><th>እርምጃ</th></tr></thead><tbody>` +
+    promos.map(p=>`<tr><td><b>${esc(p.code)}</b></td><td>${esc(p.type)}</td><td>${esc(p.value)}</td><td>${esc(p.minDeposit||0)} ETB</td><td>${esc(p.usedCount||0)} / ${esc(p.maxUses)}</td><td><button class="danger" onclick="deletePromo('${esc(p.code)}')">ሰርዝ</button></td></tr>`).join('') +
+    `</tbody></table>`;
+}
+
+async function loadOverview(){const d=await api('/api/admin/overview');const s=d.stats;document.getElementById('stats').innerHTML=[['ተጠቃሚዎች',s.users],['Main Balance',Number(s.mainBalance).toFixed(2)+' ETB'],['Bonus Balance',Number(s.bonusBalance).toFixed(2)+' ETB'],['Pending Deposit',s.pendingDeposits],['Pending Withdrawal',s.pendingWithdrawals],['የጨዋታ ዙሮች',s.rounds]].map(x=>`<div class="card"><div class="muted">${x[0]}</div><div class="num">${x[1]}</div></div>`).join('');const vals=[['Deposit',s.weeklyDeposits],['Withdrawal requests',s.weeklyWithdrawals],['Winnings recorded',s.weeklyWinnings]];const max=Math.max(1,...vals.map(x=>Number(x[1])));document.getElementById('weekly').innerHTML=vals.map(x=>`<p>${x[0]} — <b>${Number(x[1]).toFixed(2)} ETB</b></p><div class="bar"><i style="width:${Math.max(0,Number(x[1])/max*100)}%"></i></div>`).join('')+'<p class="muted">የሪፖርቱ ጊዜ: ያለፉት 7 ቀናት።</p>'}
+async function loadRequests(){const d=await api('/api/admin/requests');const rows=d.requests.map(r=>`<tr><td>${esc(r.type)}</td><td>${esc(r.user_id)}</td><td>${Number(r.amount||0).toFixed(2)} ETB</td><td class="status">${esc(r.status)}</td><td>${r.created_at?new Date(Number(r.created_at)).toLocaleString():''}</td><td class="small">${esc(r.reference||r.receipt_text||'')}${r.receipt_image?'<br><a target="_blank" href="'+r.receipt_image+'">📷 View receipt</a>':''}${r.photo_file_id?'📷 የደረሰኝ ፎቶ በTelegram ተልኳል':''}${r.payout_name?'\nተቀባይ: '+esc(r.payout_name):''}${r.payout_account?'\nTelebirr: '+esc(r.payout_account):''}</td><td>${r.status==='pending'?`<button onclick="review('${esc(r.id)}','${r.type}',true)">Approve</button><button class="danger" onclick="review('${esc(r.id)}','${r.type}',false)">Reject</button>`:'—'}</td></tr>`).join('');document.getElementById('requests').innerHTML=`<table><thead><tr><th>Type</th><th>User ID</th><th>Amount</th><th>Status</th><th>Created</th><th>Receipt / SMS</th><th>Action</th></tr></thead><tbody>${rows||'<tr><td colspan="7">ምንም ጥያቄ የለም።</td></tr>'}</tbody></table>`}
 async function review(id,type,approve){if(!confirm(`${approve?'Approve':'Reject'} ${type} ${id}?`))return;try{await api('/api/admin/review',{method:'POST',body:JSON.stringify({id,type,approve})});success('የጥያቄው ሁኔታ ተቀይሯል።');await loadAll()}catch(e){fail(e)}}
 async function loadUsers(){try{const q=document.getElementById('search').value;const d=await api('/api/admin/users?q='+encodeURIComponent(q));document.getElementById('users').innerHTML=`<table><thead><tr><th>User</th><th>Name</th><th>Phone</th><th>Main</th><th>Bonus</th><th>Actions</th></tr></thead><tbody>${d.users.map(u=>`<tr><td>${esc(u.id)}</td><td>${esc(u.first_name||u.username||'')}</td><td>${esc(u.phone_number||'')}</td><td>${Number(u.balance||0).toFixed(2)} ETB</td><td>${Number(u.bonus||0).toFixed(2)} ETB</td><td><button onclick="userAction('${esc(u.id)}','block')">Block</button><button class="secondary" onclick="userAction('${esc(u.id)}','unblock')">Unblock</button><button onclick="adjust('${esc(u.id)}','credit','main')">+ Main</button><button class="danger" onclick="adjust('${esc(u.id)}','debit','main')">− Main</button><button onclick="adjust('${esc(u.id)}','credit','bonus')">+ Bonus</button><button class="danger" onclick="adjust('${esc(u.id)}','debit','bonus')">− Bonus</button></td></tr>`).join('')||'<tr><td colspan="6">ተጠቃሚ አልተገኘም።</td></tr>'}</tbody></table>`}catch(e){fail(e)}}
 async function userAction(userId,action){try{await api('/api/admin/user-action',{method:'POST',body:JSON.stringify({userId,action})});success('ተግባሩ ተሳክቷል።');await loadUsers()}catch(e){fail(e)}}async function adjust(userId,action,walletType){const amount=Number(prompt(`${walletType==='main'?'Main':'Bonus'} Balance መጠን (ETB)`));if(!Number.isFinite(amount)||amount<=0)return;if(!confirm(`${amount} ETB ${walletType} ${action==='credit'?'ጨምር':'ቀንስ'}?`))return;try{await api('/api/admin/user-action',{method:'POST',body:JSON.stringify({userId,action,amount,walletType})});success('Balance ተስተካክሏል።');await loadUsers();await loadOverview()}catch(e){fail(e)}}
 async function broadcast(){const message=document.getElementById('broadcastText').value.trim(),audience=document.getElementById('broadcastAudience').value,buttonText=document.getElementById('broadcastButtonText').value.trim(),buttonUrl=document.getElementById('broadcastButtonUrl').value.trim(),file=document.getElementById('broadcastImage').files[0];if(!message&&!file)return alert('ጽሑፍ ወይም ፎቶ ያስገቡ።');if(file&&file.size>7*1024*1024)return alert('ፎቶው ከ7MB በታች መሆን አለበት።');if(buttonText&&!buttonUrl)return alert('የButton URL ያስገቡ።');if(!confirm(`ይህን Broadcast ለተመረጡት ተጠቃሚዎች መላክ ይፈልጋሉ?`))return;try{let imageBase64='';if(file)imageBase64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file)});const d=await api('/api/admin/broadcast',{method:'POST',body:JSON.stringify({message,audience,buttonText,buttonUrl,imageBase64})});success(`ብሮድካስት ተጠናቋል። ተልኳል: ${d.sent}፣ አልተሳካም: ${d.failed}፣ ጠቅላላ: ${d.total}`)}catch(e){fail(e)}}
-async function loadAll(){document.getElementById('notice').style.display='none';try{await Promise.all([loadOverview(),loadRequests(),loadBotSettings()])}catch(e){fail(e)}}loadAll();setInterval(()=>{loadOverview().catch(fail);loadRequests().catch(fail)},15000);
+async function loadAll(){document.getElementById('notice').style.display='none';try{await Promise.all([loadOverview(),loadRequests(),loadBotSettings(),loadPromoAndBonusSettings()])}catch(e){fail(e)}}loadAll();setInterval(()=>{loadOverview().catch(fail);loadRequests().catch(fail)},15000);
 </script></main></body></html>
