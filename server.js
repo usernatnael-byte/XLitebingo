@@ -507,3 +507,65 @@ const server = app.listen(PORT, () => {
 const bot = require('./bot');
 
 module.exports = { app, engine, wallet, server };
+
+// Duplicate Account Detection API
+app.get('/api/admin/duplicates', async (req, res) => {
+  const users = await getUsersList();
+  const phoneMap = {}, ipMap = {};
+  const duplicates = [];
+
+  users.forEach(u => {
+    if (u.phone_number) {
+      phoneMap[u.phone_number] = phoneMap[u.phone_number] || [];
+      phoneMap[u.phone_number].push(u.id);
+    }
+    if (u.last_ip) {
+      ipMap[u.last_ip] = ipMap[u.last_ip] || [];
+      ipMap[u.last_ip].push(u.id);
+    }
+  });
+
+  for (let phone in phoneMap) {
+    if (phoneMap[phone].length > 1) {
+      duplicates.push({ flagType: 'Same Phone', matchValue: phone, count: phoneMap[phone].length, userIds: phoneMap[phone] });
+    }
+  }
+
+  res.json({ duplicates });
+});
+
+// Reports API (Daily, Weekly, Monthly, Deposit, Withdrawal, Promo Code, Game)
+app.get('/api/admin/reports', async (req, res) => {
+  const { type } = req.query;
+  const dbData = await getTransactionLogs(); // ከዳታቤዝ የመጣ
+  let report = [];
+
+  switch (type) {
+    case 'daily':
+      report = dbData.filter(d => isToday(d.timestamp));
+      break;
+    case 'weekly':
+      report = dbData.filter(d => isThisWeek(d.timestamp));
+      break;
+    case 'monthly':
+      report = dbData.filter(d => isThisMonth(d.timestamp));
+      break;
+    case 'deposit':
+      report = dbData.filter(d => d.type === 'deposit');
+      break;
+    case 'withdrawal':
+      report = dbData.filter(d => d.type === 'withdraw');
+      break;
+    case 'promocode':
+      report = dbData.filter(d => d.type === 'promo');
+      break;
+    case 'game':
+      report = dbData.filter(d => d.type === 'game_win' || d.type === 'game_play');
+      break;
+    default:
+      report = dbData;
+  }
+
+  res.json({ report });
+});
+      
