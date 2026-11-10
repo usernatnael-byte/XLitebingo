@@ -15,7 +15,6 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Validate Telegram Mini App initData on the server; never trust a userId sent by the browser.
 function verifyTelegramInitData(initData) {
     if (!initData || typeof initData !== 'string') return null;
 
@@ -136,7 +135,6 @@ async function requireTelegramUser(req, res, next) {
 const wallet = new FirestoreWallet(db);
 const engine = new GameEngine(wallet, 2);
 
-// Recover interrupted paid rounds before accepting new game activity.
 wallet.recover_unsettled()
     .then(() => engine.start())
     .catch(error => {
@@ -168,8 +166,6 @@ app.get('/api/wallet/history', async (req,res) => {
         const userId = String(req.telegramUserId);
         const userSnap = await db.collection('users').doc(userId).get();
         const user = userSnap.exists ? userSnap.data() : {};
-        // RTDB compatibility store supports collection.get(), not Firestore where().
-        // Filter request records in JavaScript to avoid the history endpoint returning 500.
         const [deposits, withdrawals] = await Promise.all([
             db.collection('deposit_requests').get(),
             db.collection('withdrawal_requests').get()
@@ -245,6 +241,35 @@ function requireAdmin(req, res, next) {
     next();
 }
 app.use('/api/admin', requireAdmin);
+
+// 🤖 አድሚን የሮቦት ሴቲንግ መቀበያ እና ማከማቻ Endpoint
+app.get('/api/admin/bot-settings', async (req, res) => {
+    try {
+        const doc = await db.collection('settings').doc('bot_settings').get();
+        res.json({ status: 'success', settings: doc.exists ? doc.data() : { botCount: 30, botWinPercent: 20 } });
+    } catch(e) {
+        res.status(500).json({ status: 'error', message: 'Could not load bot settings.' });
+    }
+});
+
+app.post('/api/admin/bot-settings', async (req, res) => {
+    try {
+        const botCount = Number(req.body?.botCount || 0);
+        const botWinPercent = Number(req.body?.botWinPercent || 0);
+        
+        await db.collection('settings').doc('bot_settings').set({
+            botCount,
+            botWinPercent,
+            updated_at: Date.now()
+        });
+
+        engine.setBotSettings({ botCount, botWinPercent });
+        res.json({ status: 'success' });
+    } catch(e) {
+        res.status(500).json({ status: 'error', message: 'Could not save bot settings.' });
+    }
+});
+
 app.get('/api/admin/overview', async (req, res) => {
     try {
         const [users, deposits, withdrawals, rounds] = await Promise.all(['users','deposit_requests','withdrawal_requests','rounds'].map(c => db.collection(c).get()));
