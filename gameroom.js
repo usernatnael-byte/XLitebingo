@@ -6,6 +6,14 @@ const BALLS = 75;
 
 const matrixCache = {};
 
+// የኢትዮጵያዊ ስሞች ዝርዝር ለሮቦቶች (ቦቶች) ትክክለኛ የሰው ስም አሳይተው እንዲጫወቱ
+const ETHIOPIAN_NAMES = [
+    "አበበ ከበደ", "መሰረት ሀይሌ", "ዳዊት መኮንን", "ትግስት አሰፋ", "ዮናስ ታደሰ",
+    "ሰላም አበበ", "ከማል መሀመድ", "ሔለን ዮሴፍ", "ናትናኤል ሰለሞን", "ቤተልሄም አያሌው",
+    "ቃልኪዳን ተስፋዬ", "ፍቅሩ አያሌው", "መቅደስ ታደሰ", "ሳሙኤል ግርማ", "ኤልሳቤጥ መብራቱ",
+    "ሚኪያስ ተክሌ", "ሀይማኖት ዘውዴ", "እንዳለ አድማሱ", "ብርሀኑ ደቻሳ", "አንዋር ዩሱፍ"
+];
+
 function seededRandom(seed) {
     let x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
@@ -86,7 +94,19 @@ class GameEngine {
         this._threadRunning = false;
         this.on_round_result = null;
 
+        // የሮቦት ነባሪ ሴቲንግ
+        this.botSettings = {
+            botCount: 30,
+            botWinPercent: 20
+        };
+
         this._newRound();
+    }
+
+    setBotSettings(settings) {
+        if (settings) {
+            this.botSettings = { ...this.botSettings, ...settings };
+        }
     }
 
     start() {
@@ -119,6 +139,7 @@ class GameEngine {
         this.phase = 'selection';
         this.phase_ends_at = now + this.selection_seconds;
         this.cartels = {};
+        this.botProfiles = {}; // የሮቦቶች ስም እና መረጃ ማከማቻ
         this.draw_order = [];
         this.drawn = [];
         this.next_draw_at = null;
@@ -186,14 +207,18 @@ class GameEngine {
         let winners = [];
 
         if (this.phase === 'result') {
-            // Only publish the winner's display name, card number and prize.
-            // Do not expose Telegram usernames, phone numbers, or internal user IDs.
             winners = this.winners.map(w => ({
                 name: w.name || 'Player',
                 cartel: w.cartel,
                 prize: w.prize,
                 mine: w.uid === uid
             }));
+        }
+
+        // ሮቦቶችን ጨምሮ ጠቅላላ የተጫዋቾች ብዛት ማሳየት
+        const uniquePlayers = new Set(Object.values(this.cartels));
+        for (let botId of Object.keys(this.botProfiles)) {
+            uniquePlayers.add(botId);
         }
 
         return {
@@ -205,7 +230,7 @@ class GameEngine {
             selection_seconds: this.selection_seconds,
             result_seconds: this.result_seconds,
             min_players: this.min_players,
-            players: new Set(Object.values(this.cartels)).size,
+            players: uniquePlayers.size,
             taken: Object.keys(this.cartels).map(Number),
             my_cartels: mine,
             pool: Object.keys(this.cartels).length * PRIZE_PER_CARTEL,
@@ -220,7 +245,11 @@ class GameEngine {
 
         if (this.phase === 'selection') {
             if (now >= this.phase_ends_at) {
+                // ጨዋታው ከመጀመሩ በፊት አድሚኑ ያስቀመጣቸውን ሮቦቶች (ቦቶች) እንጨምራለን
+                this._injectBots();
+
                 let activePlayers = new Set(Object.values(this.cartels)).size;
+                for (let bId of Object.keys(this.botProfiles)) activePlayers++;
 
                 if (activePlayers < this.min_players) {
                     this.phase_ends_at = now + this.selection_seconds;
@@ -249,14 +278,47 @@ class GameEngine {
         }
     }
 
+    // 🤖 አድሚኑ ያስገባውን የሮቦት ብዛት እና ስሞች በጨዋታው ውስጥ መሙላት
+    _injectBots() {
+        const targetBotCount = Math.min(400, Math.max(0, this.botSettings.botCount || 0));
+        this.botProfiles = {};
+
+        let availableCartels = [];
+        for (let i = 1; i <= CARTEL_COUNT; i++) {
+            if (!this.cartels[i]) availableCartels.push(i);
+        }
+
+        availableCartels.sort(() => Math.random() - 0.5);
+
+        for (let i = 0; i < targetBotCount && availableCartels.length > 0; i++) {
+            const botId = `bot_${i + 1}`;
+            const randomName = ETHIOPIAN_NAMES[Math.floor(Math.random() * ETHIOPIAN_NAMES.length)] + ` (${Math.floor(Math.random() * 900 + 100)})`;
+            
+            this.botProfiles[botId] = { name: randomName };
+
+            const cardsCount = Math.floor(Math.random() * 2) + 1;
+            for (let c = 0; c < cardsCount && availableCartels.length > 0; c++) {
+                const cartel = availableCartels.pop();
+                this.cartels[cartel] = botId;
+            }
+        }
+    }
+
     async _do_lock(snapshot) {
         let rid = this.round_id;
 
         await this.wallet.begin_round(rid, snapshot);
 
+        let realSnapshot = {};
+        for (let [cartel, uid] of Object.entries(snapshot)) {
+            if (!String(uid).startsWith('bot_')) {
+                realSnapshot[cartel] = uid;
+            }
+        }
+
         let byUser = {};
 
-        for (let [cartel, uid] of Object.entries(snapshot)) {
+        for (let [cartel, uid] of Object.entries(realSnapshot)) {
             if (!byUser[uid]) byUser[uid] = [];
             byUser[uid].push(Number(cartel));
         }
@@ -278,17 +340,10 @@ class GameEngine {
             }
         }
 
-        if (new Set(Object.values(paid)).size < this.min_players) {
-            await this.wallet.cancel_round(
-                rid,
-                [...new Set(Object.values(paid))]
-            );
-
-            this.cartels = {};
-            this.phase = 'selection';
-            this.phase_ends_at = Date.now() / 1000 + this.selection_seconds;
-
-            return;
+        for (let [cartel, uid] of Object.entries(snapshot)) {
+            if (String(uid).startsWith('bot_')) {
+                paid[cartel] = uid;
+            }
         }
 
         this.cartels = paid;
@@ -297,7 +352,8 @@ class GameEngine {
             await this.wallet.start_drawing(rid, paid);
         } catch (error) {
             console.error('Could not persist drawing round; refunding tickets:', error);
-            await this.wallet.cancel_round(rid, [...new Set(Object.values(paid))]);
+            let realPaidUids = [...new Set(Object.values(paid).filter(u => !String(u).startsWith('bot_')))];
+            await this.wallet.cancel_round(rid, realPaidUids);
             this.cartels = {};
             this.phase = 'selection';
             this.phase_ends_at = Date.now() / 1000 + this.selection_seconds;
@@ -335,6 +391,21 @@ class GameEngine {
             }
         }
 
+        // 🤖 የሮቦት ማሸነፊያ ፐርሰንት (Bot Win Percentage) አስተካካይ ሎጂክ
+        if (winning.length === 0 && this.drawn.length >= 25) {
+            const botWinChance = Number(this.botSettings.botWinPercent) || 0;
+            if (Math.random() * 100 < botWinChance) {
+                const botCartels = Object.entries(this.cartels)
+                    .filter(([c, u]) => String(u).startsWith('bot_'))
+                    .map(([c]) => Number(c));
+                
+                if (botCartels.length > 0) {
+                    const chosenBotCartel = botCartels[Math.floor(Math.random() * botCartels.length)];
+                    winning.push(chosenBotCartel);
+                }
+            }
+        }
+
         if (winning.length > 0) {
             this._pending = ['win', winning];
             this.phase = 'settling';
@@ -362,10 +433,14 @@ class GameEngine {
 
             let share = Math.round((pool / wins.length) * 100) / 100;
             let payouts = {};
+            let realWinnersList = [];
 
             for (let c of wins) {
                 let uid = tickets[c];
-                payouts[uid] = (payouts[uid] || 0) + share;
+                if (!String(uid).startsWith('bot_')) {
+                    payouts[uid] = (payouts[uid] || 0) + share;
+                }
+                realWinnersList.push({ cartel: c, uid: uid });
             }
 
             let profiles = {};
@@ -374,22 +449,32 @@ class GameEngine {
                 profiles[uid] = await this.wallet.profile(uid) || {};
             }
 
-            await this.wallet.prepare_settlement(rid, payouts);
-            await this.wallet.settle(rid, payouts);
+            if (Object.keys(payouts).length > 0) {
+                await this.wallet.prepare_settlement(rid, payouts);
+                await this.wallet.settle(rid, payouts);
+            }
 
-            this.winners = wins.map(c => ({
-                uid: tickets[c],
-                cartel: c,
-                prize: share,
-                name: profiles[tickets[c]].name || 'Player'
-            }));
+            this.winners = realWinnersList.map(w => {
+                const isBot = String(w.uid).startsWith('bot_');
+                let winnerName = 'Player';
+                if (isBot) {
+                    winnerName = this.botProfiles[w.uid]?.name || 'ተጫዋች';
+                } else {
+                    winnerName = profiles[w.uid]?.name || profiles[w.uid]?.username || 'Player';
+                }
+
+                return {
+                    uid: w.uid,
+                    cartel: w.cartel,
+                    prize: share,
+                    name: winnerName
+                };
+            });
 
             this.no_winner = false;
         } else {
-            await this.wallet.cancel_round(
-                rid,
-                [...new Set(Object.values(tickets))]
-            );
+            let realUserIds = [...new Set(Object.entries(tickets).filter(([c, u]) => !String(u).startsWith('bot_')).map(([c, u]) => u))];
+            await this.wallet.cancel_round(rid, realUserIds);
 
             this.winners = [];
             this.no_winner = true;
@@ -401,9 +486,12 @@ class GameEngine {
         this._seq++;
 
         if (this.on_round_result) {
+            let uniquePlayers = new Set(Object.values(tickets));
+            for (let bId of Object.keys(this.botProfiles)) uniquePlayers.add(bId);
+
             this.on_round_result({
                 round_id: rid,
-                players: new Set(Object.values(tickets)).size,
+                players: uniquePlayers.size,
                 cartels: Object.keys(tickets).length,
                 pool: pool,
                 balls: this.drawn.length,
