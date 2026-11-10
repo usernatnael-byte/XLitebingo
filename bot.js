@@ -16,7 +16,6 @@ const DEPOSIT_MINIMUM = Math.max(100, Number(process.env.DEPOSIT_MINIMUM_ETB || 
 const WITHDRAW_MINIMUM = Math.max(1, Number(process.env.WITHDRAW_MINIMUM_ETB || 100));
 const DEPOSIT_INSTRUCTIONS = process.env.DEPOSIT_INSTRUCTIONS ||
     '💰 ሂሳብ ለመሙላት Telebirr ይምረጡ።\n\nአነስተኛ መጠን: 100 ETB\n👤 ስም: Esraeal\n📱 አካውንት: 0949196145\n\nብሩን ከላኩ በኋላ የክፍያ ማረጋገጫ SMS ወይም የደረሰኝ ፎቶ (Screenshot) ይላኩ። አድሚኑ ካረጋገጠው በኋላ Bonus Balance ይጨመራል።';
-const ADMIN_ID = (process.env.ADMIN_ID || '7396414604').split(',')[0].trim();
 const ADMIN_ID_LIST = [...new Set([...ADMIN_IDS])];
 
 const SUPPORT_CONTACT = process.env.SUPPORT_CONTACT || '@zeid369';
@@ -320,19 +319,6 @@ bot.hears('🎧 እርዳታ (Support)', ctx => {
     return ctx.reply(`🎧 እርዳታ ለማግኘት ${SUPPORT_CONTACT} ያነጋግሩ።`);
 });
 
-async function beginWalletFlow(ctx, action) {
-    if (action === 'deposit') {
-        ctx.session.flow = 'deposit_amount';
-        return ctx.reply(`💰 ሂሳብ ለመሙላት የክፍያ አማራጭ: Telebirr\n\n${DEPOSIT_INSTRUCTIONS}\n\nእባክዎ የሚፈልጉትን መጠን በETB ያስገቡ (አነስተኛ ${DEPOSIT_MINIMUM} ETB)።\n/cancel ለመሰረዝ።`);
-    }
-    const ref = db.collection('users').doc(String(ctx.from.id));
-    const snap = await ref.get();
-    if (!snap.exists || !snap.data().has_deposited) return ctx.reply('⛔ ገንዘብ ለማውጣት መጀመሪያ ቢያንስ አንድ ጊዜ Deposit ማድረግ አለብዎት።');
-    ctx.session.flow = 'withdraw_amount';
-    return ctx.reply(`📤 ለማውጣት የሚፈልጉትን መጠን በETB ያስገቡ።\nዝቅተኛ Withdrawal: ${money(WITHDRAW_MINIMUM)}\nMain Balance: ${money(snap.data().balance)}\n/cancel ለመሰረዝ።`);
-}
-
-
 bot.command('cancel', ctx => {
     ctx.session.flow = null; ctx.session.depositAmount=null; ctx.session.withdrawAmount=null; ctx.session.withdrawName=null; ctx.session.withdrawAccount=null;
     ctx.reply('ተሰርዟል።');
@@ -402,8 +388,6 @@ bot.on('text', async ctx => {
         ctx.session.withdrawAmount=amount2;ctx.session.flow='withdraw_details';
         return ctx.reply('የTelebirr ተቀባይ ስምዎን እና ቁጥርዎን በዚህ ቅርጽ ይላኩ፦\nስም | 09XXXXXXXX');
     }
-
-
 });
 
 bot.on('photo', async ctx => {
@@ -566,9 +550,18 @@ bot.action(/^wd_no_(.+)$/, ctx =>
     reviewRequest(ctx, 'withdrawal', ctx.match[1], false)
 );
 
-bot.launch()
-    .then(() => console.log('Telegram Bot polling started.'))
-    .catch(err => console.error('Telegram bot launch failed:', err.message));
+// Robust Launch with Auto-Retry on Connection Reset
+function startBot() {
+    bot.launch()
+        .then(() => console.log('Telegram Bot polling started successfully.'))
+        .catch(err => {
+            console.error('Telegram bot launch failed (ECONNRESET or network error):', err.message);
+            console.log('Retrying bot launch in 10 seconds...');
+            setTimeout(startBot, 10000);
+        });
+}
+
+startBot();
 
 bot.catch((err, ctx) =>
     console.error('Telegram bot handler error:', err, 'update:', ctx.updateType)
