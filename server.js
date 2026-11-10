@@ -275,6 +275,128 @@ app.post('/api/admin/bot-settings', async (req, res) => {
     }
 });
 
+// --- PROMO & AUTO BONUS ADMIN ENDPOINTS ---
+
+app.get('/api/admin/promos', async (req, res) => {
+    try {
+        const [autoDoc, promoSnap] = await Promise.all([
+            db.collection('settings').doc('auto_bonus').get(),
+            db.collection('promo_codes').get()
+        ]);
+        const autoBonus = autoDoc.exists ? autoDoc.data() : { enabled: false, type: 'percent', value: 10, minDeposit: 100 };
+        const promos = promoSnap.docs.map(doc => ({ code: doc.id, ...doc.data() }));
+        res.json({ status: 'success', autoBonus, promos });
+    } catch(e) {
+        res.status(500).json({ status: 'error', message: 'Could not load promo settings.' });
+    }
+});
+
+app.post('/api/admin/autobonus', async (req, res) => {
+    try {
+        const { enabled, type, value, minDeposit } = req.body || {};
+        await db.collection('settings').doc('auto_bonus').set({
+            enabled: Boolean(enabled),
+            type: type === 'fixed' ? 'fixed' : 'percent',
+            value: Number(value) || 0,
+            minDeposit: Number(minDeposit) || 0,
+            updated_at: Date.now()
+        });
+        res.json({ status: 'success' });
+    } catch(e) {
+        res.status(500).json({ status: 'error', message: 'Could not save auto bonus.' });
+    }
+});
+
+app.post('/api/admin/promos/create', async (req, res) => {
+    try {
+        const code = String(req.body?.code || '').trim().toUpperCase();
+        const type = req.body?.type === 'fixed' ? 'fixed' : 'percent';
+        const value = Number(req.body?.value || 0);
+        const minDeposit = Number(req.body?.minDeposit || 0);
+        const maxUses = Number(req.body?.maxUses || 100);
+
+        if (!code || value <= 0) return res.status(400).json({ status: 'error', message: 'Invalid code or value.' });
+
+        await db.collection('promo_codes').doc(code).set({
+            type,
+            value,
+            minDeposit,
+            maxUses,
+            usedCount: 0,
+            usedBy: [],
+            created_at: Date.now()
+        });
+        res.json({ status: 'success' });
+    } catch(e) {
+        res.status(500).json({ status: 'error', message: 'Could not create promo code.' });
+    }
+});
+
+app.post('/api/admin/promos/delete', async (req, res) => {
+    try {
+        const code = String(req.body?.code || '').trim().toUpperCase();
+        await db.collection('promo_codes').doc(code).delete();
+        res.json({ status: 'success' });
+    } catch(e) {
+        res.status(500).json({ status: 'error', message: 'Could not delete promo code.' });
+    }
+});
+
+// --- USER REDEEM PROMO CODE API ---
+
+app.post('/api/promo/redeem', async (req, res) => {
+    const code = String(req.body?.code || '').trim().toUpperCase();
+    const userId = String(req.telegramUserId);
+
+    if (!code) return res.status(400).json({ status: 'error', message: 'እባክዎ ኮድ ያስገቡ' });
+
+    try {
+        let bonusAdded = 0;
+        await db.runTransaction(async tx => {
+            const promoRef = db.collection('promo_codes').doc(code);
+            const userRef = db.collection('users').doc(userId);
+
+            const [promoSnap, userSnap] = await Promise.all([tx.get(promoRef), tx.get(userRef)]);
+            if (!promoSnap.exists) throw new Error('ይህ ፕሮሞ ኮድ የለም ወይም ተሰርዟል');
+
+            const promo = promoSnap.data();
+            const user = userSnap.exists ? userSnap.data() : {};
+
+            if (promo.usedBy && promo.usedBy.includes(userId)) throw new Error('ይህንን ፕሮሞ ኮድ ከዚህ በፊት ተጠቅመዋል!');
+            if (promo.usedCount >= promo.maxUses) throw new Error('የዚህ ፕሮሞ ኮድ የአጠቃቀም ገደብ አልቋል!');
+
+            const totalDeposited = Number(user.total_deposited || 0);
+            if (promo.minDeposit > 0 && totalDeposited < promo.minDeposit) {
+                throw new Error(`ይህ ኮድ የሚሰራው ቢያንስ ${promo.minDeposit} ETB ዲፖዚት ላደረጉ ተጫዋቾች ብቻ ነው!`);
+            }
+
+            if (promo.type === 'percent') {
+                let base = totalDeposited > 0 ? totalDeposited : 100;
+                bonusAdded = Math.round((base * promo.value / 100) * 100) / 100;
+            } else {
+                bonusAdded = Number(promo.value || 0);
+            }
+
+            const currentBonus = Number(user.bonus || 0);
+            const txs = Array.isArray(user.transactions) ? user.transactions : [];
+
+            tx.update(userRef, {
+                bonus: currentBonus + bonusAdded,
+                transactions: [...txs, { type: 'promo_bonus', wallet: 'bonus', amount: bonusAdded, code, timestamp: new Date().toISOString() }]
+            });
+
+            tx.update(promoRef, {
+                usedCount: (promo.usedCount || 0) + 1,
+                usedBy: [...(promo.usedBy || []), userId]
+            });
+        });
+
+        res.json({ status: 'success', message: 'ፕሮሞ ኮድ ተቀባይነት አግኝቷል!', bonusAdded });
+    } catch (e) {
+        res.status(400).json({ status: 'error', message: e.message || 'ፕሮሞ ኮድ መጠቀም አልተቻለም' });
+    }
+});
+
 app.get('/api/admin/overview', async (req, res) => {
     try {
         const [users, deposits, withdrawals, rounds] = await Promise.all(['users','deposit_requests','withdrawal_requests','rounds'].map(c => db.collection(c).get()));
@@ -311,7 +433,39 @@ app.post('/api/admin/review', async(req,res)=>{
         await db.runTransaction(async tx=>{
             const rs=await tx.get(reqRef); if(!rs.exists||rs.data().status!=='pending') throw new Error('ALREADY_PROCESSED');
             const r=rs.data(); userId=String(r.user_id); const ur=db.collection('users').doc(userId); const us=await tx.get(ur); if(!us.exists) throw new Error('USER_NOT_FOUND'); const u=us.data(); const txs=Array.isArray(u.transactions)?u.transactions:[];
-            if(type==='deposit'&&approve) tx.update(ur,{bonus:Number(u.bonus||0)+Number(r.amount),has_deposited:true,first_deposit_at:u.first_deposit_at||Date.now(),transactions:[...txs,{type:'deposit',wallet:'bonus',amount:Number(r.amount),status:'approved',request_id:String(id),timestamp:new Date().toISOString()}]});
+            
+            if(type==='deposit'&&approve) {
+                let depositAmount = Number(r.amount);
+                let addBonus = 0;
+                
+                const autoBonusSnap = await tx.get(db.collection('settings').doc('auto_bonus'));
+                if (autoBonusSnap.exists) {
+                    const ab = autoBonusSnap.data();
+                    if (ab.enabled && depositAmount >= (ab.minDeposit || 0)) {
+                        if (ab.type === 'percent') {
+                            addBonus = (depositAmount * ab.value) / 100;
+                        } else {
+                            addBonus = Number(ab.value || 0);
+                        }
+                    }
+                }
+
+                const currentBonus = Number(u.bonus || 0);
+                const totalDeposited = Number(u.total_deposited || 0) + depositAmount;
+
+                tx.update(ur,{
+                    bonus: currentBonus + depositAmount + addBonus,
+                    total_deposited: totalDeposited,
+                    has_deposited: true,
+                    first_deposit_at: u.first_deposit_at || Date.now(),
+                    transactions:[
+                        ...txs,
+                        {type:'deposit', wallet:'bonus', amount: depositAmount, status:'approved', request_id:String(id), timestamp:new Date().toISOString()},
+                        ...(addBonus > 0 ? [{type:'auto_deposit_bonus', wallet:'bonus', amount: addBonus, status:'approved', timestamp:new Date().toISOString()}] : [])
+                    ]
+                });
+            }
+
             if(type==='withdrawal'&&!approve) tx.update(ur,{balance:Number(u.balance||0)+Number(r.amount),transactions:[...txs,{type:'withdrawal_refund',amount:Number(r.amount),request_id:String(id),timestamp:new Date().toISOString()}]});
             tx.update(reqRef,{status:approve?'approved':'rejected',reviewed_at:Date.now(),reviewed_by:req.telegramUserId});
         });
@@ -320,7 +474,7 @@ app.post('/api/admin/review', async(req,res)=>{
         const refLabel = `Request ID: ${id}`;
         const notice = type === 'deposit'
             ? `${approve ? '✅ DEPOSIT APPROVED' : '❌ DEPOSIT REJECTED'}\nAmount: ${amountLabel}\n${refLabel}\n${approve ? 'Bonus Balance ላይ ተጨምሯል።' : 'እባክዎ የክፍያ መረጃውን ያረጋግጡ ወይም Admin ያነጋግሩ።'}`
-            : `${approve ? '✅ WITHDRAWAL APPROVED' : '❌ WITHDRAWAL REJECTED'}\nAmount: ${amountLabel}\n${refLabel}\n${approve ? 'ጥያቄው ተፈቅዷል፤ Admin በTelebirr ክፍያውን ይልካል።' : 'ገንዘቡ ወደ Main Balance ተመልሷል።'}`;
+            : `${approve ? '✅ WITHDRAWAL APPROVED' : '❌ WITHDRAWAL REJECTED'}\nAmount: ${amountLabel}\n${refLabel}\n${approve ? 'ጥያቄው ተፈቅዷል፤ Admin በTelebirr ክፍያው ይልካል።' : 'ገንዘቡ ወደ Main Balance ተመልሷል።'}`;
         await bot.telegram.sendMessage(userId, notice).catch(e=>console.warn('wallet review notification failed:',e.message));
         res.json({status:'success'});
     } catch(e){res.status(e.message==='ALREADY_PROCESSED'?409:400).json({status:'error',message:e.message==='ALREADY_PROCESSED'?'Already reviewed.':'Review failed.'});}
