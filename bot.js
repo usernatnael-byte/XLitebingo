@@ -86,7 +86,7 @@ async function showMainMenu(ctx) {
         ['📜 የጨዋታ ህጎች (Rules)', '🎧 እርዳታ (Support)']
     ]).resize();
 
-    await ctx.reply('ከታች ያለውን ሜኑ ይጠቀሙ።', menu);
+    await ctx.reply('', menu);
 
     const buttons = [[Markup.button.webApp('🎮 Play Bingo', WEBAPP_URL)]];
     if (isAdmin(ctx)) buttons.push([Markup.button.webApp('🛠 Admin Panel', `${WEBAPP_URL}/admin`)]);
