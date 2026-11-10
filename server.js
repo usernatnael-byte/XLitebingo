@@ -251,7 +251,7 @@ app.use('/api/admin', requireAdmin);
 app.get('/api/admin/bot-settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('bot_settings').get();
-        res.json({ status: 'success', settings: doc.exists ? doc.data() : { botCount: 30, botWinPercent: 20 } });
+        res.json({ status: 'success', settings: doc.exists ? doc.data() : { botCount: 50, botWinPercent: 20, botCardsPerUser: 2 } });
     } catch(e) {
         res.status(500).json({ status: 'error', message: 'Could not load bot settings.' });
     }
@@ -259,16 +259,19 @@ app.get('/api/admin/bot-settings', async (req, res) => {
 
 app.post('/api/admin/bot-settings', async (req, res) => {
     try {
-        const botCount = Number(req.body?.botCount || 0);
-        const botWinPercent = Number(req.body?.botWinPercent || 0);
+        const botCount = Number(req.body?.botCount || 50);
+        const botWinPercent = Number(req.body?.botWinPercent || 20);
+        const botCardsPerUser = Number(req.body?.botCardsPerUser || 2);
         
-        await db.collection('settings').doc('bot_settings').set({
+        const settingsData = {
             botCount,
             botWinPercent,
+            botCardsPerUser,
             updated_at: Date.now()
-        });
+        };
 
-        engine.setBotSettings({ botCount, botWinPercent });
+        await db.collection('settings').doc('bot_settings').set(settingsData);
+        engine.setBotSettings(settingsData);
         res.json({ status: 'success' });
     } catch(e) {
         res.status(500).json({ status: 'error', message: 'Could not save bot settings.' });
