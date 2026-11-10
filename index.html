@@ -184,15 +184,6 @@
       <div class="text-xs font-bold text-gray-400 mb-4">መጫወቻ ሂሳብ (Play Balance)</div>
       <div id="wallet-page-play" class="text-lg font-black text-yellow-400 font-mono mb-5">0.00 ETB</div>
 
-      <div class="w-full bg-[#0a0a0a] border border-mel-border rounded-xl p-3 mb-5">
-        <label class="block text-xs font-bold text-yellow-400 mb-1.5">🎁 ፕሮሞ / ኩፖን ኮድ</label>
-        <div class="flex space-x-2">
-          <input id="promo-code-input" type="text" placeholder="ኮዱን እዚህ ይጻፉ" class="flex-1 bg-[#141414] border border-mel-border rounded-xl px-3 py-2 text-xs text-white uppercase font-mono focus:border-yellow-400 outline-none">
-          <button onclick="redeemPromoCode()" class="bg-yellow-400 hover:bg-yellow-500 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition-colors">Apply</button>
-        </div>
-        <p id="promo-redeem-result" class="text-[11px] mt-1.5 font-medium"></p>
-      </div>
-
       <div class="flex space-x-3 w-full">
         <button onclick="triggerDeposit()" class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 text-xs">
           <i class="fa-solid fa-plus mr-1"></i> Deposit
@@ -352,7 +343,8 @@
     </button>
   </nav>
 
-  <!-- JAVASCRIPT LOGIC (SYNCED WITH BACKEND API) -->
+  <!-- JAVASCRIPT LOGIC FULLY SYNCED WITH BACKEND -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     window.currentUserName = "Player";
     window.currentUserPhone = "Unknown";
@@ -871,21 +863,6 @@
         const sign = deposit ? '+' : '−';
         return `<div class="bg-[#141414] border border-mel-border rounded-xl p-3 flex justify-between items-center text-xs"><div class="min-w-0"><div class="font-bold text-gray-200 uppercase">${esc(t.type)}</div><div class="text-[10px] text-gray-500">${new Date(t.timestamp).toLocaleDateString()}</div></div><div class="font-mono font-bold ${deposit ? 'text-emerald-400' : 'text-rose-400'}">${sign}${Number(t.amount||0).toFixed(2)} ETB</div></div>`;
       }).join('');
-    }
-
-    async function redeemPromoCode() {
-      const codeInput = document.getElementById('promo-code-input');
-      const resultEl = document.getElementById('promo-redeem-result');
-      const code = codeInput.value.trim();
-      if(!code) return;
-      try {
-        const res = await api('/api/promo/redeem', { method: 'POST', body: JSON.stringify({ code }) });
-        if(res.status !== 'success') throw new Error(res.message);
-        resultEl.className = 'text-[11px] mt-1.5 text-emerald-400 font-bold';
-        resultEl.innerText = `✅ ${res.message} (+${res.bonusAdded} ETB)`;
-        codeInput.value = '';
-        refreshUserData();
-      } catch(e) { resultEl.className = 'text-[11px] mt-1.5 text-rose-400 font-medium'; resultEl.innerText = '❌ ' + e.message; }
     }
 
     let walletConfig = null;
