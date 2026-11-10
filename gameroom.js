@@ -76,11 +76,11 @@ function checkBingo(m, drawnSet) {
 }
 
 class GameEngine {
-    constructor(wallet, min_players = 2, selection_seconds = 30, draw_interval = 2.0, result_seconds = 10) {
+    constructor(wallet, min_players = 2, selection_seconds = 30, draw_interval = 3.0, result_seconds = 10) {
         this.wallet = wallet;
         this.min_players = Math.max(1, min_players);
         this.selection_seconds = selection_seconds;
-        this.draw_interval = draw_interval;
+        this.draw_interval = draw_interval; // 3 ሰከንድ ጋፕ ለቁጥር መውጫ
         this.result_seconds = result_seconds;
         this.first_draw_delay = 3.0;
 
@@ -89,8 +89,9 @@ class GameEngine {
         this.on_round_result = null;
 
         this.botSettings = {
-            botCount: 30,
-            botWinPercent: 20
+            botCount: 50,
+            botWinPercent: 20,
+            botCardsPerUser: 2
         };
 
         this._newRound();
@@ -140,6 +141,8 @@ class GameEngine {
         this.no_winner = false;
         this._pending = null;
         this._botsInjected = false;
+        this.botQueue = []; // የሮቦቶች ተራ በተራ የመምረጫ ኪዩ (Queue)
+        this.botInjectIndex = 0;
 
         this._seq++;
     }
@@ -235,10 +238,12 @@ class GameEngine {
 
         if (this.phase === 'selection') {
             if (!this._botsInjected) {
-                this._injectBots();
+                this._initBotsQueue();
                 this._botsInjected = true;
-                this._seq++;
             }
+
+            // ሮቦቶች በአንድ ጊዜ ሳይሆን በየተራ (በየጊዜው የተወሰኑትን) ካርቴል እንዲይዙ ማድረግ (Realism)
+            this._processBotQueue();
 
             if (now >= this.phase_ends_at) {
                 let activePlayers = new Set(Object.values(this.cartels)).size;
@@ -270,28 +275,61 @@ class GameEngine {
         }
     }
 
-    _injectBots() {
+    _initBotsQueue() {
         const targetBotCount = Math.min(400, Math.max(0, this.botSettings.botCount || 0));
+        const cardsPerBot = Math.min(4, Math.max(1, this.botSettings.botCardsPerUser || 2));
         this.botProfiles = {};
+        this.botQueue = [];
 
-        let availableCartels = [];
-        for (let i = 1; i <= CARTEL_COUNT; i++) {
-            if (!this.cartels[i]) availableCartels.push(i);
-        }
-
-        availableCartels.sort(() => Math.random() - 0.5);
-
-        for (let i = 0; i < targetBotCount && availableCartels.length > 0; i++) {
+        for (let i = 0; i < targetBotCount; i++) {
             const botId = `bot_${i + 1}`;
             const randomName = ETHIOPIAN_NAMES[Math.floor(Math.random() * ETHIOPIAN_NAMES.length)] + ` (${Math.floor(Math.random() * 900 + 100)})`;
             
             this.botProfiles[botId] = { name: randomName };
 
-            const cardsCount = Math.floor(Math.random() * 2) + 1;
-            for (let c = 0; c < cardsCount && availableCartels.length > 0; c++) {
-                const cartel = availableCartels.pop();
-                this.cartels[cartel] = botId;
+            // እያንዳንዱ ሮቦት የሚይዛቸውን ካርቴሎች ብዛት በሴቲንግ መሰረት ማዘጋጀት
+            const howManyCards = Math.floor(Math.random() * cardsPerBot) + 1;
+            for (let c = 0; c < howManyCards; c++) {
+                this.botQueue.push(botId);
             }
+        }
+
+        // ሮቦቶች በቅደም ተከተል እንዳይይዙ ቀላቅላቸው (Randomize)
+        this.botQueue.sort(() => Math.random() - 0.5);
+        this.botInjectIndex = 0;
+    }
+
+    _processBotQueue() {
+        if (!this.botQueue || this.botInjectIndex >= this.botQueue.length) return;
+
+        // በየቲክ ሰዓቱ ከክፍ ክፍሎች ጥቂት ሮቦቶች (ለምሳሌ 1 እስከ 3) ተራ በተራ ካርቴል እንዲይዙ ማድረግ
+        let steps = Math.floor(Math.random() * 3) + 1;
+        let changed = false;
+
+        for (let s = 0; s < steps && this.botInjectIndex < this.botQueue.length; s++) {
+            const botId = this.botQueue[this.botInjectIndex++];
+            
+            // እስካሁን ያልተያዙ ክፍት ካርቴሎችን መፈለግ
+            let availableCartels = [];
+            for (let i = 1; i <= CARTEL_COUNT; i++) {
+                if (!this.cartels[i]) availableCartels.push(i);
+            }
+
+            if (availableCartels.length === 0) break;
+
+            // ከነጻዎቹ ውስጥ አንዱን በራንደም መምረጥ
+            const chosenCartel = availableCartels[Math.floor(Math.random() * availableCartels.length)];
+            
+            // ይህ ሮቦት ከዚህ በፊት የያዛቸው ካርቴሎች ብዛት ማረጋገጥ (ከ MAX_SELECTION እንዳያልፍ)
+            const botExistingCount = Object.values(this.cartels).filter(u => u === botId).length;
+            if (botExistingCount < MAX_SELECTION) {
+                this.cartels[chosenCartel] = botId;
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            this._seq++;
         }
     }
 
