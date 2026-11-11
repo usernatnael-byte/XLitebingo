@@ -83,8 +83,8 @@ function askForContact(ctx) {
 
 async function showMainMenu(ctx) {
     const menu = Markup.keyboard([
-        ['💼 የኔ ሂሳብ Balance', '🎁 ጋብዝ እና አግኝ Invite'],
-        ['📜 የጨዋታ ህጎች Rules', '🎧 እርዳታ Support']
+        ['💼 የኔ ሂሳብ (Account)', '🎁 ጋብዝ እና አግኝ (Refer)'],
+        ['📜 የጨዋታ ህጎች (Rules)', '🎧 እርዳታ (Support)']
     ]).resize();
 
     
