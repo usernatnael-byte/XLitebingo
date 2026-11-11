@@ -195,13 +195,13 @@
       </h3>
       <div class="flex space-x-2">
         <input id="promo-code-input" type="text" placeholder="ፕሮሞ ኮድ እዚህ ያስገቡ" class="flex-1 rounded-xl bg-[#0a0a0a] border border-mel-border p-2.5 text-white text-xs focus:border-yellow-400 outline-none uppercase font-mono">
-        <button onclick="submitPromoCode()" class="bg-yellow-400 hover:bg-yellow-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition-transform active:scale-95">ተጠቀም</button>
+        <button onclick="submitPromoCode()" class="bg-yellow-400 hover:bg-yellow-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition-transform active:scale-95">Claim</button>
       </div>
       <p id="promo-result" class="text-xs mt-2 font-medium"></p>
     </div>
 
     <div>
-      <h3 class="text-gray-200 font-bold text-xs mb-3">የግብይት ታሪክ</h3>
+      <h3 class="text-gray-200 font-bold text-xs mb-3">Transaction History</h3>
       <div class="grid grid-cols-3 gap-2 mb-3">
         <button id="history-all-btn" onclick="setHistoryFilter('all')" class="history-filter bg-yellow-400 text-slate-950 font-bold text-xs rounded-xl py-2 transition-colors">All</button>
         <button id="history-deposit-btn" onclick="setHistoryFilter('deposit')" class="history-filter bg-[#161616] text-gray-300 font-bold text-xs rounded-xl py-2 transition-colors">Deposit</button>
@@ -215,14 +215,14 @@
 
   <!-- DEPOSIT SUBPAGE -->
   <div id="page-deposit" class="hidden flex-1 flex-col max-w-md mx-auto w-full p-4 pb-28">
-    <button onclick="switchPage('wallet')" class="self-start text-yellow-400 mb-3 font-bold text-xs"><i class="fa-solid fa-arrow-left mr-1"></i> ወደ ዋሌት ተመለስ</button>
+    <button onclick="switchPage('wallet')" class="self-start text-yellow-400 mb-3 font-bold text-xs"><i class="fa-solid fa-arrow-left mr-1"></i>Back Wallet</button>
     <h2 class="text-xl font-black mb-3 text-yellow-400">📥 በTelebirr ሂሳብ መሙላት</h2>
     <div class="bg-[#141414] border border-mel-border rounded-2xl p-4 mb-4 text-xs whitespace-pre-line leading-relaxed" id="deposit-instructions">Loading payment details…</div>
     <label class="block text-xs mb-1 text-gray-300">መጠን (ETB)</label>
     <input id="deposit-amount" type="number" min="100" class="w-full rounded-xl bg-[#141414] border border-mel-border p-3 text-white mb-3 text-xs focus:border-yellow-400 outline-none" placeholder="ቢያንስ 100 ETB">
-    <label class="block text-xs mb-1 text-gray-300">የክፍያ ማረጋገጫ ቁጥር / Reference ID</label>
+    <label class="block text-xs mb-1 text-gray-300">የክፍያ ማረጋገጫ ቁጥር / Transaction ID</label>
     <input id="deposit-reference" class="w-full rounded-xl bg-[#141414] border border-mel-border p-3 text-white mb-3 text-xs focus:border-yellow-400 outline-none" placeholder="Transaction ID ያስገቡ">
-    <label class="block text-xs mb-1 text-gray-300">የደረሰኝ ፎቶ (Screenshot)</label>
+    <label class="block text-xs mb-1 text-gray-300">ደረሰኝ Screenshot </label>
     <input id="deposit-image" type="file" accept="image/png,image/jpeg,image/webp" class="w-full text-xs mb-4 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-yellow-400 file:text-slate-950 file:font-bold">
     <button onclick="submitDeposit()" class="w-full rounded-xl bg-yellow-400 text-slate-950 font-black p-3.5 text-xs shadow-lg">ጥያቄ ላክ</button>
     <p id="deposit-result" class="text-xs mt-3 font-medium"></p>
