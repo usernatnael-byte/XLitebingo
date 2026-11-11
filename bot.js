@@ -86,12 +86,12 @@ async function showMainMenu(ctx) {
     const replyMarkup = {
         inline_keyboard: [
             [
-                { text: "💼 የኔ ሂሳብ (Account)", callback_data: "account", style: "primary" },
-                { text: "🎁 ጋብዝ እና አግኝ (Refer)", callback_data: "refer", style: "primary" }
+                { text: "💵 Balance", callback_data: "account", style: "success" },
+                { text: "🔗 Invite", callback_data: "refer", style: "danger" }
             ],
             [
-                { text: "📜 የጨዋታ ህጎች (Rules)", callback_data: "rules", style: "primary" },
-                { text: "🎧 እርዳታ (Support)", callback_data: "support", style: "primary" }
+                { text: "🎮 Game Rules", callback_data: "rules", style: "primary" },
+                { text: "🆘 Support", callback_data: "support", style: "primary" }
             ],
             [
                 { text: "🎮 Play Melbet Bingo", web_app: { url: WEBAPP_URL }, style: "primary" }
