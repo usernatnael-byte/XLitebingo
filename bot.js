@@ -113,14 +113,6 @@ async function showMainMenu(ctx) {
 
 
 
-async function showMainMenu(ctx) {
-    // ከዚህ በፊት ያለው replyMarkup ኮድ እዚህ ይቀጥላል
-
-    await ctx.reply(
-        '✅ ምዝገባዎ ተሳክቷል! እባክዎ ከታች ካሉት አማራጮች ይምረጡ።',
-        { reply_markup: replyMarkup }
-    );
-}
 // Handle callback queries for the primary inline menu buttons (ዳታቤዝ እና ሌሎች ሎጂኮች)
 
 bot.on('callback_query', async (ctx) => {
