@@ -81,64 +81,36 @@ function askForContact(ctx) {
     );
 }
 
+
 async function showMainMenu(ctx) {
     const replyMarkup = {
         inline_keyboard: [
             [
-                {
-                    text: "💼 የኔ ሂሳብ (Account)",
-                    callback_data: "account",
-                    style: "primary"
-                },
-                {
-                    text: "🎁 ጋብዝ እና አግኝ (Refer)",
-                    callback_data: "refer",
-                    style: "primary"
-                }
+                { text: "💼 የኔ ሂሳብ (Account)", callback_data: "account", style: "primary" },
+                { text: "🎁 ጋብዝ እና አግኝ (Refer)", callback_data: "refer", style: "primary" }
             ],
             [
-                {
-                    text: "📜 የጨዋታ ህጎች (Rules)",
-                    callback_data: "rules",
-                    style: "primary"
-                },
-                {
-                    text: "🎧 እርዳታ (Support)",
-                    callback_data: "support",
-                    style: "primary"
-                }
+                { text: "📜 የጨዋታ ህጎች (Rules)", callback_data: "rules", style: "primary" },
+                { text: "🎧 እርዳታ (Support)", callback_data: "support", style: "primary" }
             ],
             [
-                {
-                    text: "🎮 Play Melbet Bingo",
-                    web_app: {
-                        url: WEBAPP_URL
-                    },
-                    style: "primary"
-                }
+                { text: "🎮 Play Melbet Bingo", web_app: { url: WEBAPP_URL }, style: "primary" }
             ]
         ]
     };
 
     if (isAdmin(ctx)) {
         replyMarkup.inline_keyboard.push([
-            {
-                text: "🛠 Admin Panel",
-                web_app: {
-                    url: `${WEBAPP_URL}/admin`
-                },
-                style: "primary"
-            }
+            { text: "🛠 Admin Panel", web_app: { url: `${WEBAPP_URL}/admin` }, style: "primary" }
         ]);
     }
 
-    return ctx.reply(
-        "✅ ምዝገባዎ ተሳክቷል! እባክዎ ከታች ያሉትን አማራጮች ይምረጡ።",
-        {
-            reply_markup: replyMarkup
-        }
+    await ctx.reply(
+        '✅ ምዝገባዎ ተሳክቷል! እባክዎ ከታች ካሉት አማራጮች ይምረጡ።',
+        { reply_markup: replyMarkup }
     );
 }
+
 
 
 async function showMainMenu(ctx) {
