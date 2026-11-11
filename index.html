@@ -155,9 +155,9 @@
 
     <div class="flex-1">
       <div id="ticket-empty-msg" class="text-center text-gray-300 text-xs py-8 bg-[#141414] border border-mel-border rounded-2xl p-4">
-        <div class="text-yellow-400 font-bold text-sm mb-1">⚠️ እስካሁን ካርቴል አልገዙም!</div>
-        <p class="text-gray-400 mb-2">እባክዎ ወደ Home ገጽ በመመለስ የሚፈልጉትን ካርቴል ይምረጡ ወይም ቀጣይ ዙር እስኪጀምር በትዕግስት ይጠብቁ።</p>
-        <button onclick="switchPage('home')" class="mt-2 bg-yellow-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">ካርቴል ለመምረጥ ወደ Home ይሂዱ</button>
+        <div class="text-yellow-400 font-bold text-sm mb-1">በዚህ ዙር ካርድ አልመረጡም</div>
+        <p class="text-gray-400 mb-2">ቀጣዩ ድል የርስዎ ነው!</p>
+        <button onclick="switchPage('HOME')" class="mt-2 bg-yellow-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">ካርቴል ምረጥ</button>
       </div>
       <div id="ticket-matrices-container" class="grid grid-cols-1 gap-3 hidden"></div>
     </div>
@@ -166,16 +166,16 @@
   <!-- ==================== PAGE: WALLET ==================== -->
   <div id="page-wallet" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full pb-28 px-4 pt-2">
     <div class="text-center mb-4">
-      <h2 class="text-xl font-black text-white tracking-wide">የእኔ ሂሳብ (Wallet)</h2>
+      <h2 class="text-xl font-black text-white tracking-wide">WALLET</h2>
     </div>
 
     <div class="bg-[#141414] border border-mel-border rounded-2xl p-5 mb-5 shadow-xl relative overflow-hidden flex flex-col items-center">
       <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl"></div>
       
-      <div class="text-xs font-bold text-gray-400 mb-1">ዋና ሂሳብ (Main Balance)</div>
+      <div class="text-xs font-bold text-gray-400 mb-1">ዋና|Main</div>
       <div id="wallet-page-main" class="text-2xl font-black text-white font-mono mb-3">0.00 ETB</div>
       
-      <div class="text-xs font-bold text-gray-400 mb-4">መጫወቻ ሂሳብ (Play Balance)</div>
+      <div class="text-xs font-bold text-gray-400 mb-4">መጫወቻ|Play</div>
       <div id="wallet-page-play" class="text-lg font-black text-yellow-400 font-mono mb-5">0.00 ETB</div>
 
       <div class="flex space-x-3 w-full">
