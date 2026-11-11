@@ -81,33 +81,95 @@ function askForContact(ctx) {
     );
 }
 
-// FIXED MAIN MENU
+// FIXED MAIN MENU WITH PRIMARY COLOR INLINE BUTTONS
 async function showMainMenu(ctx) {
-    const menu = Markup.keyboard([
-        ['💼 የኔ ሂሳብ (Account)', '🎁 ጋብዝ እና አግኝ (Refer)'],
-        ['📜 የጨዋታ ህጎች (Rules)', '🎧 እርዳታ (Support)']
-    ]).resize();
-
-    await ctx.reply(
-        '✅ ምዝገባዎ ተሳክቷል! ከታች ካሉት ሜኑዎች ይምረጡ።',
-        menu
-    );
-
-    const buttons = [
-        [Markup.button.webApp('🎮 Play Melbet Bingo', WEBAPP_URL)]
-    ];
+    const replyMarkup = {
+        inline_keyboard: [
+            [
+                { text: "💼 የኔ ሂሳብ (Account)", callback_data: "account", style: "primary" },
+                { text: "🎁 ጋብዝ እና አግኝ (Refer)", callback_data: "refer", style: "primary" }
+            ],
+            [
+                { text: "📜 የጨዋታ ህጎች (Rules)", callback_data: "rules", style: "primary" },
+                { text: "🎧 እርዳታ (Support)", callback_data: "support", style: "primary" }
+            ],
+            [
+                { text: "🎮 Play Melbet Bingo", url: WEBAPP_URL, style: "primary" }
+            ]
+        ]
+    };
 
     if (isAdmin(ctx)) {
-        buttons.push([
-            Markup.button.webApp('🛠 Admin Panel', `${WEBAPP_URL}/admin`)
+        replyMarkup.inline_keyboard.push([
+            { text: "🛠 Admin Panel", url: `${WEBAPP_URL}/admin`, style: "primary" }
         ]);
     }
 
     await ctx.reply(
-        '🎮 MELBET ጨዋታውን ለመክፈት ከታች ይጫኑ።',
-        Markup.inlineKeyboard(buttons)
+        '✅ ምዝገባዎ ተሳክቷል! እባክዎ ከታች ካሉት አማራጮች ይምረጡ።',
+        { reply_markup: replyMarkup }
     );
 }
+
+// Handle callback queries for the new primary inline menu buttons
+bot.on('callback_query', async (query) => {
+    const action = query.data;
+    const chatId = query.message.chat.id;
+
+    if (action === 'verify_channel' || action.startsWith('dp_') || action.startsWith('wd_')) {
+        return; // These are handled by specific action listeners below
+    }
+
+    await bot.answerCallbackQuery(query.id).catch(() => {});
+
+    if (action === 'account') {
+        const snap = await db.collection('users').doc(String(query.from.id)).get();
+
+        if (!snap.exists) {
+            return bot.sendMessage(chatId, 'መጀመሪያ /start በመላክ ይመዝገቡ።');
+        }
+
+        const d = snap.data();
+        return bot.sendMessage(
+            chatId,
+            `👤 የእርስዎ ሂሳብ\n` +
+            `💵 Main Balance: ${money(d.balance)}\n` +
+            `🎁 Bonus Balance: ${money(d.bonus)}\n` +
+            `💳 Deposit አድርገዋል: ${d.has_deposited ? 'አዎ' : 'ገና አይደለም'}`
+        );
+    }
+
+    if (action === 'refer') {
+        const me = await bot.telegram.getMe();
+        const link = `https://t.me/${me.username}?start=ref_${query.from.id}`;
+
+        return bot.sendMessage(
+            chatId,
+            `🎁 ጓደኛዎን ይጋብዙ። በሊንክዎ ተመዝግቦ ስልኩን ሲያረጋግጥ 20 ETB Bonus ያገኛሉ።\n\n${link}`,
+            Markup.inlineKeyboard([
+                [Markup.button.url(
+                    '📨 ሊንኩን አጋራ',
+                    `https://t.me/share/url?url=${encodeURIComponent(link)}`
+                )]
+            ])
+        );
+    }
+
+    if (action === 'rules') {
+        return bot.sendMessage(
+            chatId,
+            '🎮 የBingo ህጎች\n' +
+            '• አንድ ካርድ 10 ETB ነው።\n' +
+            '• Bonus Balance ቀድሞ ይቀነሳል፤ ቀሪው ከMain Balance ይቀነሳል።\n' +
+            '• የጨዋታ ሽልማት ወደ Main Balance ይገባል።\n' +
+            '• ገንዘብ ለማውጣት ቢያንስ አንድ ጊዜ Deposit ማድረግ ያስፈልጋል።'
+        );
+    }
+
+    if (action === 'support') {
+        return bot.sendMessage(chatId, `🎧 እርዳታ ለማግኘት ${SUPPORT_CONTACT} ያነጋግሩ።`);
+    }
+});
 
 async function completeRegistration(ctx, phoneNumber) {
     const uid = String(ctx.from.id);
@@ -287,53 +349,6 @@ bot.on('contact', async ctx => {
 
         ctx.reply('⚠️ ምዝገባው አልተሳካም። እባክዎ እንደገና ይሞክሩ።');
     }
-});
-
-bot.hears('💼 የኔ ሂሳብ (Account)', async ctx => {
-    const snap = await db.collection('users').doc(String(ctx.from.id)).get();
-
-    if (!snap.exists) {
-        return ctx.reply('መጀመሪያ /start በመላክ ይመዝገቡ።');
-    }
-
-    const d = snap.data();
-
-    return ctx.reply(
-        `👤 የእርስዎ ሂሳብ\n` +
-        `💵 Main Balance: ${money(d.balance)}\n` +
-        `🎁 Bonus Balance: ${money(d.bonus)}\n` +
-        `💳 Deposit አድርገዋል: ${d.has_deposited ? 'አዎ' : 'ገና አይደለም'}`
-    );
-});
-
-bot.hears('🎁 ጋብዝ እና አግኝ (Refer)', async ctx => {
-    const me = await ctx.telegram.getMe();
-
-    const link = `https://t.me/${me.username}?start=ref_${ctx.from.id}`;
-
-    return ctx.reply(
-        `🎁 ጓደኛዎን ይጋብዙ። በሊንክዎ ተመዝግቦ ስልኩን ሲያረጋግጥ 20 ETB Bonus ያገኛሉ።\n\n${link}`,
-        Markup.inlineKeyboard([
-            [Markup.button.url(
-                '📨 ሊንኩን አጋራ',
-                `https://t.me/share/url?url=${encodeURIComponent(link)}`
-            )]
-        ])
-    );
-});
-
-bot.hears('📜 የጨዋታ ህጎች (Rules)', ctx => {
-    return ctx.reply(
-        '🎮 የBingo ህጎች\n' +
-        '• አንድ ካርድ 10 ETB ነው።\n' +
-        '• Bonus Balance ቀድሞ ይቀነሳል፤ ቀሪው ከMain Balance ይቀነሳል።\n' +
-        '• የጨዋታ ሽልማት ወደ Main Balance ይገባል።\n' +
-        '• ገንዘብ ለማውጣት ቢያንስ አንድ ጊዜ Deposit ማድረግ ያስፈልጋል።'
-    );
-});
-
-bot.hears('🎧 እርዳታ (Support)', ctx => {
-    return ctx.reply(`🎧 እርዳታ ለማግኘት ${SUPPORT_CONTACT} ያነጋግሩ።`);
 });
 
 async function beginWalletFlow(ctx, action) {
