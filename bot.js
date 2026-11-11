@@ -148,26 +148,37 @@ async function showMainMenu(ctx) {
 }
 
 // Handle callback queries for the primary inline menu buttons (ዳታቤዝ እና ሌሎች ሎጂኮች)
-bot.on('callback_query', async (query) => {
-    const action = query.data;
-    const chatId = query.message.chat.id;
-    const userId = String(query.from.id);
 
-    if (action === 'verify_channel' || action.startsWith('dp_') || action.startsWith('wd_')) {
-        return; // These are handled by specific action listeners below
+bot.on('callback_query', async (ctx) => {
+    const action = ctx.callbackQuery?.data;
+    const chatId = ctx.callbackQuery?.message?.chat?.id;
+    const userId = String(ctx.from.id);
+
+    if (!action || !chatId) return;
+
+    if (
+        action === 'verify_channel' ||
+        action.startsWith('dp_') ||
+        action.startsWith('wd_')
+    ) {
+        return;
     }
 
-    await bot.answerCallbackQuery(query.id).catch(() => {});
+    await ctx.answerCbQuery().catch(() => {});
 
     if (action === 'account') {
         const snap = await db.collection('users').doc(userId).get();
 
         if (!snap.exists) {
-            return bot.sendMessage(chatId, 'መጀመሪያ /start በመላክ ይመዝገቡ።');
+            return ctx.telegram.sendMessage(
+                chatId,
+                'መጀመሪያ /start በመላክ ይመዝገቡ።'
+            );
         }
 
         const d = snap.data();
-        return bot.sendMessage(
+
+        return ctx.telegram.sendMessage(
             chatId,
             `👤 የእርስዎ ሂሳብ\n` +
             `💵 Main Balance: ${money(d.balance)}\n` +
@@ -177,10 +188,10 @@ bot.on('callback_query', async (query) => {
     }
 
     if (action === 'refer') {
-        const me = await bot.telegram.getMe();
+        const me = await ctx.telegram.getMe();
         const link = `https://t.me/${me.username}?start=ref_${userId}`;
 
-        return bot.sendMessage(
+        return ctx.telegram.sendMessage(
             chatId,
             `🎁 ጓደኛዎን ይጋብዙ። በሊንክዎ ተመዝግቦ ስልኩን ሲያረጋግጥ 20 ETB Bonus ያገኛሉ።\n\n${link}`,
             Markup.inlineKeyboard([
@@ -193,7 +204,7 @@ bot.on('callback_query', async (query) => {
     }
 
     if (action === 'rules') {
-        return bot.sendMessage(
+        return ctx.telegram.sendMessage(
             chatId,
             '🎮 የBingo ህጎች\n' +
             '• አንድ ካርድ 10 ETB ነው።\n' +
@@ -204,7 +215,10 @@ bot.on('callback_query', async (query) => {
     }
 
     if (action === 'support') {
-        return bot.sendMessage(chatId, `🎧 እርዳታ ለማግኘት ${SUPPORT_CONTACT} ያነጋግሩ።`);
+        return ctx.telegram.sendMessage(
+            chatId,
+            `🎧 እርዳታ ለማግኘት ${SUPPORT_CONTACT} ያነጋግሩ።`
+        );
     }
 });
 
