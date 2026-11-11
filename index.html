@@ -1056,6 +1056,48 @@
       const linkBox = document.getElementById("referral-link-display");
       if (linkBox) navigator.clipboard.writeText(linkBox.innerText);
     }
+            const profileHelpBtn = document.getElementById('profile-help-btn');
+        if (profileHelpBtn) {
+            profileHelpBtn.addEventListener('click', async () => {
+                const tg = window.Telegram?.WebApp;
+                try {
+                    // ከሰርቨር ጋር በመገናኘት Environment ላይ የተመዘገበውን የሰፖርት ዩዘርኔም/ሊንክ እንጠይቃለን
+                    const response = await fetch('/api/send-support', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'X-Telegram-Init-Data': (window.Telegram?.WebApp?.initData || '') 
+                        },
+                        body: JSON.stringify({ userId: window.currentUserId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // ሰርቨሩ SUPPORT_CONTACT ወይም supportUrl ከመለሰ በቴሌግራም በኩል በቀጥታ ይክፈተው
+                    const supportTarget = data.supportUrl || data.supportContact || data.username;
+                    if (supportTarget) {
+                        let cleanUsername = supportTarget.replace('https://t.me/', '').replace('@', '').trim();
+                        let targetUrl = `https://t.me/${cleanUsername}`;
+                        
+                        if (tg && tg.openTelegramLink) {
+                            tg.openTelegramLink(targetUrl);
+                        } else {
+                            window.open(targetUrl, '_blank');
+                        }
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Support connection error:", err);
+                }
+                
+                // ድንገት ከሰርቨር መረጃ ማግኘት ካልተቻለ በነባሪነት ወደሚታወቀው የሰፖርት ሊንክ ይመራዋል
+                if (tg && tg.openTelegramLink) {
+                    tg.openTelegramLink('https://t.me/Barosupport1');
+                } else {
+                    window.open('https://t.me/Barosupport1', '_blank');
+                }
+            });
+    }
   </script>
 </body>
 </html>
