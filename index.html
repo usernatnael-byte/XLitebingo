@@ -116,18 +116,8 @@
       </div>
     </div>
 
-    <div class="bg-[#101010] border border-mel-border rounded-2xl p-3 flex-1 h-[48vh] overflow-y-auto shadow-inner relative">
-      <div id="cartel-grid" class="grid grid-cols-10 gap-1.5 pb-20"></div>
-    </div>
-
-    <div class="absolute bottom-20 right-5 z-20 pointer-events-none">
-      <div class="bg-gradient-to-r from-yellow-500 to-amber-600 text-slate-950 font-black text-xs px-3.5 py-2 rounded-2xl shadow-2xl flex items-center space-x-2 border border-yellow-300">
-        <i class="fa-solid fa-fire text-sm"></i>
-        <div class="flex flex-col text-left">
-          <span class="text-[8px] uppercase tracking-wider opacity-80 leading-none">LIVE POOL</span>
-          <span id="floating-jackpot" class="text-xs font-mono font-black">0.00 ETB</span>
-        </div>
-      </div>
+    <div class="bg-[#101010] border border-mel-border rounded-2xl p-3 flex-1 h-[52vh] overflow-y-auto shadow-inner relative">
+      <div id="cartel-grid" class="grid grid-cols-10 gap-1.5 pb-10"></div>
     </div>
   </div>
 
@@ -164,7 +154,11 @@
     </div>
 
     <div class="flex-1">
-      <div id="ticket-empty-msg" class="text-center text-gray-500 text-sm py-16">እስካሁን ካርቴል አልገዙም</div>
+      <div id="ticket-empty-msg" class="text-center text-gray-300 text-xs py-8 bg-[#141414] border border-mel-border rounded-2xl p-4">
+        <div class="text-yellow-400 font-bold text-sm mb-1">⚠️ እስካሁን ካርቴል አልገዙም!</div>
+        <p class="text-gray-400 mb-2">እባክዎ ወደ Home ገጽ በመመለስ ከ1 እስከ 500 ካሉት ቁጥሮች ውስጥ የሚፈልጉትን ካርቴል ይምረጡ ወይም ቀጣይ ዙር እስኪጀምር በትንሽ ትዕግስት ይጠብቁ።</p>
+        <button onclick="switchPage('home')" class="mt-2 bg-yellow-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">ካርቴል ለመምረጥ ወደ Home ይሂዱ</button>
+      </div>
       <div id="ticket-matrices-container" class="grid grid-cols-1 gap-3 hidden"></div>
     </div>
   </div>
@@ -608,7 +602,6 @@
       selectedCountDisplay.innerText = selectedTickets.length;
       const poolPrize = round ? Number(round.pool || 0) : 0;
       document.getElementById('jackpot-display').innerText = poolPrize.toFixed(2);
-      document.getElementById('floating-jackpot').innerText = `${poolPrize.toFixed(2)} ETB`;
       ticketPrizePool.innerText = `${poolPrize.toFixed(2)} ETB`;
 
       if (round && document.getElementById('active-players-count')) {
@@ -746,7 +739,11 @@
       document.getElementById('winner-total-prize').innerText = `${Number(s.pool).toFixed(2)} ETB`;
       document.getElementById('winner-share-status').innerText = winners.length > 1 ? 'በጋራ አሸንፈዋል!' : '';
       winnersListContainer.innerHTML = winners.map(w => `<div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-2 flex justify-between items-center text-xs"><span class="text-yellow-300 font-bold">${esc(w.name)}</span><span class="text-yellow-400 font-mono font-bold">${Number(w.prize).toFixed(2)} ETB</span></div>`).join('');
-      winnerModal.classList.remove('hidden');
+      
+      // ፖፕ አፕ የሚታየው በ Home (ካርቴላ መምረጫ) እና በ Ticket (ቢንጎ ሩም) ገጾች ላይ ብቻ እንዲሆን ይደረጋል
+      if (currentPage === 'home' || currentPage === 'ticket') {
+        winnerModal.classList.remove('hidden');
+      }
     }
 
     function applyRound(s) {
@@ -786,7 +783,12 @@
       }
 
       gameStatusLabel.innerText = statusText(s);
-      if (s.phase === 'drawing' && prevPhase !== 'drawing' && selectedTickets.length > 0 && currentPage === 'home') switchPage('ticket');
+      
+      // ተጫዋቾች ካርቴል መርጠው/ገዝተው ሲጨርሱ (ጨዋታው ወደ ሼር/ድሮው ሲገባ) ራሱ አውቶማቲክ ወደ ቢንጎ ሩሙ (ticket) እንዲወስዳቸው ይደረጋል
+      if (s.phase === 'drawing' && prevPhase !== 'drawing' && selectedTickets.length > 0 && currentPage === 'home') {
+        switchPage('ticket');
+      }
+
       if (s.phase === 'result' && shownResultFor !== s.round_id) { shownResultFor = s.round_id; showResult(s); }
 
       paintGrid();
@@ -818,7 +820,11 @@
       } else { countdownEl.innerText = '00:00'; bar.style.width = '0%'; }
     }
 
-    function closeWinnerModal() { winnerModal.classList.add('hidden'); switchPage('home'); }
+    function closeWinnerModal() { 
+      winnerModal.classList.add('hidden'); 
+      // አሸናፊው ከታየ በኋላ ቀጥታ ወደ ካርቴላ መምረጫው (Home Page) አውቶማቲክ ይመልሳቸዋል
+      switchPage('home'); 
+    }
 
     initGrid();
     initMasterBoard();
