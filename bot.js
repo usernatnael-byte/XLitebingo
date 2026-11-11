@@ -64,34 +64,34 @@ async function isChannelMember(ctx) {
 
 async function askToJoin(ctx) {
     return ctx.reply(
-        '👋 ወደ Bingo ቦት እንኳን በደህና መጡ!\n\nቀጥለው ለመሄድ መጀመሪያ የTelegram ቻናላችንን ይቀላቀሉ። ከገቡ በኋላ “✅ ቻናሉን ተቀላቅያለሁ” ይጫኑ።',
+        '👋 ወደ MELBET BINGO እንኳን በደህና መጡ!\n\nቀጥለው ለመሄድ መጀመሪያ የTelegram ቻናላችንን ይቀላቀሉ። ከገቡ በኋላ “✅ ቻናሉን ተቀላቅያለሁ” ይጫኑ።',
         Markup.inlineKeyboard([
             [Markup.button.url('📢 ቻናሉን ተቀላቀል', CHANNEL_URL)],
-            [Markup.button.callback('✅ ቻናሉን ተቀላቅያለሁ', 'verify_channel')]
+            [Markup.button.callback('✅ MELBET ቻናሉን ተቀላቅያለሁ', 'verify_channel')]
         ])
     );
 }
 
 function askForContact(ctx) {
     return ctx.reply(
-        '✅ ቻናሉን በትክክል ተቀላቅለዋል።\n\nምዝገባውን ለማጠናቀቅ የራስዎን ስልክ ቁጥር ያጋሩ።',
+        '✅ MELBET ቻናሉን በትክክል ተቀላቅለዋል።\n\nምዝገባውን ለማጠናቀቅ የራስዎን ስልክ ቁጥር ያጋሩ።',
         Markup.keyboard([
-            [Markup.button.contactRequest('📱 ስልክ ቁጥሬን አጋራ')]
+            [Markup.button.contactRequest('📱 ስልክ ቁጥሮን አጋራ')]
         ]).resize().oneTime()
     );
 }
 
 async function showMainMenu(ctx) {
     const menu = Markup.keyboard([
-        ['💼 የኔ ሂሳብ (Account)', '🎁 ጋብዝ እና አግኝ (Refer)'],
-        ['📜 የጨዋታ ህጎች (Rules)', '🎧 እርዳታ (Support)']
+        ['💼 የኔ ሂሳብ Balance', '🎁 ጋብዝ እና አግኝ Invite'],
+        ['📜 የጨዋታ ህጎች Rules', '🎧 እርዳታ Support']
     ]).resize();
 
-    await ctx.reply('🎉 ምዝገባዎ ተጠናቋል። ከታች ያለውን ሜኑ ይጠቀሙ።', menu);
+    
 
-    const buttons = [[Markup.button.webApp('🎮 Play Bingo', WEBAPP_URL)]];
+    const buttons = [[Markup.button.webApp('🎮 Play Melbet Bingo', WEBAPP_URL)]];
     if (isAdmin(ctx)) buttons.push([Markup.button.webApp('🛠 Admin Panel', `${WEBAPP_URL}/admin`)]);
-    await ctx.reply('🎮 ጨዋታውን ለመክፈት:', Markup.inlineKeyboard(buttons));
+    await ctx.reply('🎮 MELBET ጨዋታውን ለመክፈት P:', Markup.inlineKeyboard(buttons));
 }
 
 async function completeRegistration(ctx, phoneNumber) {
