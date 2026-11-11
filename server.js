@@ -630,6 +630,7 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
+// 1. የሪፈራል ሊንክ ማመንጫ API
 app.get('/api/referral-link', async (req, res) => {
     try {
         const me = await bot.telegram.getMe();
@@ -644,11 +645,50 @@ app.get('/api/referral-link', async (req, res) => {
     }
 });
 
+// 2. ሪፈራል ተጠቃሚ ሲመዝገብ እና ኖቲፊኬሽን ሲልክ የሚሰራ ሎጂክ (ለምሳሌ /start?start=ref_ID ሲገባ ወይም ቴሌግራም ዌብአፕ ሪጅስተር ሲያደርግ)
+async function handleNewUserReferral(newUserId, newUserName, referrerId) {
+    if (!referrerId || referrerId === newUserId) return;
+
+    try {
+        const bonusAmount = 20; // የሚሰጠው የቦነስ መጠን (20 ብር)
+
+        // ዳታቤዝ ውስጥ የጋባዡን (Referrer) የቦነስ ባላንስ እና የሪፈራል ብዛት ማሳደግ
+        const updateResult = await db.collection('users').findOneAndUpdate(
+            { id: referrerId },
+            { 
+                $inc: { 
+                    bonus: bonusAmount, 
+                    total_referrals: 1 
+                } 
+            },
+            { returnDocument: 'after' }
+        );
+
+        if (updateResult) {
+            // ለጋባዡ (Referrer) በእያንዳንዱ አዲስ ተመዝጋቢ ልክ በቦቱ በኩል ኖቲፊኬሽን መላክ
+            const botToken = process.env.BOT_TOKEN;
+            const notificationText = `🎉 እንኳን ደስ አለዎት!\n\nአዲስ ተጠቃሚ (${newUserName || 'ተጠቃሚ'}) በርስዎ የሪፈራል ሊንክ ገብቶ ተመዝግቧል።\n💰 <b>+${bonusAmount} ETB</b> ፖነስ ባላንስዎ ላይ ተጨምሯል።`;
+            
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: referrerId,
+                    text: notificationText,
+                    parse_mode: 'HTML'
+                })
+            });
+        }
+    } catch (err) {
+        console.error("Error processing referral registration or notification:", err);
+    }
+}
+
 app.post('/api/send-support', async (req, res) => {
     try {
         await bot.telegram.sendMessage(
             req.telegramUserId,
-            '🎧 እርዳታ ለማግኘት @zeid369 ያነጋግሩ።'
+            '🎧 እርዳታ ለማግኘት @Melbetsupporter_bot ያነጋግሩ።'
         );
 
         res.json({ status: 'success' });
