@@ -188,6 +188,18 @@
       </div>
     </div>
 
+    <!-- PROMO CODE SECTION -->
+    <div class="bg-[#141414] border border-mel-border rounded-2xl p-4 mb-4 shadow-lg">
+      <h3 class="text-xs font-bold text-yellow-400 mb-2 flex items-center space-x-1.5">
+        <i class="fa-solid fa-ticket"></i><span>ፕሮሞ ኮድ አለዎት?</span>
+      </h3>
+      <div class="flex space-x-2">
+        <input id="promo-code-input" type="text" placeholder="ፕሮሞ ኮድ እዚህ ያስገቡ" class="flex-1 rounded-xl bg-[#0a0a0a] border border-mel-border p-2.5 text-white text-xs focus:border-yellow-400 outline-none uppercase font-mono">
+        <button onclick="submitPromoCode()" class="bg-yellow-400 hover:bg-yellow-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition-transform active:scale-95">ተጠቀም</button>
+      </div>
+      <p id="promo-result" class="text-xs mt-2 font-medium"></p>
+    </div>
+
     <div>
       <h3 class="text-gray-200 font-bold text-xs mb-3">የግብይት ታሪክ</h3>
       <div class="grid grid-cols-3 gap-2 mb-3">
@@ -586,6 +598,36 @@
       } catch (err) { console.error(err); } finally { pickBusy = false; }
     }
 
+    async function submitPromoCode() {
+      const codeInput = document.getElementById('promo-code-input');
+      const resultEl = document.getElementById('promo-result');
+      const code = codeInput.value.trim();
+      if (!code) {
+        resultEl.textContent = '❌ እባክዎ ፕሮሞ ኮድ ያስገቡ';
+        resultEl.className = 'text-xs mt-2 font-medium text-rose-400';
+        return;
+      }
+      resultEl.textContent = '⏳ በመፈተሽ ላይ...';
+      resultEl.className = 'text-xs mt-2 font-medium text-yellow-400';
+      try {
+        const res = await api('/api/promo/redeem', {
+          method: 'POST',
+          body: JSON.stringify({ code })
+        });
+        if (res.status === 'success') {
+          resultEl.textContent = `✅ ${res.message || 'ፕሮሞ ኮዱ በትክክል ሰርቷል!'} (+${res.bonusAdded || 0} ETB Bonus)`;
+          resultEl.className = 'text-xs mt-2 font-medium text-emerald-400';
+          codeInput.value = '';
+          refreshUserData();
+        } else {
+          throw new Error(res.message || 'ልክ ያልሆነ ፕሮሞ ኮድ');
+        }
+      } catch (err) {
+        resultEl.textContent = '❌ ' + err.message;
+        resultEl.className = 'text-xs mt-2 font-medium text-rose-400';
+      }
+    }
+
     function updateUI() {
       const reserved = (round && round.phase === 'selection') ? selectedTickets.length * TICKET_PRICE : 0;
       userPlayBalance = serverBalance + serverBonus - reserved;
@@ -740,7 +782,6 @@
       document.getElementById('winner-share-status').innerText = winners.length > 1 ? 'በጋራ አሸንፈዋል!' : '';
       winnersListContainer.innerHTML = winners.map(w => `<div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-2 flex justify-between items-center text-xs"><span class="text-yellow-300 font-bold">${esc(w.name)}</span><span class="text-yellow-400 font-mono font-bold">${Number(w.prize).toFixed(2)} ETB</span></div>`).join('');
       
-      // ፖፕ አፕ የሚታየው በ Home (ካርቴላ መምረጫ) እና በ Ticket (ቢንጎ ሩም) ገጾች ላይ ብቻ እንዲሆን ይደረጋል
       if (currentPage === 'home' || currentPage === 'ticket') {
         winnerModal.classList.remove('hidden');
       }
@@ -784,7 +825,6 @@
 
       gameStatusLabel.innerText = statusText(s);
       
-      // ተጫዋቾች ካርቴል መርጠው/ገዝተው ሲጨርሱ (ጨዋታው ወደ ሼር/ድሮው ሲገባ) ራሱ አውቶማቲክ ወደ ቢንጎ ሩሙ (ticket) እንዲወስዳቸው ይደረጋል
       if (s.phase === 'drawing' && prevPhase !== 'drawing' && selectedTickets.length > 0 && currentPage === 'home') {
         switchPage('ticket');
       }
@@ -822,7 +862,6 @@
 
     function closeWinnerModal() { 
       winnerModal.classList.add('hidden'); 
-      // አሸናፊው ከታየ በኋላ ቀጥታ ወደ ካርቴላ መምረጫው (Home Page) አውቶማቲክ ይመልሳቸዋል
       switchPage('home'); 
     }
 
