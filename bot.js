@@ -19,7 +19,7 @@ const DEPOSIT_INSTRUCTIONS = process.env.DEPOSIT_INSTRUCTIONS ||
 const ADMIN_ID = (process.env.ADMIN_ID || '7396414604').split(',')[0].trim();
 const ADMIN_ID_LIST = [...new Set([...ADMIN_IDS])];
 
-const SUPPORT_CONTACT = process.env.SUPPORT_CONTACT || '@zeid369';
+const SUPPORT_CONTACT = process.env.SUPPORT_CONTACT || '@Melbetsupporter_bot';
 
 if (!CHANNEL_ID || !CHANNEL_URL) {
     console.warn('BOT_CHANNEL_ID and BOT_CHANNEL_URL must be set to enforce mandatory channel joining.');
@@ -91,7 +91,7 @@ async function showMainMenu(ctx) {
 
     const buttons = [[Markup.button.webApp('🎮 Play Melbet Bingo', WEBAPP_URL)]];
     if (isAdmin(ctx)) buttons.push([Markup.button.webApp('🛠 Admin Panel', `${WEBAPP_URL}/admin`)]);
-    await ctx.reply('🎮 MELBET ጨዋታውን ለመክፈት P:', Markup.inlineKeyboard(buttons));
+    await ctx.reply('🎮 MELBET ጨዋታውን ለመክፈት ', Markup.inlineKeyboard(buttons));
 }
 
 async function completeRegistration(ctx, phoneNumber) {
