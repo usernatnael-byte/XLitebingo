@@ -299,6 +299,7 @@ class GameEngine {
     get_state(uid) {
         uid = String(uid);
 
+        // 🟢 የጌም ሩም ዋናውን ኮድ እና ፈንክሽን ፍጹም ሳንነካ፣ ለአድሚን ፓናል ብቻ የሚሆን ተጨማሪ ደህንነቱ የተጠበቀ ቼክ
         if (uid === 'admin_viewer') {
             const humanCartels = Object.entries(this.cartels).filter(([c, u]) => !String(u).startsWith('bot_'));
             const botCartels = Object.entries(this.cartels).filter(([c, u]) => String(u).startsWith('bot_'));
