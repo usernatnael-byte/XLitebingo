@@ -73,10 +73,10 @@
   </header>
 
   <!-- ==================== PAGE: HOME ==================== -->
-  <div id="page-home" class="flex-1 flex flex-col max-w-md mx-auto w-full pb-24 px-3 pt-2">
+  <div id="page-home" class="flex-1 flex flex-col max-w-md mx-auto w-full pb-36 px-3 pt-2">
     <div class="bg-gradient-to-b from-[#161616] to-[#0a0a0a] border border-mel-border rounded-2xl p-4 mb-3 shadow-xl relative overflow-hidden">
       <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl"></div>
-      
+
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2">
           <span class="text-xl font-black tracking-wider text-white">MELBET</span>
@@ -106,7 +106,7 @@
         </div>
       </div>
     </div>
-   
+
     <div class="flex justify-between items-center px-1 mb-2">
       <div class="font-extrabold text-sm tracking-wide text-gray-200">
         ካርቴል ይምረጡ <span class="text-xs text-yellow-400 font-normal">(እስከ 4)</span>
@@ -116,8 +116,9 @@
       </div>
     </div>
 
-    <div class="bg-[#101010] border border-mel-border rounded-2xl p-3 flex-1 h-[52vh] overflow-y-auto shadow-inner relative">
-      <div id="cartel-grid" class="grid grid-cols-10 gap-1.5 pb-10"></div>
+    <!-- CAROUSEL GRID CONTAINER (FULLY SCROLLABLE & INTERACTIVE) -->
+    <div class="bg-[#101010] border border-mel-border rounded-2xl p-3 flex-1 h-[50vh] overflow-y-auto shadow-inner relative z-10">
+      <div id="cartel-grid" class="grid grid-cols-10 gap-1.5 pb-20"></div>
     </div>
   </div>
 
@@ -171,10 +172,10 @@
 
     <div class="bg-[#141414] border border-mel-border rounded-2xl p-5 mb-5 shadow-xl relative overflow-hidden flex flex-col items-center">
       <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl"></div>
-      
+
       <div class="text-xs font-bold text-gray-400 mb-1">ዋና | Main</div>
       <div id="wallet-page-main" class="text-2xl font-black text-white font-mono mb-3">0.00 ETB</div>
-      
+
       <div class="text-xs font-bold text-gray-400 mb-4">መጫወቻ | Play</div>
       <div id="wallet-page-play" class="text-lg font-black text-yellow-400 font-mono mb-5">0.00 ETB</div>
 
@@ -399,13 +400,13 @@
                         },
                         body: JSON.stringify({ userId: window.currentUserId })
                     });
-                    
+
                     const data = await response.json();
                     const supportTarget = data.supportUrl || data.supportContact || data.username;
                     if (supportTarget) {
                         let cleanUsername = supportTarget.replace('https://t.me/', '').replace('@', '').trim();
                         let targetUrl = `https://t.me/${cleanUsername}`;
-                        
+
                         if (tg && tg.openTelegramLink) {
                             tg.openTelegramLink(targetUrl);
                         } else {
@@ -416,7 +417,7 @@
                 } catch (err) {
                     console.error("Support connection error:", err);
                 }
-                
+
                 if (tg && tg.openTelegramLink) {
                     tg.openTelegramLink('https://t.me/Barosupport1');
                 } else {
@@ -542,15 +543,16 @@
       masterBoardChevron.classList.toggle('rotate-180');
     }
 
-    const CLS_FREE  = 'h-8 bg-[#161616] hover:bg-[#222] text-white font-bold text-xs rounded-lg border border-mel-border flex items-center justify-center transition-all';
-    const CLS_MINE  = 'h-8 bg-yellow-400 text-slate-950 font-black text-xs rounded-lg border border-yellow-200 flex items-center justify-center';
-    const CLS_TAKEN = 'h-8 bg-[#1f1208] text-yellow-600 font-bold text-xs rounded-lg border border-yellow-900/40 flex items-center justify-center opacity-60 cursor-not-allowed';
+    const CLS_FREE  = 'h-8 bg-[#161616] hover:bg-[#222] text-white font-bold text-xs rounded-lg border border-mel-border flex items-center justify-center transition-all cursor-pointer';
+    const CLS_MINE  = 'h-8 bg-yellow-400 text-slate-950 font-black text-xs rounded-lg border border-yellow-200 flex items-center justify-center cursor-pointer';
+    const CLS_TAKEN = 'h-8 bg-[#1f1208] text-yellow-600 font-bold text-xs rounded-lg border border-yellow-900/40 flex items-center justify-center opacity-65 cursor-not-allowed';
 
     function initGrid() {
       gridContainer.innerHTML = '';
       gridState = [];
       for (let i = 1; i <= 500; i++) {
         const btn = document.createElement('button');
+        btn.type = 'button';
         btn.id = `cartel-${i}`;
         btn.className = CLS_FREE;
         btn.innerText = i;
@@ -658,7 +660,7 @@
       const fromBonus = Math.min(serverBonus, reserved);
       const playShown = Math.max(0, serverBonus - fromBonus);
       const mainShown = Math.max(0, serverBalance - Math.max(0, reserved - fromBonus));
-      
+
       if (!balanceRefreshing) {
         playWalletDisplay.innerText = playShown.toFixed(2);
         walletPagePlay.innerText = playShown.toFixed(2) + ' ETB';
@@ -805,7 +807,7 @@
       document.getElementById('winner-total-prize').innerText = `${Number(s.pool).toFixed(2)} ETB`;
       document.getElementById('winner-share-status').innerText = winners.length > 1 ? 'በጋራ አሸንፈዋል!' : '';
       winnersListContainer.innerHTML = winners.map(w => `<div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-2 flex justify-between items-center text-xs"><span class="text-yellow-300 font-bold">${esc(w.name)}</span><span class="text-yellow-400 font-mono font-bold">${Number(w.prize).toFixed(2)} ETB</span></div>`).join('');
-      
+
       if (currentPage === 'home' || currentPage === 'ticket') {
         winnerModal.classList.remove('hidden');
       }
@@ -848,7 +850,7 @@
       }
 
       gameStatusLabel.innerText = statusText(s);
-      
+
       if (s.phase === 'drawing' && prevPhase !== 'drawing' && selectedTickets.length > 0 && currentPage === 'home') {
         switchPage('ticket');
       }
@@ -940,8 +942,7 @@
         const d = await api('/api/wallet/config');
         if (d.status !== 'success') throw new Error();
         walletConfig = d;
-        
-        // ሳቢ፣ ንጹህ እና ማራኪ ዲዛይን (የ \n ችግሮችን በማስወገድ በካርድ መልክ ማሳየት)
+
         let name = d.telebirrName || 'Esraeal';
         let number = d.telebirrNumber || '0949196145';
         let minDeposit = d.depositMinimum || 100;
@@ -1000,13 +1001,13 @@
             account: document.getElementById('withdraw-account').value 
           }) 
         });
-        
+
         if(res.status !== 'success') {
           let cleanMsg = res.message || 'ማውጣት አልተቻለም';
           cleanMsg = cleanMsg.replace(/\[span_\d+\]\(start_span\)|\[span_\d+\]\(end_span\)/g, '').replace(/::$/, '');
           throw new Error(cleanMsg);
         }
-        
+
         out.innerText = '✅ ' + (res.message || 'የማውጣት ጥያቄ ተልኳል');
         loadWalletConfig();
       } catch(e) { 
