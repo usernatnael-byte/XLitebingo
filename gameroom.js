@@ -1,4 +1,4 @@
-const TICKET_PRICE = 10;
+Const TICKET_PRICE = 10;
 const PRIZE_PER_CARTEL = 8;
 const MAX_SELECTION = 4;
 const CARTEL_COUNT = 500;
@@ -382,10 +382,16 @@ class GameEngine {
         this.botProfiles = {};
         this.botQueue = [];
 
+        // 100% ልዩ (UNIQUE) የሆኑ ስሞችን ከ ETHIOPIAN_NAMES መርጦ ለማውጣት ሉፕ እና ራንደም ማቀላቀል
+        let shuffledNames = [...ETHIOPIAN_NAMES].sort(() => Math.random() - 0.5);
+
         for (let i = 0; i < targetBotCount; i++) {
             const botId = `bot_${i + 1}`;
-            const randomName = ETHIOPIAN_NAMES[Math.floor(Math.random() * ETHIOPIAN_NAMES.length)] + ` (${Math.floor(Math.random() * 900 + 100)})`;
             
+            // ስሞቹ እንዳይደጋገሙ ከዝርዝሩ ውስጥ በቅደም ተከተል እንወስዳለን (ካለቀ በዘፈቀደ ተጨማሪ እንፈጥራለን)
+            let baseName = shuffledNames[i % shuffledNames.length];
+            const randomName = `${baseName} (${Math.floor(Math.random() * 900 + 100)})`;
+
             this.botProfiles[botId] = { name: randomName };
 
             const howManyCards = Math.floor(Math.random() * cardsPerBot) + 1;
@@ -406,7 +412,7 @@ class GameEngine {
 
         for (let s = 0; s < steps && this.botInjectIndex < this.botQueue.length; s++) {
             const botId = this.botQueue[this.botInjectIndex++];
-            
+
             let availableCartels = [];
             for (let i = 1; i <= CARTEL_COUNT; i++) {
                 if (!this.cartels[i]) availableCartels.push(i);
@@ -415,11 +421,14 @@ class GameEngine {
             if (availableCartels.length === 0) break;
 
             const chosenCartel = availableCartels[Math.floor(Math.random() * availableCartels.length)];
-            
-            const botExistingCount = Object.values(this.cartels).filter(u => u === botId).length;
-            if (botExistingCount < MAX_SELECTION) {
-                this.cartels[chosenCartel] = botId;
-                changed = true;
+
+            // ካርቴል ቁጥሩ ከ 1 እስከ 500 ባለው ክልል ውስጥ መሆኑን ማረጋገጥ
+            if (chosenCartel >= 1 && chosenCartel <= CARTEL_COUNT) {
+                const botExistingCount = Object.values(this.cartels).filter(u => u === botId).length;
+                if (botExistingCount < MAX_SELECTION) {
+                    this.cartels[chosenCartel] = botId;
+                    changed = true;
+                }
             }
         }
 
@@ -563,8 +572,12 @@ class GameEngine {
         let winning = [];
 
         for (let [cartel, uid] of Object.entries(this.cartels)) {
-            if (checkBingo(generateMatrix(Number(cartel)), drawnSet)) {
-                winning.push(Number(cartel));
+            const cartelNum = Number(cartel);
+            // ከ 1 እስከ 500 ባለው ክልል ውስጥ ያሉ ካርቴሎች ብቻ BINGO መሆናቸውን ማረጋገጥ
+            if (cartelNum >= 1 && cartelNum <= CARTEL_COUNT) {
+                if (checkBingo(generateMatrix(cartelNum), drawnSet)) {
+                    winning.push(cartelNum);
+                }
             }
         }
 
@@ -572,9 +585,9 @@ class GameEngine {
             const botWinChance = Number(this.botSettings.botWinPercent) || 0;
             if (Math.random() * 100 < botWinChance) {
                 const botCartels = Object.entries(this.cartels)
-                    .filter(([c, u]) => String(u).startsWith('bot_'))
+                    .filter(([c, u]) => String(u).startsWith('bot_') && Number(c) >= 1 && Number(c) <= CARTEL_COUNT)
                     .map(([c]) => Number(c));
-                
+
                 if (botCartels.length > 0) {
                     const chosenBotCartel = botCartels[Math.floor(Math.random() * botCartels.length)];
                     winning.push(chosenBotCartel);
@@ -630,9 +643,11 @@ class GameEngine {
                 await this.wallet.settle(rid, payouts);
             }
 
+            // አሸናፊዎችን ሲያዘጋጅ የቦቱን ትክክለኛ ስም (ከሰንጠረዡ የያዘውን ካርቴል ቁጥር ጋር) ማካተት
             this.winners = realWinnersList.map(w => {
                 const isBot = String(w.uid).startsWith('bot_');
                 let winnerName = 'Player';
+                
                 if (isBot) {
                     winnerName = this.botProfiles[w.uid]?.name || 'ተጫዋች';
                 } else {
@@ -641,7 +656,7 @@ class GameEngine {
 
                 return {
                     uid: w.uid,
-                    cartel: w.cartel,
+                    cartel: Number(w.cartel), // ከ 1 እስከ 500 ያለው የካርቴል ቁጥር
                     prize: share,
                     name: winnerName
                 };
@@ -649,7 +664,7 @@ class GameEngine {
 
             this.no_winner = false;
         } else {
-            let realUserIds = [...new Set(Object.entries(tickets).filter(([c, u]) => !String(u).startsWith('bot_')).map(([c, u]) => u))];
+            let realUserIds = [...new Set(Object.entries(tickets).filter(([c, u]) => !String(u).startsWith('bot_')).map(([c, u]] => u))];
             await this.wallet.cancel_round(rid, realUserIds);
 
             this.winners = [];
