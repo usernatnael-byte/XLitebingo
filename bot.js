@@ -107,7 +107,7 @@ async function showMainMenu(ctx) {
     }
 
     await ctx.reply(
-        '✅ ምዝገባዎ ተሳክቷል! እባክዎ ከታች ካሉት አማራጮች ይምረጡ።',
+        'MelBet ከታች ካሉት አማራጮች ይምረጡ።',
         { reply_markup: replyMarkup }
     );
 }
