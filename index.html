@@ -806,7 +806,14 @@
       playCall('bingo');
       document.getElementById('winner-total-prize').innerText = `${Number(s.pool).toFixed(2)} ETB`;
       document.getElementById('winner-share-status').innerText = winners.length > 1 ? 'በጋራ አሸንፈዋል!' : '';
-      winnersListContainer.innerHTML = winners.map(w => `<div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-2 flex justify-between items-center text-xs"><span class="text-yellow-300 font-bold">${esc(w.name)}</span><span class="text-yellow-400 font-mono font-bold">${Number(w.prize).toFixed(2)} ETB</span></div>`).join('');
+      
+      // እዚህ ጋር የካርቴል ቁጥሩን (cartel) ሙሉ በሙሉ በማጥፋት ስሙን እና ሽልማቱን ብቻ እናሳያለን
+      winnersListContainer.innerHTML = winners.map(w => `
+        <div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-2.5 flex justify-between items-center text-xs">
+          <span class="text-yellow-300 font-bold">${esc(w.name)}</span>
+          <span class="text-yellow-400 font-mono font-bold">${Number(w.prize).toFixed(2)} ETB</span>
+        </div>
+      `).join('');
 
       if (currentPage === 'home' || currentPage === 'ticket') {
         winnerModal.classList.remove('hidden');
