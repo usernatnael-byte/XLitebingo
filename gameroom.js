@@ -7,7 +7,7 @@ const BALLS = 75;
 const matrixCache = {};
 
 const ETHIOPIAN_NAMES = [
-    "Abebe Kebede", "Meseret Haile", "Dawit Mekonnen 🌟", "Tigist Assefa", "Yonas Tadesse",
+    "Kebede", "Meseret Haile", "Dawit Mekonnen 🌟", "Tigist Assefa", "Yonas Tadesse",
 "Selam Abebe", "Kemal Mohammed", "Helen Yosef", "Natnael Solomon", "Bethelhem Ayalew 👑",
 "Kalkidan Tesfaye", "Fikru Ayalew", "Mekdes Tadesse", "Samuel Girma", "Elsabet Mebratu",
 "Mikiyas Tekle", "Haymanot Zewde", "Endale Admasu", "Birhanu Dechasa", "Anwar Yusuf 🌙",
