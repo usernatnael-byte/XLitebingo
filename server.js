@@ -6,14 +6,6 @@ const FirestoreWallet = require('./users');
 const { GameEngine } = require('./gameroom');
 const { admin, db } = require('./firebase');
 
-process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
 const BOT_TOKEN = process.env.BOT_TOKEN;
 if (!BOT_TOKEN) throw new Error('BOT_TOKEN environment variable is required');
 const BOT_CHANNEL_ID = process.env.BOT_CHANNEL_ID || '-1004418660495';
@@ -22,8 +14,6 @@ const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
-
-const bot = require('./bot');
 
 function verifyTelegramInitData(initData) {
     if (!initData || typeof initData !== 'string') return null;
@@ -174,9 +164,7 @@ const DEPOSIT_MINIMUM = Math.max(100, Number(process.env.DEPOSIT_MINIMUM_ETB || 
 const WITHDRAW_MINIMUM = Math.max(100, Number(process.env.WITHDRAW_MINIMUM_ETB || 100));
 const TELEBIRR_NAME = process.env.TELEBIRR_ACCOUNT_NAME || 'Esraeal';
 const TELEBIRR_NUMBER = process.env.TELEBIRR_ACCOUNT_NUMBER || '0949196145';
-
-const DEPOSIT_INSTRUCTIONS = `💳 **በቴሌብር ብቻ ገንዘብ ያስገቡ**\n\n👤 **የአካውንት ስም:** ${TELEBIRR_NAME}\n📱 **ስልክ ቁጥር:** ${TELEBIRR_NUMBER}`;
-
+const DEPOSIT_INSTRUCTIONS = process.env.DEPOSIT_INSTRUCTIONS || `Telebirr ስም: ${TELEBIRR_NAME}\nቁጥር: ${TELEBIRR_NUMBER}`;
 const ADMIN_IDS = new Set([...(process.env.ADMIN_ID || '7396414604').split(','), ...(process.env.ADMIN_IDS || '').split(',')].map(v => v.trim()).filter(Boolean));
 
 app.get('/api/wallet/history', async (req,res) => {
@@ -247,18 +235,20 @@ app.post('/api/wallet/withdraw', async (req,res) => {
     if(name.length<2||!/^[0-9+]{9,15}$/.test(account)) return res.status(400).json({status:'error',message:'Enter valid Telebirr name and phone number.'});
     try {
         const userRef=db.collection('users').doc(req.telegramUserId), ref=db.collection('withdrawal_requests').doc();
-
+        
+        // 👉 እዚህ ጋር ያስገባኸውን ትራንዛክሽን በትክክል አስገብተነዋል
         await db.runTransaction(async tx=>{
             const us=await tx.get(userRef);
             if(!us.exists) throw new Error('USER_NOT_FOUND');
             const u=us.data();
-
+            
+            // 🛑 ዊዝድሮው ለማድረግ ዲፖዚት ማድረግ እና ዲፖዚት ካደረጉ በኋላ ቢያንስ 1 ጌም ማሸነፍ ግዴታ ነው
             if(!u.has_deposited) throw new Error('DEPOSIT_REQUIRED');
             if(!u.won_after_deposit) throw new Error('WIN_AFTER_DEPOSIT_REQUIRED');
 
             const balance=Number(u.balance||0);
             if(balance<amount) throw new Error('INSUFFICIENT_BALANCE');
-
+            
             const txs=Array.isArray(u.transactions)?u.transactions:[];
             tx.update(userRef,{balance:balance-amount,transactions:[...txs,{type:'withdrawal_pending',amount,request_id:ref.id,timestamp:new Date().toISOString()}]});
             tx.set(ref,{user_id:req.telegramUserId,amount,payout_name:name,payout_account:account,status:'pending',created_at:Date.now()});
@@ -270,31 +260,18 @@ app.post('/api/wallet/withdraw', async (req,res) => {
     } catch(e){
         let msg = 'Could not submit withdrawal.';
         if (e.message === 'INSUFFICIENT_BALANCE') msg = 'Insufficient Main Balance.';
-        else if (e.message === 'DEPOSIT_REQUIRED') msg = 'ገንዘብ ለማውጣት መጀመሪያ ቢያንስ አንድ ጊዜ Deposit ማድረግ አለብዎት።';
+        else if (e.message === 'DEPOSIT_REQUIRED') msg = 'ገንዘብ ለማውጣት መጀመሪያ ቢያንስ አንድ ጊዜ Deposit ማድረግ አለብዎት[span_0](start_span)[span_0](end_span)[span_1](start_span)[span_1](end_span)።';
         else if (e.message === 'WIN_AFTER_DEPOSIT_REQUIRED') msg = 'ገንዘብ ለማውጣት ዲፖዚት ካደረጉ በኋላ ቢያንስ 1 ጌም ማሸነፍ አለብዎት።';
         res.status(400).json({status:'error',message:msg});
     }
 });
+
 
 function requireAdmin(req, res, next) {
     if (!req.telegramUserId || !ADMIN_IDS.has(req.telegramUserId)) return res.status(403).json({ status: 'error', message: 'Admin access only.' });
     next();
 }
 app.use('/api/admin', requireAdmin);
-
-// 🟢 የላይቭ ጌም መረጃ ማሳያ API (Live Game State for Admin)
-app.get('/api/admin/live-game', async (req, res) => {
-    try {
-        const liveData = engine.get_state('admin_viewer');
-        res.json({
-            status: 'success',
-            live: liveData
-        });
-    } catch (e) {
-        console.error('live-game api error:', e);
-        res.status(500).json({ status: 'error', message: 'Could not fetch live game state.' });
-    }
-});
 
 app.get('/api/admin/bot-settings', async (req, res) => {
     try {
@@ -311,7 +288,7 @@ app.post('/api/admin/bot-settings', async (req, res) => {
         const botWinPercent = Number(req.body?.botWinPercent ?? 20);
         const botCardsPerUser = Number(req.body?.botCardsPerUser ?? 2);
         const restrictDepositedWin = Boolean(req.body?.restrictDepositedWin);
-
+        
         const settingsData = {
             botCount,
             botWinPercent,
@@ -485,11 +462,11 @@ app.post('/api/admin/review', async(req,res)=>{
         await db.runTransaction(async tx=>{
             const rs=await tx.get(reqRef); if(!rs.exists||rs.data().status!=='pending') throw new Error('ALREADY_PROCESSED');
             const r=rs.data(); userId=String(r.user_id); const ur=db.collection('users').doc(userId); const us=await tx.get(ur); if(!us.exists) throw new Error('USER_NOT_FOUND'); const u=us.data(); const txs=Array.isArray(u.transactions)?u.transactions:[];
-
+            
             if(type==='deposit'&&approve) {
                 let depositAmount = Number(r.amount);
                 let addBonus = 0;
-
+                
                 const autoBonusSnap = await tx.get(db.collection('settings').doc('auto_bonus'));
                 if (autoBonusSnap.exists) {
                     const ab = autoBonusSnap.data();
@@ -651,7 +628,6 @@ app.get('/api/user-data', async (req, res) => {
     }
 });
 
-// 🟢 የተስተካከለ የሊደርቦርድ API (ተጫዋቾች ትክክለኛ ስማቸው እንዲታይ የተደረገበት)
 app.get('/api/leaderboard', async (req, res) => {
     try {
         const snapshot = await db.collection('users')
@@ -661,10 +637,9 @@ app.get('/api/leaderboard', async (req, res) => {
 
         const leaderboard = snapshot.docs.map(doc => {
             const data = doc.data();
-            let displayName = data.username || data.first_name || 'Player';
-            
+
             return {
-                name: displayName,
+                name: data.username || data.first_name || 'Player',
                 cartels: Number(data.weekly_cartels || 0)
             };
         });
@@ -701,7 +676,7 @@ app.post('/api/send-support', async (req, res) => {
     try {
         await bot.telegram.sendMessage(
             req.telegramUserId,
-            '🎧 እርዳታ ለማግኘት @MELBETTBINGO ያነጋግሩ።'
+            '🎧 እርዳታ ለማግኘት @Melbetsupporter_bot ያነጋግሩ።'
         );
 
         res.json({ status: 'success' });
@@ -743,5 +718,7 @@ const PORT = process.env.PORT || 5500;
 const server = app.listen(PORT, () => {
     console.log(`WebApp API running on port ${PORT}`);
 });
+
+const bot = require('./bot');
 
 module.exports = { app, engine, wallet, server };
