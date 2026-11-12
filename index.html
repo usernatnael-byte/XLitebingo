@@ -158,7 +158,6 @@
         <div class="text-yellow-400 font-bold text-sm mb-1">በዚህ ዙር ካርድ አልመረጡም</div>
         <p class="text-gray-400 mb-2">ቀጣዩ ድል የርስዎ ነው!</p>
         <button onclick="switchPage('home')" class="mt-2 bg-yellow-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">ካርቴል ምረጥ</button>
-
       </div>
       <div id="ticket-matrices-container" class="grid grid-cols-1 gap-3 hidden"></div>
     </div>
@@ -218,7 +217,7 @@
   <div id="page-deposit" class="hidden flex-1 flex-col max-w-md mx-auto w-full p-4 pb-28">
     <button onclick="switchPage('wallet')" class="self-start text-yellow-400 mb-3 font-bold text-xs"><i class="fa-solid fa-arrow-left mr-1"></i>ወደ ዋሌት ተመለስ</button>
     <h2 class="text-xl font-black mb-3 text-yellow-400">📥 በTelebirr ሂሳብ መሙላት</h2>
-    <div class="bg-[#141414] border border-mel-border rounded-2xl p-4 mb-4 text-xs whitespace-pre-line leading-relaxed" id="deposit-instructions">Loading payment details…</div>
+    <div class="bg-[#141414] border border-mel-border rounded-2xl p-4 mb-4 text-xs" id="deposit-instructions">Loading payment details…</div>
     <label class="block text-xs mb-1 text-gray-300">መጠን (ETB)</label>
     <input id="deposit-amount" type="number" min="100" class="w-full rounded-xl bg-[#141414] border border-mel-border p-3 text-white mb-3 text-xs focus:border-yellow-400 outline-none" placeholder="ቢያንስ 100 ETB">
     <label class="block text-xs mb-1 text-gray-300">የክፍያ ማረጋገጫ ቁጥር / Transaction ID</label>
@@ -935,21 +934,44 @@
       }).join('');
     }
 
-   let walletConfig = null;
-async function loadWalletConfig() {
-  try {
-    const d = await api('/api/wallet/config');
-    if (d.status !== 'success') throw new Error();
-    walletConfig = d;
-    
-    // ከሰርቨር የሚመጣውን ንጹህ መመሪያ ብቻ ማሳየት (ተደራራቢ ጽሁፎችን ማስወገድ)
-    const instructions = d.depositInstructions || `💳 በቴሌብር ብቻ ገንዘብ ያስገቡ\n\nየቴሌብር ስም: ${d.telebirrName}\nስልክ ቁጥር: ${d.telebirrNumber}`;
-    document.getElementById('deposit-instructions').innerText = `${instructions}\n\nቢያንስ ሊገባ የሚችለው: ${d.depositMinimum} ETB`;
-    
-    document.getElementById('withdraw-balance').innerText = Number(d.mainBalance).toFixed(2) + ' ETB';
-  } catch(e) {}
-}
+    let walletConfig = null;
+    async function loadWalletConfig() {
+      try {
+        const d = await api('/api/wallet/config');
+        if (d.status !== 'success') throw new Error();
+        walletConfig = d;
+        
+        // ሳቢ፣ ንጹህ እና ማራኪ ዲዛይን (የ \n ችግሮችን በማስወገድ በካርድ መልክ ማሳየት)
+        let name = d.telebirrName || 'Esraeal';
+        let number = d.telebirrNumber || '0949196145';
+        let minDeposit = d.depositMinimum || 100;
 
+        let htmlContent = `
+          <div class="space-y-2">
+            <div class="flex items-center space-x-2 text-yellow-400 font-bold text-xs mb-1">
+              <i class="fa-solid fa-wallet"></i>
+              <span>በቴሌብር ብቻ ገንዘብ ያስገቡ</span>
+            </div>
+            <div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-3 space-y-1.5 font-mono text-xs">
+              <div class="flex justify-between items-center text-gray-300">
+                <span class="text-gray-400">የቴሌብር ስም:</span>
+                <span class="text-yellow-400 font-bold">${esc(name)}</span>
+              </div>
+              <div class="flex justify-between items-center text-gray-300">
+                <span class="text-gray-400">ስልክ ቁጥር:</span>
+                <span class="text-yellow-400 font-bold select-all">${esc(number)}</span>
+              </div>
+              <div class="flex justify-between items-center text-gray-300 pt-1.5 border-t border-mel-border">
+                <span class="text-gray-400">ቢያንስ ሊገባ የሚችለው:</span>
+                <span class="text-white font-bold">${minDeposit} ETB</span>
+              </div>
+            </div>
+          </div>
+        `;
+        document.getElementById('deposit-instructions').innerHTML = htmlContent;
+        document.getElementById('withdraw-balance').innerText = Number(d.mainBalance).toFixed(2) + ' ETB';
+      } catch(e) {}
+    }
     function triggerDeposit() { switchPage('deposit'); }
     function triggerWithdraw() { switchPage('withdraw'); }
 
@@ -980,7 +1002,6 @@ async function loadWalletConfig() {
         });
         
         if(res.status !== 'success') {
-          // ንጹህ የኤረር መልዕክት እንዲታይ ማድረግ
           let cleanMsg = res.message || 'ማውጣት አልተቻለም';
           cleanMsg = cleanMsg.replace(/\[span_\d+\]\(start_span\)|\[span_\d+\]\(end_span\)/g, '').replace(/::$/, '');
           throw new Error(cleanMsg);
