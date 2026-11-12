@@ -7,110 +7,110 @@ const BALLS = 75;
 const matrixCache = {};
 
 const ETHIOPIAN_NAMES = [
-    "Kebede", "Meseret Haile", "Dawit Mekonnen", "Tigist Assefa", "Yonas Tadesse",
-    "Selam Abebe", "Kemal Mohammed", "Helen Yosef", "Natnael Solomon", "Bethelhem Ayalew",
-    "Kalkidan Tesfaye", "Fikru Ayalew", "Mekdes Tadesse", "Samuel Girma", "Elsabet Mebratu",
-    "Mikiyas Tekle", "Haymanot Zewde", "Endale Admasu", "Birhanu Dechasa", "Anwar Yusuf",
-    "Amare Ayalew", "Eyob Kebede", "Adnew Mekonnen", "Belachew Assefa", "Getachew Tadesse",
-    "Sintayehu Mohammed", "Tadesse Yosef", "Teferi Solomon", "Zenebech Ayalew", "Alemayehu Tesfaye",
-    "Beyene Ayalew", "Dessalegn Tadesse", "Eshetu Girma", "Fantahun Mebratu", "Gizaw Tekle",
-    "Habtamu Zewde", "Kebede Admasu", "Linsa Dechasa", "Mohammed Yusuf", "Assefa Kebede",
-    "Tamirat Haile", "Worku Mekonnen", "Yeshihareg Assefa", "Zewde Tadesse", "Abraham Abebe",
-    "Biniyam Mohammed", "Dagmawi Yosef", "Eleni Solomon", "Firon Ayalew", "Geremew Tesfaye",
-    "Hanna Ayalew", "Yordanos Tadesse", "Kokeb Girma", "Lula Mebratu", "Meron Tekle",
-    "Naot Zewde", "Oliyad Admasu", "Petros Dechasa", "Qumneger Yusuf", "Ribka Kebede",
-    "Sendek Haile", "Temesgen Mekonnen", "Wubshet Assefa", "Yacob Tadesse", "Azeb Abebe",
-    "Birtukan Mohammed", "Daniel Yosef", "Ephrem Solomon", "Fasika Ayalew", "Genet Tesfaye",
-    "Hermela Ayalew", "Yodit Tadesse", "Kiros Girma", "Lidiya Mebratu", "Marta Tekle",
-    "Nardos Zewde", "Ornia Admasu", "Paulos Dechasa", "Rahel Yusuf", "Sara Kebede",
-    "Tigist Haile", "Woyintu Mekonnen", "Yared Assefa", "Zeritu Tadesse", "Aklilu Abebe",
-    "Bethelhem Mohammed", "Dawit Yosef", "Eyob Solomon", "Frehiwot Ayalew", "Geremew Kassa",
-    "Haymanot Ayalew", "Yohannes Tadesse", "Kasahun Girma", "Liqemenan Mebratu", "Mesay Tekle",
-    "Nati Zewde", "Endale Kassa", "Paulos Dechasa", "Qonjit Yusuf", "Ruhama Kebede",
-    "Sendek Tadesse", "Tesfaye Mekonnen", "Walelign Assefa", "Yonatan Tadesse", "Abiy Abebe",
-    "Banchialem Mohammed", "Dereje Yosef", "Elias Solomon", "Fiker Ayalew", "Gezahegn Tesfaye",
-    "Habtamu Ayalew", "Yibekal Tadesse", "Kebede Girma", "Lijalem Mebratu", "Mekonnen Tekle",
-    "Nahusenay Zewde", "Oliyad Kassa", "Petros Tadesse", "Qonjitu Yusuf", "Ribka Abebe",
-    "Solomon Haile", "Tefera Mekonnen", "Worke Assefa", "Yacob Kassa", "Amarech Abebe",
-    "Birke Mohammed", "Dagmawi Tadesse", "Ephrem Tadesse", "Fenta Ayalew", "Genet Kassa",
-    "Helen Ayalew", "Yodit Kassa", "Kiros Tadesse", "Lidiya Tadesse", "Marta Abebe",
-    "Nardos Kassa", "Ornia Tadesse", "Paulos Tadesse", "Rahel Abebe", "Sara Kassa",
-    "Tigist Tadesse", "Woyintu Kassa", "Yared Tadesse", "Zeritu Kassa", "Aklilu Tadesse",
-    "Bethelhem Kassa", "Dawit Tadesse", "Eyob Kassa", "Frehiwot Tadesse", "Yohannes Melaku",
-    "Yordanos Zelalem", "Fikadu Anwar", "Teklehaimanot Tesfaye", "Mohammed Bogale", "Jamal Ayele",
-    "Jamal Fikru", "Yonas Zelalem", "Robel Araya", "Dejene Takele", "Anbese Kassa",
-    "Yohannes Tadesse", "Yordanos Elsabet", "Amare Mikias", "Girma Gebru", "Lubaba Dechasa",
-    "Yibekal Endale", "Lucas Helen", "Umer Mekdes", "Worku Tadesse", "Frehiwot Mohammed",
-    "Sultan Samuel", "Girma Bethelhem", "Meseret Bethelhem", "Meseret Araya", "Birhanu Meseret",
-    "Petros Bogale", "Bogale Ayalew", "Migbu Abrha", "Abrha Muluken", "Bilal Mekdes",
-    "Ayele Zewde", "Nasir Ayalew", "Yonas Zewde", "Natnael Girma", "Estifanos Melaku",
-    "Admassu Abebe", "Amina Mohammed", "Maryam Abrha", "Haymanot Kemal", "Yonas Takele",
-    "Abrha Haymanot", "Zelalem Samuel", "Fikadu Mikias", "Hassen Fikadu", "Belachew Admassu",
-    "Ahmed Mekdes", "Worku Mekdes", "Mustefa Muluken", "Mokonnen Samuel", "Kebede Bekele",
-    "Samuel Haymanot", "Tesfaye Meseret", "Mekonnen Abrha", "Yordanos Tigist", "Dejene Abrha",
-    "Alemayehu Bethelhem", "Mebratu Melaku", "Mehari Mohammed", "Tesfaye Takele", "Abeba Mebratu",
-    "Belachew Mohammed", "Emru Bethelhem", "Birtukan Alemayehu", "Aster Alemayehu", "Tsehay Gebru",
-    "Gebru Hailu", "Endale Zewde", "Solomon Abebe", "Abebe Solomon", "Girma Tadesse",
-    "Tadesse Mohammed", "Rahel Helen", "Estifanos Dawit", "Admassu Dessalegn", "Dechasa Anwar",
-    "Lubaba Dessalegn", "Girma Anwar", "Lubaba Fikru", "Mekdes Anwar", "Tesfaye Getachew",
-    "Mehari Dessalegn", "Amina Mikias", "Yosef Kemal", "Genet Abrha", "Mesay Tadesse",
-    "Mikiyas Muluken", "Worku Yusuf", "Melaku Bekele", "Kassa Mebratu", "Ayalew Araya",
-    "Abebe Yusuf", "Mihret Zelalem", "Woldesenbet Mekdes", "Maryam Takele", "Yohannes Zewde",
-    "Ibrahim Mikias", "Sultan Mohammed", "Kebede Elsabet", "Gebru Anwar", "Alemayehu Haile",
-    "Ayele Melaku", "Mesay Kebede", "Bilal Birhanu", "Meseret Kalkidan", "Yordanos Tigist",
-    "Abrha Mebratu", "Lucas Bekele", "Ahmed Birhanu", "Dejene Assefa", "Temesgen Abebe",
-    "Gebru Kebede", "Beinesu Tesfaye", "Paulos Selam", "Melaku Haile", "Belachew Yosef",
-    "Yisak Gebru", "Tsehay Dessalegn", "Mustefa Kebede", "Mesay Yosef", "Bilal Tadesse",
-    "Temesgen Kalkidan", "Genet Tadesse", "Tsehay Tadesse", "Kassa Ayalew", "Birtukan Mekdes",
-    "Aster Getachew", "Girma Kemal", "Amare Worku", "Fikadu Yosef", "Birtukan Gebru",
-    "Temesgen Mekdes", "Kassa Abebe", "Estifanos Tadesse", "Tsehay Helen", "Fatima Mekdes",
-    "Frehiwot Zelalem", "Yisak Mebratu", "Beinesu Fikru", "Haymanot Muluken", "Hanna Yonas",
-    "Dejene Kassa", "Worku Tekle", "Estifanos Kalkidan", "Fikru Selam", "Fikadu Tesfaye",
-    "Tekle Ayalew", "Worku Muluken", "Ali Mekonnen", "Mekonnen Natnael", "Bila Endale",
-    "Mesay Mekdes", "Sendek Yosef", "Fikadu Selam", "Aster Ayele", "Worku Dechasa",
-    "Kassa Gessesse", "Birhanu Tigist", "Ahmed Assefa", "Tigist Abebe", "Tsehay Assefa",
-    "Fatima Melaku", "Yisak Melaku", "Amare Kemal", "Ginbaru Tesfaye", "Estifanos Meseret",
-    "Kebede Tadesse", "Ayalew Bethelhem", "Muluken Kassa", "Teklehaimanot Getachew", "Tekle Assefa",
-    "Estifanos Yonas", "Bekele Muluken", "Woldesenbet Zelalem", "Robel Zewde", "Teklehaimanot Haymanot",
-    "Mohammed Zewde", "Markos Zewde", "Emru Takele", "Sultan Meseret", "Abraham Belachew",
-    "Gebru Fikadu", "Anbese Samuel", "Birhanu Tadesse", "Ayalew Getachew", "Tesfaye Dawit",
-    "Natnael Tadesse", "Dechasa Tekle", "Abebe Mebratu", "Lubaba Mekdes", "Elsabet Getachew",
-    "Yohannes Fikadu", "Jamal Yosef", "Dejene Abebe", "Dechasa Helen", "Abdul Fikru",
-    "Mohammed Admassu", "Nasir Tesfaye", "Elsabet Samuel", "Abrha Bethelhem", "Kemal Tesfaye",
-    "Dessalegn Gebru", "Ali Haymanot", "Maryam Abrha", "Temesgen Mekonnen", "Birhanu Melaku",
-    "Yibekal Assefa", "Worku Birhanu", "Yisak Tadesse", "Yosef Admassu", "Tsehay Tadesse",
-    "Dejene Anwar", "Getachew Kassa", "Birhanu Mebratu", "Elsabet Kassa", "Kemal Mekonnen",
-    "Birhanu Ayele", "Zewde Mebratu", "Bila Abrha", "Kadija Solomon", "Tadesse Kemal",
-    "Sultan Takele", "Abeba Mekonnen", "Tigist Kebede", "Gebremariam Elsabet", "Mekdes Haymanot",
-    "Bethelhem Yonas", "Naol Muluken", "Yibekal Samuel", "Mebratu Alemayehu", "Alemayehu Solomon",
-    "Estifanos Haymanot", "Adanech Natnael", "Natnael Takele", "Emru Mikiyas", "Tigist Alemayehu",
-    "Yusuf Abebe", "Abdul Haymanot", "Tadesse Abebe", "Zewde Assefa", "Mihret Kemal",
-    "Zelalem Endale", "Kassa Helen", "Hermela Takele", "Alemayehu Yosef", "Haile Dechasa",
-    "Girma Yosef", "Mehari Girma", "Takele Getachew", "Gebru Ayalew", "Fatuma Haymanot",
-    "Emebet Bekele", "Abrha Hailu", "Endale Kalkidan", "Mohammed Meseret", "Markos Anwar",
-    "Mustefa Ayalew", "Araya Samuel", "Misrak Selam", "Birtukan Tadesse", "Dessalegn Kassa",
-    "Zelalem Ayele", "Kadija Tigist", "Lubaba Haile", "Ibrahim Takele", "Zelalem Bethelhem",
-    "Assefaw Ayalew", "Kassa Solomon", "Worku Ayele", "Endale Kassa", "Girma Dejene",
-    "Teklehaimanot Samuel", "Tesfaye Elsabet", "Anwar Abebe", "Teklehaimanot Endale", "Selam Admassu",
-    "Lubaba Muluken", "Yusuf Mohammed", "Hanna Melaku", "Aster Tekle", "Yibekal Tigist",
-    "Mokonnen Takele", "Ginbaru Alemayehu", "Yordanos Muluken", "Selam Kalkidan", "Petros Selam",
-    "Yusuf Kassa", "Petros Abrha", "Birtukan Zelalem", "Bekele Getachew", "Yosef Muluken",
-    "Maryam Muluken", "Bitew Kemal", "Kadija Dechasa", "Lubaba Tesfaye", "Woldesenbet Natnael",
-    "Kebede Kassa", "Teklehaimanot Fikadu", "Yusuf Melaku", "Worku Melaku", "Zewde Mekonnen",
-    "Sultan Solomon", "Rahel Alemayehu", "Lucas Gebru", "Mekdes Abebe", "Tigist Ayalew",
-    "Aster Mebratu", "Fatima Gebru", "Lubaba Bethelhem", "Mehari Bethelhem", "Yisak Worku",
-    "Kebede Tekle", "Solomon Kassa", "Aster Assefa", "Abdul Helen", "Lubaba Mikias",
-    "Amina Natnael", "Bekele Haymanot", "Robel Melaku", "Paulos Bethelhem", "Bitew Kalkidan",
-    "Kassa Kemal", "Yibekal Bogale", "Maryam Gebru", "Kemal Birhanu", "Araya Zelalem",
-    "Tekle Endale", "Sultan Yusuf", "Edlem Kebede", "Mekdes Tigist", "Tekle Kassa",
-    "Naol Getachew", "Getachew Abebe", "Emebet Amare", "Dessalegn Mohammed", "Bethelhem Fikadu",
-    "Fatuma Kassa", "Petros Natnael", "Birhanu Worku", "Tesfaye Endale", "Nasir Assefa",
-    "Anwar Selam", "Takele Girma", "Dejene Admassu", "Woldesenbet Kebede", "Bekele Zewde",
-    "Yisak Haile", "Solomon Mikias", "Yibekal Tadesse", "Yohannes Muluken", "Kassa Girma",
-    "Yordanos Tekle", "Kalkidan Mekonnen", "Tigist Endale", "Paulos Kalkidan", "Endale Bekele",
-    "Solomon Meseret", "Woldesenbet Kalkidan", "Abeba Bekele", "Selam Ayalew", "Abdu Yosef",
-    "Skat", "መሰረት ሀይሌ", "ዳዊት መኮንን", "ትግስት አሰፋ", "ዮናስ ታደሰ",
-    "ሰላም አበበ", "ከማል መሀመድ", "ሔለን ዮሴፍ", "ናትናኤል ሰለሞን", "ቤተልሄም አያሌው"
+    "Kebede", "Meseret Haile", "Dawit Mekonnen 🌟", "Tigist Assefa", "Yonas Tadesse",
+"Selam Abebe", "Kemal Mohammed", "Helen Yosef", "Natnael Solomon", "Bethelhem Ayalew 👑",
+"Kalkidan Tesfaye", "Fikru Ayalew", "Mekdes Tadesse", "Samuel Girma", "Elsabet Mebratu",
+"Mikiyas Tekle", "Haymanot Zewde", "Endale Admasu", "Birhanu Dechasa", "Anwar Yusuf 🌙",
+"Amare Ayalew", "Eyob Kebede", "Adnew Mekonnen", "Belachew Assefa", "Getachew Tadesse",
+"Sintayehu Mohammed", "Tadesse Yosef", "Teferi Solomon", "Zenebech Ayalew", "Alemayehu Tesfaye 🌍",
+"Beyene Ayalew", "Dessalegn Tadesse", "Eshetu Girma", "Fantahun Mebratu", "Gizaw Tekle",
+"Habtamu Zewde", "Kebede Admasu", "Linsa Dechasa", "Mohammed Yusuf", "Assefa Kebede",
+"Tamirat Haile", "Worku Mekonnen", "Yeshihareg Assefa", "Zewde Tadesse", "Abraham Abebe",
+"Biniyam Mohammed", "Dagmawi Yosef", "Eleni Solomon", "Firon Ayalew", "Geremew Tesfaye",
+"Hanna Ayalew 🌻", "Yordanos Tadesse", "Kokeb Girma", "Lula Mebratu", "Meron Tekle",
+"Naot Zewde", "Oliyad Admasu", "Petros Dechasa", "Qumneger Yusuf", "Ribka Kebede",
+"Sendek Haile", "Temesgen Mekonnen", "Wubshet Assefa", "Yacob Tadesse", "Azeb Abebe",
+"Birtukan Mohammed", "Daniel Yosef", "Ephrem Solomon 🎸", "Fasika Ayalew", "Genet Tesfaye",
+"Hermela Ayalew", "Yodit Tadesse", "Kiros Girma", "Lidiya Mebratu", "Marta Tekle",
+"Nardos Zewde", "Ornia Admasu", "Paulos Dechasa", "Rahel Yusuf", "Sara Kebede",
+"Tigist Haile", "Woyintu Mekonnen", "Yared Assefa", "Zeritu Tadesse", "Aklilu Abebe",
+"Bethelhem Mohammed", "Dawit Yosef ✨", "Eyob Solomon", "Frehiwot Ayalew", "Geremew Kassa",
+"Haymanot Ayalew", "Yohannes Tadesse", "Kasahun Girma", "Liqemenan Mebratu", "Mesay Tekle",
+"Nati Zewde", "Endale Kassa", "Paulos Dechasa", "Qonjit Yusuf", "Ruhama Kebede",
+"Sendek Tadesse", "Tesfaye Mekonnen", "Walelign Assefa", "Yonatan Tadesse", "Abiy Abebe",
+"Banchialem Mohammed", "Dereje Yosef", "Elias Solomon", "Fiker Ayalew ❤️", "Gezahegn Tesfaye",
+"Habtamu Ayalew", "Yibekal Tadesse", "Kebede Girma", "Lijalem Mebratu", "Mekonnen Tekle",
+"Nahusenay Zewde", "Oliyad Kassa", "Petros Tadesse", "Qonjitu Yusuf", "Ribka Abebe",
+"Solomon Haile", "Tefera Mekonnen", "Worke Assefa", "Yacob Kassa", "Amarech Abebe",
+"Birke Mohammed", "Dagmawi Tadesse", "Ephrem Tadesse", "Fenta Ayalew", "Genet Kassa",
+"Helen Ayalew", "Yodit Kassa", "Kiros Tadesse", "Lidiya Tadesse", "Marta Abebe",
+"Nardos Kassa 💎", "Ornia Tadesse", "Paulos Tadesse", "Rahel Abebe", "Sara Kassa",
+"Tigist Tadesse", "Woyintu Kassa", "Yared Tadesse", "Zeritu Kassa", "Aklilu Tadesse",
+"Bethelhem Kassa", "Dawit Tadesse", "Eyob Kassa", "Frehiwot Tadesse", "Yohannes Melaku",
+"Yordanos Zelalem", "Fikadu Anwar 🔥", "Teklehaimanot Tesfaye", "Mohammed Bogale", "Jamal Ayele",
+"Jamal Fikru", "Yonas Zelalem", "Robel Araya", "Dejene Takele", "Anbese Kassa",
+"Yohannes Tadesse", "Yordanos Elsabet", "Amare Mikias", "Girma Gebru", "Lubaba Dechasa",
+"Yibekal Endale", "Lucas Helen", "Umer Mekdes", "Worku Tadesse", "Frehiwot Mohammed",
+"Sultan Samuel", "Girma Bethelhem", "Meseret Bethelhem", "Meseret Araya", "Birhanu Meseret",
+"Petros Bogale", "Bogale Ayalew", "Migbu Abrha", "Abrha Muluken", "Bilal Mekdes",
+"Ayele Zewde", "Nasir Ayalew", "Yonas Zewde", "Natnael Girma", "Estifanos Melaku",
+"Admassu Abebe", "Amina Mohammed", "Maryam Abrha", "Haymanot Kemal", "Yonas Takele",
+"Abrha Haymanot", "Zelalem Samuel", "Fikadu Mikias", "Hassen Fikadu", "Belachew Admassu",
+"Ahmed Mekdes", "Worku Mekdes", "Mustefa Muluken", "Mokonnen Samuel", "Kebede Bekele",
+"Samuel Haymanot", "Tesfaye Meseret", "Mekonnen Abrha", "Yordanos Tigist", "Dejene Abrha",
+"Alemayehu Bethelhem", "Mebratu Melaku", "Mehari Mohammed", "Tesfaye Takele", "Abeba Mebratu",
+"Belachew Mohammed", "Emru Bethelhem", "Birtukan Alemayehu", "Aster Alemayehu 🚀", "Tsehay Gebru",
+"Gebru Hailu", "Endale Zewde", "Solomon Abebe", "Abebe Solomon", "Girma Tadesse",
+"Tadesse Mohammed", "Rahel Helen", "Estifanos Dawit", "Admassu Dessalegn", "Dechasa Anwar",
+"Lubaba Dessalegn", "Girma Anwar", "Lubaba Fikru", "Mekdes Anwar", "Tesfaye Getachew",
+"Mehari Dessalegn", "Amina Mikias", "Yosef Kemal", "Genet Abrha", "Mesay Tadesse",
+"Mikiyas Muluken", "Worku Yusuf", "Melaku Bekele", "Kassa Mebratu", "Ayalew Araya",
+"Abebe Yusuf", "Mihret Zelalem", "Woldesenbet Mekdes", "Maryam Takele", "Yohannes Zewde",
+"Ibrahim Mikias", "Sultan Mohammed", "Kebede Elsabet", "Gebru Anwar", "Alemayehu Haile",
+"Ayele Melaku", "Mesay Kebede", "Bilal Birhanu", "Meseret Kalkidan 🍀", "Yordanos Tigist",
+"Abrha Mebratu", "Lucas Bekele", "Ahmed Birhanu", "Dejene Assefa", "Temesgen Abebe",
+"Gebru Kebede", "Beinesu Tesfaye", "Paulos Selam", "Melaku Haile", "Belachew Yosef",
+"Yisak Gebru", "Tsehay Dessalegn", "Mustefa Kebede", "Mesay Yosef", "Bilal Tadesse",
+"Temesgen Kalkidan", "Genet Tadesse", "Tsehay Tadesse", "Kassa Ayalew", "Birtukan Mekdes",
+"Aster Getachew", "Girma Kemal", "Amare Worku", "Fikadu Yosef", "Birtukan Gebru",
+"Temesgen Mekdes", "Kassa Abebe", "Estifanos Tadesse", "Tsehay Helen", "Fatima Mekdes",
+"Frehiwot Zelalem", "Yisak Mebratu", "Beinesu Fikru", "Haymanot Muluken", "Hanna Yonas",
+"Dejene Kassa", "Worku Tekle", "Estifanos Kalkidan", "Fikru Selam", "Fikadu Tesfaye",
+"Tekle Ayalew", "Worku Muluken", "Ali Mekonnen", "Mekonnen Natnael", "Bila Endale",
+"Mesay Mekdes", "Sendek Yosef", "Fikadu Selam", "Aster Ayele ⚡", "Worku Dechasa",
+"Kassa Gessesse", "Birhanu Tigist", "Ahmed Assefa", "Tigist Abebe", "Tsehay Assefa",
+"Fatima Melaku", "Yisak Melaku", "Amare Kemal", "Ginbaru Tesfaye", "Estifanos Meseret",
+"Kebede Tadesse", "Ayalew Bethelhem", "Muluken Kassa", "Teklehaimanot Getachew", "Tekle Assefa",
+"Estifanos Yonas", "Bekele Muluken", "Woldesenbet Zelalem", "Robel Zewde", "Teklehaimanot Haymanot",
+"Mohammed Zewde", "Markos Zewde", "Emru Takele", "Sultan Meseret", "Abraham Belachew",
+"Gebru Fikadu", "Anbese Samuel", "Birhanu Tadesse", "Ayalew Getachew", "Tesfaye Dawit",
+"Natnael Tadesse", "Dechasa Tekle", "Abebe Mebratu", "Lubaba Mekdes", "Elsabet Getachew",
+"Yohannes Fikadu", "Jamal Yosef", "Dejene Abebe", "Dechasa Helen", "Abdul Fikru",
+"Mohammed Admassu", "Nasir Tesfaye", "Elsabet Samuel", "Abrha Bethelhem", "Kemal Tesfaye",
+"Dessalegn Gebru", "Ali Haymanot 🎯", "Maryam Abrha", "Temesgen Mekonnen", "Birhanu Melaku",
+"Yibekal Assefa", "Worku Birhanu", "Yisak Tadesse", "Yosef Admassu", "Tsehay Tadesse",
+"Dejene Anwar", "Getachew Kassa", "Birhanu Mebratu", "Elsabet Kassa", "Kemal Mekonnen",
+"Birhanu Ayele", "Zewde Mebratu", "Bila Abrha", "Kadija Solomon", "Tadesse Kemal",
+"Sultan Takele", "Abeba Mekonnen", "Tigist Kebede", "Gebremariam Elsabet", "Mekdes Haymanot",
+"Bethelhem Yonas", "Naol Muluken", "Yibekal Samuel", "Mebratu Alemayehu", "Alemayehu Solomon",
+"Estifanos Haymanot", "Adanech Natnael", "Natnael Takele", "Emru Mikiyas", "Tigist Alemayehu",
+"Yusuf Abebe", "Abdul Haymanot", "Tadesse Abebe", "Zewde Assefa", "Mihret Kemal",
+"Zelalem Endale", "Kassa Helen", "Hermela Takele", "Alemayehu Yosef", "Haile Dechasa",
+"Girma Yosef", "Mehari Girma", "Takele Getachew", "Gebru Ayalew", "Fatuma Haymanot",
+"Emebet Bekele", "Abrha Hailu", "Endale Kalkidan", "Mohammed Meseret", "Markos Anwar",
+"Mustefa Ayalew", "Araya Samuel", "Misrak Selam 💫", "Birtukan Tadesse", "Dessalegn Kassa",
+"Zelalem Ayele", "Kadija Tigist", "Lubaba Haile", "Ibrahim Takele", "Zelalem Bethelhem",
+"Assefaw Ayalew", "Kassa Solomon", "Worku Ayele", "Endale Kassa", "Girma Dejene",
+"Teklehaimanot Samuel", "Tesfaye Elsabet", "Anwar Abebe", "Teklehaimanot Endale", "Selam Admassu",
+"Lubaba Muluken", "Yusuf Mohammed", "Hanna Melaku", "Aster Tekle", "Yibekal Tigist",
+"Mokonnen Takele", "Ginbaru Alemayehu", "Yordanos Muluken", "Selam Kalkidan", "Petros Selam",
+"Yusuf Kassa", "Petros Abrha", "Birtukan Zelalem", "Bekele Getachew", "Yosef Muluken",
+"Maryam Muluken", "Bitew Kemal", "Kadija Dechasa", "Lubaba Tesfaye", "Woldesenbet Natnael",
+"Kebede Kassa", "Teklehaimanot Fikadu", "Yusuf Melaku", "Worku Melaku", "Zewde Mekonnen",
+"Sultan Solomon", "Rahel Alemayehu", "Lucas Gebru", "Mekdes Abebe", "Tigist Ayalew",
+"Aster Mebratu", "Fatima Gebru", "Lubaba Bethelhem", "Mehari Bethelhem", "Yisak Worku",
+"Kebede Tekle", "Solomon Kassa", "Aster Assefa", "Abdul Helen", "Lubaba Mikias",
+"Amina Natnael", "Bekele Haymanot", "Robel Melaku", "Paulos Bethelhem", "Bitew Kalkidan",
+"Kassa Kemal", "Yibekal Bogale", "Maryam Gebru", "Kemal Birhanu", "Araya Zelalem",
+"Tekle Endale", "Sultan Yusuf", "Edlem Kebede", "Mekdes Tigist", "Tekle Kassa",
+"Naol Getachew", "Getachew Abebe", "Emebet Amare", "Dessalegn Mohammed", "Bethelhem Fikadu",
+"Fatuma Kassa", "Petros Natnael", "Birhanu Worku", "Tesfaye Endale", "Nasir Assefa",
+"Anwar Selam", "Takele Girma", "Dejene Admassu", "Woldesenbet Kebede", "Bekele Zewde",
+"Yisak Haile", "Solomon Mikias", "Yibekal Tadesse", "Yohannes Muluken", "Kassa Girma",
+"Yordanos Tekle", "Kalkidan Mekonnen", "Tigist Endale", "Paulos Kalkidan", "Endale Bekele",
+"Solomon Meseret", "Woldesenbet Kalkidan", "Abeba Bekele", "Selam Ayalew", "Abdu Yosef",
+"Skat", "መሰረት ሀይሌ", "ዳዊት መኮንን", "ትግስት አሰፋ", "ዮናስ ታደሰ",
+"ሰላም አበበ", "ከማል መሀመድ", "ሔለን ዮሴፍ", "ናትናኤል ሰለሞን", "ቤተልሄም አያሌው"
 ];
 
 function seededRandom(seed) {
@@ -382,12 +382,10 @@ class GameEngine {
         this.botProfiles = {};
         this.botQueue = [];
 
-        let shuffledNames = [...ETHIOPIAN_NAMES].sort(() => Math.random() - 0.5);
-
         for (let i = 0; i < targetBotCount; i++) {
             const botId = `bot_${i + 1}`;
-            const randomName = shuffledNames[i % shuffledNames.length];
-
+            const randomName = ETHIOPIAN_NAMES[Math.floor(Math.random() * ETHIOPIAN_NAMES.length)] + ` (${Math.floor(Math.random() * 900 + 100)})`;
+            
             this.botProfiles[botId] = { name: randomName };
 
             const howManyCards = Math.floor(Math.random() * cardsPerBot) + 1;
@@ -408,7 +406,7 @@ class GameEngine {
 
         for (let s = 0; s < steps && this.botInjectIndex < this.botQueue.length; s++) {
             const botId = this.botQueue[this.botInjectIndex++];
-
+            
             let availableCartels = [];
             for (let i = 1; i <= CARTEL_COUNT; i++) {
                 if (!this.cartels[i]) availableCartels.push(i);
@@ -417,13 +415,11 @@ class GameEngine {
             if (availableCartels.length === 0) break;
 
             const chosenCartel = availableCartels[Math.floor(Math.random() * availableCartels.length)];
-
-            if (chosenCartel >= 1 && chosenCartel <= CARTEL_COUNT) {
-                const botExistingCount = Object.values(this.cartels).filter(u => u === botId).length;
-                if (botExistingCount < MAX_SELECTION) {
-                    this.cartels[chosenCartel] = botId;
-                    changed = true;
-                }
+            
+            const botExistingCount = Object.values(this.cartels).filter(u => u === botId).length;
+            if (botExistingCount < MAX_SELECTION) {
+                this.cartels[chosenCartel] = botId;
+                changed = true;
             }
         }
 
@@ -567,11 +563,8 @@ class GameEngine {
         let winning = [];
 
         for (let [cartel, uid] of Object.entries(this.cartels)) {
-            const cartelNum = Number(cartel);
-            if (cartelNum >= 1 && cartelNum <= CARTEL_COUNT) {
-                if (checkBingo(generateMatrix(cartelNum), drawnSet)) {
-                    winning.push(cartelNum);
-                }
+            if (checkBingo(generateMatrix(Number(cartel)), drawnSet)) {
+                winning.push(Number(cartel));
             }
         }
 
@@ -579,9 +572,9 @@ class GameEngine {
             const botWinChance = Number(this.botSettings.botWinPercent) || 0;
             if (Math.random() * 100 < botWinChance) {
                 const botCartels = Object.entries(this.cartels)
-                    .filter(([c, u]) => String(u).startsWith('bot_') && Number(c) >= 1 && Number(c) <= CARTEL_COUNT)
+                    .filter(([c, u]) => String(u).startsWith('bot_'))
                     .map(([c]) => Number(c));
-
+                
                 if (botCartels.length > 0) {
                     const chosenBotCartel = botCartels[Math.floor(Math.random() * botCartels.length)];
                     winning.push(chosenBotCartel);
@@ -640,7 +633,6 @@ class GameEngine {
             this.winners = realWinnersList.map(w => {
                 const isBot = String(w.uid).startsWith('bot_');
                 let winnerName = 'Player';
-
                 if (isBot) {
                     winnerName = this.botProfiles[w.uid]?.name || 'ተጫዋች';
                 } else {
@@ -649,7 +641,7 @@ class GameEngine {
 
                 return {
                     uid: w.uid,
-                    cartel: Number(w.cartel),
+                    cartel: w.cartel,
                     prize: share,
                     name: winnerName
                 };
