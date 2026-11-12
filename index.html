@@ -935,16 +935,21 @@
       }).join('');
     }
 
-    let walletConfig = null;
-    async function loadWalletConfig() {
-      try {
-        const d = await api('/api/wallet/config');
-        if (d.status !== 'success') throw new Error();
-        walletConfig = d;
-        document.getElementById('deposit-instructions').innerText = `${d.depositInstructions}\n\nAccount: ${d.telebirrName} (${d.telebirrNumber})\nMinimum: ${d.depositMinimum} ETB`;
-        document.getElementById('withdraw-balance').innerText = Number(d.mainBalance).toFixed(2) + ' ETB';
-      } catch(e) {}
-    }
+   let walletConfig = null;
+async function loadWalletConfig() {
+  try {
+    const d = await api('/api/wallet/config');
+    if (d.status !== 'success') throw new Error();
+    walletConfig = d;
+    
+    // ከሰርቨር የሚመጣውን ንጹህ መመሪያ ብቻ ማሳየት (ተደራራቢ ጽሁፎችን ማስወገድ)
+    const instructions = d.depositInstructions || `💳 በቴሌብር ብቻ ገንዘብ ያስገቡ\n\nየቴሌብር ስም: ${d.telebirrName}\nስልክ ቁጥር: ${d.telebirrNumber}`;
+    document.getElementById('deposit-instructions').innerText = `${instructions}\n\nቢያንስ ሊገባ የሚችለው: ${d.depositMinimum} ETB`;
+    
+    document.getElementById('withdraw-balance').innerText = Number(d.mainBalance).toFixed(2) + ' ETB';
+  } catch(e) {}
+}
+
     function triggerDeposit() { switchPage('deposit'); }
     function triggerWithdraw() { switchPage('withdraw'); }
 
