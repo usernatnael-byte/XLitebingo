@@ -299,26 +299,6 @@ class GameEngine {
     get_state(uid) {
         uid = String(uid);
 
-        // 🟢 የጌም ሩም ዋናውን ኮድ እና ፈንክሽን ፍጹም ሳንነካ፣ ለአድሚን ፓናል ብቻ የሚሆን ተጨማሪ ደህንነቱ የተጠበቀ ቼክ
-        if (uid === 'admin_viewer') {
-            const humanCartels = Object.entries(this.cartels).filter(([c, u]) => !String(u).startsWith('bot_'));
-            const botCartels = Object.entries(this.cartels).filter(([c, u]) => String(u).startsWith('bot_'));
-            const uniqueHumans = new Set(humanCartels.map(([c, u]) => u));
-            const uniqueBots = new Set(botCartels.map(([c, u]) => u));
-
-            return {
-                phase: this.phase,
-                timer: Math.max(0, Math.ceil(this.phase_ends_at - (Date.now() / 1000))),
-                humanCount: uniqueHumans.size,
-                humanCardsCount: humanCartels.length,
-                botCount: uniqueBots.size,
-                botCardsCount: botCartels.length,
-                totalCardsInRoom: Object.keys(this.cartels).length,
-                calledNumbersCount: this.drawn.length,
-                lastCalledNumber: this.drawn.length > 0 ? this.drawn[this.drawn.length - 1] : null
-            };
-        }
-
         let mine = Object.keys(this.cartels)
             .filter(c => this.cartels[c] === uid)
             .map(Number);
