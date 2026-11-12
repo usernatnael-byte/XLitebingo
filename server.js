@@ -1,4 +1,4 @@
-const express = require('express');
+lconst express = require('express');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
@@ -162,9 +162,10 @@ app.use('/api', requireTelegramUser);
 
 const DEPOSIT_MINIMUM = Math.max(100, Number(process.env.DEPOSIT_MINIMUM_ETB || 100));
 const WITHDRAW_MINIMUM = Math.max(100, Number(process.env.WITHDRAW_MINIMUM_ETB || 100));
-const TELEBIRR_NAME = process.env.TELEBIRR_ACCOUNT_NAME || 'Esraeal';
-const TELEBIRR_NUMBER = process.env.TELEBIRR_ACCOUNT_NUMBER || '0949196145';
-const DEPOSIT_INSTRUCTIONS = process.env.DEPOSIT_INSTRUCTIONS || `Telebirr ስም: ${TELEBIRR_NAME}\nቁጥር: ${TELEBIRR_NUMBER}`;
+// የተደራረበውን ችግር ለማጥፋት የቴሌብር መረጃዎችን በአንድ ቦታ በግልጽ ማስቀመጥ
+const TELEBIRR_NAME = 'እስራኤል';
+const TELEBIRR_NUMBER = '0949196145';
+const DEPOSIT_INSTRUCTIONS = `💳 በቴሌብር ብቻ ገንዘብ ያስገቡ\n\nየቴሌብር ስም: ${TELEBIRR_NAME}\nስልክ ቁጥር: ${TELEBIRR_NUMBER}`;
 const ADMIN_IDS = new Set([...(process.env.ADMIN_ID || '7396414604').split(','), ...(process.env.ADMIN_IDS || '').split(',')].map(v => v.trim()).filter(Boolean));
 
 app.get('/api/wallet/history', async (req,res) => {
