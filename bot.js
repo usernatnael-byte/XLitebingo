@@ -110,6 +110,133 @@ async function showMainMenu(ctx) {
     );
 }
 
+// ==================== ADMIN APPROVE & REJECT COMMANDS ====================
+
+bot.command('approve', async (ctx) => {
+    if (!isAdmin(ctx)) return;
+    const args = ctx.message.text.split(' ');
+    const reqId = args[1];
+    if (!reqId) return ctx.reply('⚠️ እባክዎ ጥያቄ ቁጥር (Request ID) ያስገቡ።\nምሳሌ: /approve 4503');
+
+    try {
+        // 1. ዲፖዚት ጥያቄዎችን በ req_id መፈለግ
+        let qSnap = await db.collection('deposit_requests').where('req_id', '==', reqId).get();
+        
+        if (!qSnap.empty) {
+            const docSnap = qSnap.docs[0];
+            const docRef = docSnap.ref;
+            const data = docSnap.data();
+            if (data.status === 'approved') return ctx.reply('⚠️ ይህ ጥያቄ ቀድሞ ጸድቋል።');
+
+            const userId = data.user_id;
+            const amount = Number(data.amount || 0);
+            const userRef = db.collection('users').doc(userId);
+
+            await db.runTransaction(async (tx) => {
+                const userSnap = await tx.get(userRef);
+                if (!userSnap.exists) throw new Error('USER_NOT_FOUND');
+                const uData = userSnap.data();
+
+                const currentBalance = Number(uData.balance || 0);
+                const newBalance = currentBalance + amount;
+
+                tx.update(userRef, {
+                    balance: newBalance,
+                    has_deposited: true,
+                    transactions: [
+                        ...(uData.transactions || []),
+                        {
+                            type: 'deposit',
+                            amount: amount,
+                            timestamp: new Date().toISOString()
+                        }
+                    ]
+                });
+
+                tx.update(docRef, { status: 'approved' });
+            });
+
+            await ctx.reply(`✅ የዲፖዚት ጥያቄ #${reqId} ተጸድቆ ${amount} ብር ለተጠቃሚው ተጭኗል!`);
+            await bot.telegram.sendMessage(userId, `🎉 የ ${amount} ብር የዲፖዚት ጥያቄዎ በአድሚን ጸድቋል! አካውንትዎ ላይ ተጭኗል።`).catch(() => {});
+            return;
+        }
+
+        // 2. ዊዝድሮው ጥያቄዎችን በ req_id መፈለግ
+        let wSnap = await db.collection('withdrawal_requests').where('req_id', '==', reqId).get();
+
+        if (!wSnap.empty) {
+            const docSnap = wSnap.docs[0];
+            const wRef = docSnap.ref;
+            const wData = docSnap.data();
+            if (wData.status === 'approved') return ctx.reply('⚠️ ይህ የዊዝድሮው ጥያቄ ቀድሞ ጸድቋል።');
+
+            await wRef.update({ status: 'approved' });
+            await ctx.reply(`✅ የዊዝድሮው ጥያቄ #${reqId} ጸድቋል!`);
+            await bot.telegram.sendMessage(wData.user_id, `🎉 የ ${wData.amount} ብር የገንዘብ ማውጣት (Withdrawal) ጥያቄዎ ጸድቆ ተልኳል!`).catch(() => {});
+            return;
+        }
+
+        return ctx.reply(`❌ ጥያቄ ቁጥር #${reqId} አልተገኘም!`);
+
+    } catch (e) {
+        console.error('Approve command error:', e);
+        ctx.reply('⚠️ ስህተት ተፈጥሯል: ' + e.message);
+    }
+});
+
+bot.command('reject', async (ctx) => {
+    if (!isAdmin(ctx)) return;
+    const textParts = ctx.message.text.split(' ');
+    const reqId = textParts[1];
+    const reason = textParts.slice(2).join(' ') || 'ምንም ምክንያት አልተሰጠም';
+
+    if (!reqId) return ctx.reply('⚠️ እባክዎ ጥያቄ ቁጥር እና ምክንያት ያስገቡ።\nምሳሌ: /reject 4503 የተሳሳተ ትራንዛክሽን');
+
+    try {
+        let qSnap = await db.collection('deposit_requests').where('req_id', '==', reqId).get();
+
+        if (!qSnap.empty) {
+            const docSnap = qSnap.docs[0];
+            const data = docSnap.data();
+            await docSnap.ref.update({ status: 'rejected', reject_reason: reason });
+            await ctx.reply(`❌ የዲፖዚት ጥያቄ #${reqId} ተሰርዟል።`);
+            await bot.telegram.sendMessage(data.user_id, `❌ የዲፖዚት ጥያቄዎ ውድቅ ተደርጓል።\nምክንያት: ${reason}`).catch(() => {});
+            return;
+        }
+
+        let wSnap = await db.collection('withdrawal_requests').where('req_id', '==', reqId).get();
+
+        if (!wSnap.empty) {
+            const docSnap = wSnap.docs[0];
+            const wData = docSnap.data();
+            const userId = wData.user_id;
+            const amount = Number(wData.amount || 0);
+            const userRef = db.collection('users').doc(userId);
+
+            await db.runTransaction(async (tx) => {
+                const userSnap = await tx.get(userRef);
+                if (userSnap.exists) {
+                    const uData = userSnap.data();
+                    tx.update(userRef, {
+                        balance: Number(uData.balance || 0) + amount
+                    });
+                }
+                tx.update(docSnap.ref, { status: 'rejected', reject_reason: reason });
+            });
+
+            await ctx.reply(`❌ የዊዝድሮው ጥያቄ #${reqId} ተሰርዟል (ገንዘቡ ተመላሽ ሆኗል)።`);
+            await bot.telegram.sendMessage(userId, `❌ የገንዘብ ማውጣት ጥያቄዎ ውድቅ ተደርጓል (ገንዘቡ ወደ አካውንትዎ ተመልሷል)።\nምክንያት: ${reason}`).catch(() => {});
+            return;
+        }
+
+        return ctx.reply(`❌ ጥያቄ ቁጥር #${reqId} አልተገኘም!`);
+
+    } catch (e) {
+        console.error('Reject command error:', e);
+        ctx.reply('⚠️ ስህተት ተፈጥሯል: ' + e.message);
+    }
+});
+
 // Handle callback queries for the primary inline menu buttons
 bot.on('callback_query', async (ctx) => {
     const action = ctx.callbackQuery?.data;
@@ -118,7 +245,6 @@ bot.on('callback_query', async (ctx) => {
 
     if (!action || !chatId) return;
 
-    // 🛑  ശ്രദ്ധ፦ verify_channel የተስተካከለው የራሱ የተለየ ሐንድለር ስላለው እዚህ እንዳይቋረጥ ተደርጓል
     if (
         action.startsWith('dp_') ||
         action.startsWith('wd_')
@@ -133,7 +259,6 @@ bot.on('callback_query', async (ctx) => {
     if (action === 'verify_channel') {
         await ctx.answerCbQuery();
 
-        // 1. ተጠቃሚው በእርግጥ ቻናሉን መቀላቀሉን ቼክ ማድረግ
         const isMember = await isChannelMember(ctx);
         if (!isMember) {
             return ctx.reply('❌ እስካሁን ቻናሉን አልተቀላቀሉም። እባክዎ መጀመሪያ ቻናሉን ይቀላቀሉ።', 
@@ -144,18 +269,15 @@ bot.on('callback_query', async (ctx) => {
             );
         }
 
-        // 2. ቻናሉን ተቀላቅሎ ከተገኘ ዳታቤዝ ላይ ቻናል ጆይን መደረጉን ማዘመን
         await db.collection('users').doc(userId).set({
             channel_joined: true
         }, { merge: true });
 
-        // 3. ተጠቃሚው ስልክ ቁጥር አለው ወይስ የለውም ማረጋገጥ (የሌለው ከሆነ ስልክ ቁጥር እንዲያጋራ መጠየቅ)
         const doc = await db.collection('users').doc(userId).get();
         if (!doc.exists || !doc.data().phone_number) {
             return askForContact(ctx);
         }
 
-        // 4. ሁለቱም ካሉ ወደ ዋናው መነሻ ማኑ መውሰድ
         return showMainMenu(ctx);
     }
 
@@ -346,6 +468,26 @@ bot.start(async ctx => {
     }
 });
 
+bot.action('verify_channel', async ctx => {
+    await ctx.answerCbQuery();
+
+    if (!await isChannelMember(ctx)) {
+        return ctx.reply('❌ ገና ቻናሉን አልተቀላቀሉም። ቻናሉን ይቀላቀሉና እንደገና ይሞክሩ።');
+    }
+
+    const doc = await db.collection('users').doc(String(ctx.from.id)).get();
+
+    if (!doc.exists || !doc.data().phone_number) {
+        return askForContact(ctx);
+    }
+
+    await db.collection('users').doc(String(ctx.from.id)).set({
+        channel_joined: true
+    }, { merge: true });
+
+    await showMainMenu(ctx);
+});
+
 bot.on('contact', async ctx => {
     try {
         const contact = ctx.message.contact;
@@ -418,8 +560,10 @@ bot.on('text', async ctx => {
         }
 
         const proofRef = db.collection('deposit_requests').doc();
+        const shortReqId = Math.floor(1000 + Math.random() * 9000).toString();
 
         await proofRef.set({
+            req_id: shortReqId,
             user_id: String(ctx.from.id),
             amount: amountProof,
             receipt_text: ctx.message.text.slice(0, 1500),
@@ -430,19 +574,19 @@ bot.on('text', async ctx => {
         ctx.session.flow = null;
         ctx.session.depositAmount = null;
 
-        await ctx.reply('✅ የክፍያ SMS/Transaction መረጃዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Bonus Balance ይጨመራል።');
+        await ctx.reply('✅ የክፍያ SMS/Transaction መረጃዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Main Balance ይጨመራል።');
+
+        const adminMsgText = 
+            `🔔 አዲስ ገቢ ጥያቄ #${shortReqId} (Mini App)\n` +
+            `ተጠቃሚ: ${ctx.from.first_name || 'User'} (${ctx.from.username ? '@' + ctx.from.username : 'id:' + ctx.from.id}, id:${ctx.from.id})\n` +
+            `መንገድ: telebirr\n` +
+            `መጠን: ${amountProof} ብር\n` +
+            `ዝርዝር: ${ctx.message.text.slice(0, 500)}\n\n` +
+            `ለማጽደቅ: /approve ${shortReqId}\n` +
+            `ለመሰረዝ: /reject ${shortReqId} <ምክንያት>`;
 
         for (const aid of ADMIN_ID_LIST) {
-            await bot.telegram.sendMessage(
-                aid,
-                `📥 Deposit request\nUser: ${ctx.from.id}\nAmount: ${money(amountProof)}\nSMS: ${ctx.message.text.slice(0, 1000)}\nRequest: ${proofRef.id}`,
-                Markup.inlineKeyboard([
-                    [
-                        Markup.button.callback('✅ Approve', `dp_ok_${proofRef.id}`),
-                        Markup.button.callback('❌ Reject', `dp_no_${proofRef.id}`)
-                    ]
-                ])
-            ).catch(() => {});
+            await bot.telegram.sendMessage(aid, adminMsgText).catch(() => {});
         }
 
         return;
@@ -471,6 +615,7 @@ bot.on('text', async ctx => {
         const amount2 = Number(ctx.session.withdrawAmount || 0);
         const userRef = db.collection('users').doc(uid);
         const requestRef = db.collection('withdrawal_requests').doc();
+        const shortReqId = Math.floor(1000 + Math.random() * 9000).toString();
 
         try {
             await db.runTransaction(async tx => {
@@ -500,6 +645,7 @@ bot.on('text', async ctx => {
                 });
 
                 tx.set(requestRef, {
+                    req_id: shortReqId,
                     user_id: uid,
                     player_name: d.first_name || ctx.from.first_name || '',
                     username: d.username || ctx.from.username || '',
@@ -518,19 +664,17 @@ bot.on('text', async ctx => {
 
             await ctx.reply('✅ የWithdrawal ጥያቄዎ ወደ Admin Panel ተልኳል። አድሚኑ ካጸደቀ በኋላ ክፍያውን በTelebirr ይልካል።');
 
-            const saved = await requestRef.get();
+            const adminMsgText = 
+                `🔔 አዲስ የገንዘብ ማውጣት (Withdraw) ጥያቄ #${shortReqId}\n` +
+                `ተጠቃሚ: ${ctx.from.first_name || 'User'} (${ctx.from.username ? '@' + ctx.from.username : 'id:' + uid}, id:${uid})\n` +
+                `መጠን: ${amount2} ብር\n` +
+                `ስም: ${ctx.session.withdrawName}\n` +
+                `አካውንት: ${ctx.session.withdrawAccount}\n\n` +
+                `ለማጽደቅ: /approve ${shortReqId}\n` +
+                `ለመሰረዝ: /reject ${shortReqId} <ምክንያት>`;
 
             for (const aid of ADMIN_ID_LIST) {
-                await bot.telegram.sendMessage(
-                    aid,
-                    `📤 Withdrawal request\nUser: ${uid}\nName: ${saved.data()?.payout_name}\nTelebirr: ${saved.data()?.payout_account}\nAmount: ${money(amount2)}\nRequest: ${requestRef.id}`,
-                    Markup.inlineKeyboard([
-                        [
-                            Markup.button.callback('✅ Approve', `wd_ok_${requestRef.id}`),
-                            Markup.button.callback('❌ Reject', `wd_no_${requestRef.id}`)
-                        ]
-                    ])
-                ).catch(() => {});
+                await bot.telegram.sendMessage(aid, adminMsgText).catch(() => {});
             }
 
         } catch (e) {
@@ -597,8 +741,10 @@ bot.on('photo', async ctx => {
     }
 
     const ref = db.collection('deposit_requests').doc();
+    const shortReqId = Math.floor(1000 + Math.random() * 9000).toString();
 
     await ref.set({
+        req_id: shortReqId,
         user_id: String(ctx.from.id),
         amount,
         photo_file_id: ctx.message.photo.at(-1).file_id,
@@ -610,22 +756,22 @@ bot.on('photo', async ctx => {
     ctx.session.depositAmount = null;
 
     await ctx.reply(
-        '✅ የDeposit ማረጋገጫዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Bonus Balance ይጨመራል።'
+        '✅ የDeposit ማረጋገጫዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Main Balance ይጨመራል።'
     );
+
+    const adminMsgText = 
+        `🔔 አዲስ ገቢ ጥያቄ #${shortReqId} (ፎቶ - Mini App)\n` +
+        `ተጠቃሚ: ${ctx.from.first_name || 'User'} (${ctx.from.username ? '@' + ctx.from.username : 'id:' + ctx.from.id}, id:${ctx.from.id})\n` +
+        `መንገድ: telebirr\n` +
+        `መጠን: ${amount} ብር\n\n` +
+        `ለማጽደቅ: /approve ${shortReqId}\n` +
+        `ለመሰረዝ: /reject ${shortReqId} <ምክንያት>`;
 
     for (const aid of ADMIN_ID_LIST) {
         await bot.telegram.sendPhoto(
             aid,
             ctx.message.photo.at(-1).file_id,
-            {
-                caption: `📥 Deposit request (Photo)\nUser: ${ctx.from.id}\nAmount: ${money(amount)}\nRequest: ${ref.id}`,
-                reply_markup: Markup.inlineKeyboard([
-                    [
-                        Markup.button.callback('✅ Approve', `dp_ok_${ref.id}`),
-                        Markup.button.callback('❌ Reject', `dp_no_${ref.id}`)
-                    ]
-                ]).reply_markup
-            }
+            { caption: adminMsgText }
         ).catch(() => {});
     }
 });
