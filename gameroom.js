@@ -1,4 +1,4 @@
-Const TICKET_PRICE = 10;
+const TICKET_PRICE = 10;
 const PRIZE_PER_CARTEL = 8;
 const MAX_SELECTION = 4;
 const CARTEL_COUNT = 500;
