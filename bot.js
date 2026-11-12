@@ -16,7 +16,6 @@ const DEPOSIT_MINIMUM = Math.max(100, Number(process.env.DEPOSIT_MINIMUM_ETB || 
 const WITHDRAW_MINIMUM = Math.max(1, Number(process.env.WITHDRAW_MINIMUM_ETB || 100));
 const DEPOSIT_INSTRUCTIONS = process.env.DEPOSIT_INSTRUCTIONS ||
     '💰 ሂሳብ ለመሙላት Telebirr ይምረጡ።\n\nአነስተኛ መጠን: 100 ETB\n👤 ስም: Esraeal\n📱 አካውንት: 0949196145\n\nብሩን ከላኩ በኋላ የክፍያ ማረጋገጫ SMS ወይም የደረሰኝ ፎቶ (Screenshot) ይላኩ። አድሚኑ ካረጋገጠው በኋላ Bonus Balance ይጨመራል።';
-const ADMIN_ID = (process.env.ADMIN_ID || '7396414604').split(',')[0].trim();
 const ADMIN_ID_LIST = [...new Set([...ADMIN_IDS])];
 
 const SUPPORT_CONTACT = process.env.SUPPORT_CONTACT || '@Melbetsupporter_bot';
@@ -28,12 +27,19 @@ if (!CHANNEL_ID || !CHANNEL_URL) {
 const bot = new Telegraf(BOT_TOKEN);
 bot.use(session());
 
+// 🛡️ ግሎባል ቴሌግራም ደህንነት ማስተካከያ (ብሎክ ያደረጉ ተጠቃሚዎች ሰርቨሩን እንዳይዘጉት)
+bot.catch((err, ctx) => {
+    console.error(`Telegram Bot Error for update ${ctx.update?.update_id || 'unknown'}:`, err?.message || err);
+});
+
 bot.use(async (ctx, next) => {
     if (!ctx.from || String(ctx.from.id) === '') return next();
     if (ADMIN_IDS.has(String(ctx.from.id))) return next();
     try {
         const snap = await db.collection('users').doc(String(ctx.from.id)).get();
-        if (snap.exists && snap.data().blocked) return ctx.reply('⛔ የመለያዎ መዳረሻ በአድሚን ታግዷል።');
+        if (snap.exists && snap.data().blocked) {
+            return ctx.reply('⛔ የመለያዎ መዳረሻ በአድሚን ታግዷል።').catch(() => {});
+        }
     } catch (e) { console.error('Block status check failed:', e.message); }
     return next();
 });
@@ -69,7 +75,7 @@ async function askToJoin(ctx) {
             [Markup.button.url('📢 ቻናሉን ተቀላቀል', CHANNEL_URL)],
             [Markup.button.callback('✅ MELBET ቻናሉን ተቀላቅያለሁ', 'verify_channel')]
         ])
-    );
+    ).catch(e => console.warn('askToJoin failed:', e.message));
 }
 
 function askForContact(ctx) {
@@ -78,7 +84,7 @@ function askForContact(ctx) {
         Markup.keyboard([
             [Markup.button.contactRequest('📱 ስልክ ቁጥሮን አጋራ')]
         ]).resize().oneTime()
-    );
+    ).catch(e => console.warn('askForContact failed:', e.message));
 }
 
 async function showMainMenu(ctx) {
@@ -107,7 +113,7 @@ async function showMainMenu(ctx) {
     await ctx.reply(
         'MelBet ከታች ካሉት አማራጮች ይምረጡ።',
         { reply_markup: replyMarkup }
-    );
+    ).catch(e => console.warn('showMainMenu failed:', e.message));
 }
 
 // ==================== ADMIN APPROVE & REJECT COMMANDS ====================
@@ -119,9 +125,8 @@ bot.command('approve', async (ctx) => {
     if (!reqId) return ctx.reply('⚠️ እባክዎ ጥያቄ ቁጥር (Request ID) ያስገቡ።\nምሳሌ: /approve 4503');
 
     try {
-        // 1. ዲፖዚት ጥያቄዎችን በ req_id መፈለግ
         let qSnap = await db.collection('deposit_requests').where('req_id', '==', reqId).get();
-        
+
         if (!qSnap.empty) {
             const docSnap = qSnap.docs[0];
             const docRef = docSnap.ref;
@@ -161,7 +166,6 @@ bot.command('approve', async (ctx) => {
             return;
         }
 
-        // 2. ዊዝድሮው ጥያቄዎችን በ req_id መፈለግ
         let wSnap = await db.collection('withdrawal_requests').where('req_id', '==', reqId).get();
 
         if (!wSnap.empty) {
@@ -237,7 +241,6 @@ bot.command('reject', async (ctx) => {
     }
 });
 
-// Handle callback queries for the primary inline menu buttons
 bot.on('callback_query', async (ctx) => {
     const action = ctx.callbackQuery?.data;
     const chatId = ctx.callbackQuery?.message?.chat?.id;
@@ -245,10 +248,7 @@ bot.on('callback_query', async (ctx) => {
 
     if (!action || !chatId) return;
 
-    if (
-        action.startsWith('dp_') ||
-        action.startsWith('wd_')
-    ) {
+    if (action.startsWith('dp_') || action.startsWith('wd_')) {
         return;
     }
 
@@ -257,7 +257,7 @@ bot.on('callback_query', async (ctx) => {
     }
 
     if (action === 'verify_channel') {
-        await ctx.answerCbQuery();
+        await ctx.answerCbQuery().catch(() => {});
 
         const isMember = await isChannelMember(ctx);
         if (!isMember) {
@@ -266,7 +266,7 @@ bot.on('callback_query', async (ctx) => {
                     [Markup.button.url('📢 ቻናሉን ተቀላቀል', CHANNEL_URL)],
                     [Markup.button.callback('✅ MELBET ቻናሉን ተቀላቅያለሁ', 'verify_channel')]
                 ])
-            );
+            ).catch(() => {});
         }
 
         await db.collection('users').doc(userId).set({
@@ -288,7 +288,7 @@ bot.on('callback_query', async (ctx) => {
             return ctx.telegram.sendMessage(
                 chatId,
                 'መጀመሪያ /start በመላክ ይመዝገቡ።'
-            );
+            ).catch(() => {});
         }
 
         const d = snap.data();
@@ -299,7 +299,7 @@ bot.on('callback_query', async (ctx) => {
             `💵 Main Balance: ${money(d.balance)}\n` +
             `🎁 Bonus Balance: ${money(d.bonus)}\n` +
             `💳 Deposit አድርገዋል: ${d.has_deposited ? 'አዎ' : 'ገና አይደለም'}`
-        );
+        ).catch(() => {});
     }
 
     if (action === 'refer') {
@@ -315,7 +315,7 @@ bot.on('callback_query', async (ctx) => {
                     `https://t.me/share/url?url=${encodeURIComponent(link)}`
                 )]
             ])
-        );
+        ).catch(() => {});
     }
 
     if (action === 'rules') {
@@ -326,14 +326,14 @@ bot.on('callback_query', async (ctx) => {
             '• Bonus Balance ቀድሞ ይቀነሳል፤ ቀሪው ከMain Balance ይቀነሳል።\n' +
             '• የጨዋታ ሽልማት ወደ Main Balance ይገባል።\n' +
             '• ገንዘብ ለማውጣት ቢያንስ አንድ ጊዜ Deposit ማድረግ ያስፈልጋል።'
-        );
+        ).catch(() => {});
     }
 
     if (action === 'support') {
         return ctx.telegram.sendMessage(
             chatId,
             `🎧 እርዳታ ለማግኘት ${SUPPORT_CONTACT} ያነጋግሩ።`
-        );
+        ).catch(() => {});
     }
 });
 
@@ -463,29 +463,8 @@ bot.start(async ctx => {
 
     } catch (e) {
         console.error('/start error:', e);
-
-        ctx.reply('⚠️ ጊዜያዊ ችግር ተፈጥሯል። እባክዎ /start እንደገና ይላኩ።');
+        ctx.reply('⚠️ ጊዜያዊ ችግር ተፈጥሯል። እባክዎ /start እንደገና ይላኩ።').catch(() => {});
     }
-});
-
-bot.action('verify_channel', async ctx => {
-    await ctx.answerCbQuery();
-
-    if (!await isChannelMember(ctx)) {
-        return ctx.reply('❌ ገና ቻናሉን አልተቀላቀሉም። ቻናሉን ይቀላቀሉና እንደገና ይሞክሩ።');
-    }
-
-    const doc = await db.collection('users').doc(String(ctx.from.id)).get();
-
-    if (!doc.exists || !doc.data().phone_number) {
-        return askForContact(ctx);
-    }
-
-    await db.collection('users').doc(String(ctx.from.id)).set({
-        channel_joined: true
-    }, { merge: true });
-
-    await showMainMenu(ctx);
 });
 
 bot.on('contact', async ctx => {
@@ -493,7 +472,7 @@ bot.on('contact', async ctx => {
         const contact = ctx.message.contact;
 
         if (String(contact.user_id) !== String(ctx.from.id)) {
-            return ctx.reply('⚠️ እባክዎ የራስዎን ስልክ ቁጥር ብቻ ያጋሩ።');
+            return ctx.reply('⚠️ እባክዎ የራስዎን ስልክ ቁጥር ብቻ ያጋሩ።').catch(() => {});
         }
 
         if (!await isChannelMember(ctx)) {
@@ -511,40 +490,23 @@ bot.on('contact', async ctx => {
 
     } catch (e) {
         console.error('Contact registration error:', e);
-
-        ctx.reply('⚠️ ምዝገባው አልተሳካም። እባክዎ እንደገና ይሞክሩ።');
+        ctx.reply('⚠️ ምዝገባው አልተሳካም። እባክዎ እንደገና ይሞክሩ።').catch(() => {});
     }
 });
 
-async function beginWalletFlow(ctx, action) {
-    if (action === 'deposit') {
-        ctx.session.flow = 'deposit_amount';
-        return ctx.reply(`💰 ሂሳብ ለመሙላት የክፍያ አማራጭ: Telebirr\n\n${DEPOSIT_INSTRUCTIONS}\n\nእባክዎ የሚፈልጉትን መጠን በETB ያስገቡ (አነስተኛ ${DEPOSIT_MINIMUM} ETB)።\n/cancel ለመሰረዝ።`);
-    }
-
-    const ref = db.collection('users').doc(String(ctx.from.id));
-    const snap = await ref.get();
-
-    if (!snap.exists || !snap.data().has_deposited) {
-        return ctx.reply('⛔ ገንዘብ ለማውጣት መጀመሪያ ቢያንስ አንድ ጊዜ Deposit ማድረግ አለብዎት።');
-    }
-
-    ctx.session.flow = 'withdraw_amount';
-
-    return ctx.reply(`📤 ለማውጣት የሚፈልጉትን መጠን በETB ያስገቡ።\nዝቅተኛ Withdrawal: ${money(WITHDRAW_MINIMUM)}\nMain Balance: ${money(snap.data().balance)}\n/cancel ለመሰረዝ።`);
-}
-
 bot.command('cancel', ctx => {
+    if (!ctx.session) ctx.session = {};
     ctx.session.flow = null;
     ctx.session.depositAmount = null;
     ctx.session.withdrawAmount = null;
     ctx.session.withdrawName = null;
     ctx.session.withdrawAccount = null;
 
-    ctx.reply('ተሰርዟል።');
+    ctx.reply('ተሰርዟል።').catch(() => {});
 });
 
 bot.on('text', async ctx => {
+    if (!ctx.session) ctx.session = {};
     const flow = ctx.session?.flow;
 
     if (!flow || ctx.message.text.startsWith('/')) return;
@@ -556,7 +518,7 @@ bot.on('text', async ctx => {
 
         if (!amountProof) {
             ctx.session.flow = null;
-            return ctx.reply('Deposit እንደገና ይጀምሩ።');
+            return ctx.reply('Deposit እንደገና ይጀምሩ።').catch(() => {});
         }
 
         const proofRef = db.collection('deposit_requests').doc();
@@ -574,7 +536,7 @@ bot.on('text', async ctx => {
         ctx.session.flow = null;
         ctx.session.depositAmount = null;
 
-        await ctx.reply('✅ የክፍያ SMS/Transaction መረጃዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Main Balance ይጨመራል።');
+        await ctx.reply('✅ የክፍያ SMS/Transaction መረጃዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Main Balance ይጨመራል።').catch(() => {});
 
         const adminMsgText = 
             `🔔 አዲስ ገቢ ጥያቄ #${shortReqId} (Mini App)\n` +
@@ -596,19 +558,19 @@ bot.on('text', async ctx => {
         const parts = ctx.message.text.trim().split(/\s*\|\s*/);
 
         if (parts.length < 2 || parts[0].length < 2 || parts[1].length < 5) {
-            return ctx.reply('እባክዎ በዚህ ቅርጽ ይላኩ፦ ስም | Telebirr ቁጥር\nምሳሌ: Natnael | 09XXXXXXXX');
+            return ctx.reply('እባክዎ በዚህ ቅርጽ ይላኩ፦ ስም | Telebirr ቁጥር\nምሳሌ: Natnael | 09XXXXXXXX').catch(() => {});
         }
 
         ctx.session.withdrawName = parts[0].slice(0, 80);
         ctx.session.withdrawAccount = parts[1].slice(0, 40);
         ctx.session.flow = 'withdraw_confirm';
 
-        return ctx.reply(`እባክዎ የWithdrawal መረጃዎን ያረጋግጡ፦\nስም: ${ctx.session.withdrawName}\nTelebirr: ${ctx.session.withdrawAccount}\n\nለመቀጠል CONFIRM ይጻፉ፣ ለመሰረዝ /cancel ይጻፉ።`);
+        return ctx.reply(`እባክዎ የWithdrawal መረጃዎን ያረጋግጡ፦\nስም: ${ctx.session.withdrawName}\nTelebirr: ${ctx.session.withdrawAccount}\n\nለመቀጠል CONFIRM ይጻፉ፣ ለመሰረዝ /cancel ይጻፉ።`).catch(() => {});
     }
 
     if (flow === 'withdraw_confirm') {
         if (ctx.message.text.trim().toUpperCase() !== 'CONFIRM') {
-            return ctx.reply('ለማረጋገጥ CONFIRM ይጻፉ ወይም /cancel ይጠቀሙ።');
+            return ctx.reply('ለማረጋገጥ CONFIRM ይጻፉ ወይም /cancel ይጠቀሙ።').catch(() => {});
         }
 
         const uid = String(ctx.from.id);
@@ -662,7 +624,7 @@ bot.on('text', async ctx => {
             ctx.session.flow = null;
             ctx.session.withdrawAmount = null;
 
-            await ctx.reply('✅ የWithdrawal ጥያቄዎ ወደ Admin Panel ተልኳል። አድሚኑ ካጸደቀ በኋላ ክፍያውን በTelebirr ይልካል።');
+            await ctx.reply('✅ የWithdrawal ጥያቄዎ ወደ Admin Panel ተልኳል። አድሚኑ ካጸደቀ በኋላ ክፍያውን በTelebirr ይልካል።').catch(() => {});
 
             const adminMsgText = 
                 `🔔 አዲስ የገንዘብ ማውጣት (Withdraw) ጥያቄ #${shortReqId}\n` +
@@ -685,7 +647,7 @@ bot.on('text', async ctx => {
                 e.message === 'INSUFFICIENT_BALANCE'
                     ? '❌ Main Balance በቂ አይደለም።'
                     : '⚠️ Withdrawal አልተሳካም።'
-            );
+            ).catch(() => {});
         }
 
         return;
@@ -693,13 +655,13 @@ bot.on('text', async ctx => {
 
     if (flow === 'deposit_amount' || flow === 'withdraw_amount') {
         if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) {
-            return ctx.reply('እባክዎ ትክክለኛ የETB መጠን ያስገቡ።');
+            return ctx.reply('እባክዎ ትክክለኛ የETB መጠን ያስገቡ።').catch(() => {});
         }
     }
 
     if (flow === 'deposit_amount') {
         if (amount < DEPOSIT_MINIMUM) {
-            return ctx.reply(`❌ አነስተኛ Deposit ${DEPOSIT_MINIMUM} ETB ነው። እባክዎ እንደገና ያስገቡ።`);
+            return ctx.reply(`❌ አነስተኛ Deposit ${DEPOSIT_MINIMUM} ETB ነው። እባክዎ እንደገና ያስገቡ።`).catch(() => {});
         }
 
         ctx.session.flow = null;
@@ -708,36 +670,37 @@ bot.on('text', async ctx => {
 
         return ctx.reply(
             `የDeposit መጠን ${money(amount)} ተቀብለናል። እባክዎ የክፍያ SMS ጽሑፍ ወይም የደረሰኝ ፎቶ (Screenshot) ይላኩ።`
-        );
+        ).catch(() => {});
     }
 
     if (flow === 'withdraw_amount') {
         if (amount < WITHDRAW_MINIMUM) {
-            return ctx.reply(`❌ ዝቅተኛ Withdrawal ${WITHDRAW_MINIMUM} ETB ነው።`);
+            return ctx.reply(`❌ ዝቅተኛ Withdrawal ${WITHDRAW_MINIMUM} ETB ነው።`).catch(() => {});
         }
 
         const amount2 = Math.round(amount * 100) / 100;
         const snap = await db.collection('users').doc(String(ctx.from.id)).get();
 
         if (!snap.exists || Number(snap.data().balance || 0) < amount2) {
-            return ctx.reply('❌ Main Balance በቂ አይደለም።');
+            return ctx.reply('❌ Main Balance በቂ አይደለም።').catch(() => {});
         }
 
         ctx.session.withdrawAmount = amount2;
         ctx.session.flow = 'withdraw_details';
 
-        return ctx.reply('የTelebirr ተቀባይ ስምዎን እና ቁጥርዎን በዚህ ቅርጽ ይላኩ፦\nስም | 09XXXXXXXX');
+        return ctx.reply('የTelebirr ተቀባይ ስምዎን እና ቁጥርዎን በዚህ ቅርጽ ይላኩ፦\nስም | 09XXXXXXXX').catch(() => {});
     }
 });
 
 bot.on('photo', async ctx => {
+    if (!ctx.session) ctx.session = {};
     if (ctx.session?.flow !== 'deposit_proof') return;
 
     const amount = Number(ctx.session.depositAmount || 0);
 
     if (!amount) {
         ctx.session.flow = null;
-        return ctx.reply('እባክዎ Deposit እንደገና ይጀምሩ።');
+        return ctx.reply('እባክዎ Deposit እንደገና ይጀምሩ።').catch(() => {});
     }
 
     const ref = db.collection('deposit_requests').doc();
@@ -757,7 +720,7 @@ bot.on('photo', async ctx => {
 
     await ctx.reply(
         '✅ የDeposit ማረጋገጫዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Main Balance ይጨመራል።'
-    );
+    ).catch(() => {});
 
     const adminMsgText = 
         `🔔 አዲስ ገቢ ጥያቄ #${shortReqId} (ፎቶ - Mini App)\n` +
