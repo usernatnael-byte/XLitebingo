@@ -163,9 +163,10 @@ app.use('/api', requireTelegramUser);
 const DEPOSIT_MINIMUM = Math.max(100, Number(process.env.DEPOSIT_MINIMUM_ETB || 100));
 const WITHDRAW_MINIMUM = Math.max(100, Number(process.env.WITHDRAW_MINIMUM_ETB || 100));
 // የተደራረበውን ችግር ለማጥፋት የቴሌብር መረጃዎችን በአንድ ቦታ በግልጽ ማስቀመጥ
-const TELEBIRR_NAME = 'እስራኤል';
-const TELEBIRR_NUMBER = '0949196145';
-const DEPOSIT_INSTRUCTIONS = `💳 በቴሌብር ብቻ ገንዘብ ያስገቡ\n\nየቴሌብር ስም: ${TELEBIRR_NAME}\nስልክ ቁጥር: ${TELEBIRR_NUMBER}`;
+// ከ Environment Variables ብቻ እንዲያነብ ማድረግ (በሃርድኮድ ምንም አናስገባም)
+const TELEBIRR_NAME = process.env.TELEBIRR_ACCOUNT_NAME || '';
+const TELEBIRR_NUMBER = process.env.TELEBIRR_ACCOUNT_NUMBER || '';
+const DEPOSIT_INSTRUCTIONS = process.env.DEPOSIT_INSTRUCTIONS || `💳 በቴሌብር ብቻ ገንዘብ ያስገቡ\n\nየቴሌብር ስም: ${TELEBIRR_NAME}\nስልክ ቁጥር: ${TELEBIRR_NUMBER}`;
 const ADMIN_IDS = new Set([...(process.env.ADMIN_ID || '7396414604').split(','), ...(process.env.ADMIN_IDS || '').split(',')].map(v => v.trim()).filter(Boolean));
 
 app.get('/api/wallet/history', async (req,res) => {
