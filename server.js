@@ -282,18 +282,42 @@ function requireAdmin(req, res, next) {
 }
 app.use('/api/admin', requireAdmin);
 
-// 🟢 አዲስ የላይቭ ጌም/ሩም መረጃ ማሳያ API (Live Game State for Admin)
+// 🟢 የተሟላ የላይቭ ጌም እና የካርቴል መረጃ API (Live Game & Cards State for Admin)
 app.get('/api/admin/live-game', async (req, res) => {
     try {
         const state = engine.get_state ? engine.get_state('admin_viewer') : {};
+        
+        // ከ GameEngine የሚመጡትን ትክክለኛ መረጃዎች እናወጣለን
+        const humanPlayers = Array.isArray(state.players) ? state.players : [];
+        const humanCount = humanPlayers.length;
+        
+        // እውነተኛ ተጫዋቾች የያዙትን ጠቅላላ ካርቴሎች ቁጥር እናሰላለን
+        let humanCardsTotal = 0;
+        for(const p of humanPlayers) {
+            if (Array.isArray(p.cards)) {
+                humanCardsTotal += p.cards.length;
+            } else if (typeof p.cards === 'number') {
+                humanCardsTotal += p.cards;
+            } else if (p.selected_cartels) {
+                humanCardsTotal += p.selected_cartels.length;
+            }
+        }
+
+        // የቦቶች ቁጥር እና የያዟቸው ካርቴሎች
+        const botCount = Number(state.bot_count || state.botsCount || state.bots?.length || 0);
+        const botCardsPerUser = Number(state.bot_cards_per_user || 2);
+        const botCardsTotal = state.bot_cards_total !== undefined ? Number(state.bot_cards_total) : (botCount * botCardsPerUser);
+
         res.json({
             status: 'success',
             live: {
-                phase: state.phase || 'unknown',
-                timer: state.timer || 0,
-                humanPlayersCount: Array.isArray(state.players) ? state.players.length : (state.human_count || 0),
-                botCount: state.bot_count || state.botsCount || 0,
-                totalCardsInRoom: state.total_cards || 0,
+                phase: state.phase || 'Waiting',
+                timer: Number(state.timer || 0),
+                humanCount: humanCount,
+                humanCardsCount: humanCardsTotal,
+                botCount: botCount,
+                botCardsCount: botCardsTotal,
+                totalCardsInRoom: humanCardsTotal + botCardsTotal,
                 calledNumbersCount: Array.isArray(state.called_numbers) ? state.called_numbers.length : 0,
                 lastCalledNumber: state.last_number || state.called_number || null
             }
