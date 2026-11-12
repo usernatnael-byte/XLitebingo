@@ -7,37 +7,37 @@ const BALLS = 75;
 const matrixCache = {};
 
 const ETHIOPIAN_NAMES = [
-    "Kebede", "Meseret Haile", "Dawit Mekonnen 🌟", "Tigist Assefa", "Yonas Tadesse",
-    "Selam Abebe", "Kemal Mohammed", "Helen Yosef", "Natnael Solomon", "Bethelhem Ayalew 👑",
+    "Kebede", "Meseret Haile", "Dawit Mekonnen", "Tigist Assefa", "Yonas Tadesse",
+    "Selam Abebe", "Kemal Mohammed", "Helen Yosef", "Natnael Solomon", "Bethelhem Ayalew",
     "Kalkidan Tesfaye", "Fikru Ayalew", "Mekdes Tadesse", "Samuel Girma", "Elsabet Mebratu",
-    "Mikiyas Tekle", "Haymanot Zewde", "Endale Admasu", "Birhanu Dechasa", "Anwar Yusuf 🌙",
+    "Mikiyas Tekle", "Haymanot Zewde", "Endale Admasu", "Birhanu Dechasa", "Anwar Yusuf",
     "Amare Ayalew", "Eyob Kebede", "Adnew Mekonnen", "Belachew Assefa", "Getachew Tadesse",
-    "Sintayehu Mohammed", "Tadesse Yosef", "Teferi Solomon", "Zenebech Ayalew", "Alemayehu Tesfaye 🌍",
+    "Sintayehu Mohammed", "Tadesse Yosef", "Teferi Solomon", "Zenebech Ayalew", "Alemayehu Tesfaye",
     "Beyene Ayalew", "Dessalegn Tadesse", "Eshetu Girma", "Fantahun Mebratu", "Gizaw Tekle",
     "Habtamu Zewde", "Kebede Admasu", "Linsa Dechasa", "Mohammed Yusuf", "Assefa Kebede",
     "Tamirat Haile", "Worku Mekonnen", "Yeshihareg Assefa", "Zewde Tadesse", "Abraham Abebe",
     "Biniyam Mohammed", "Dagmawi Yosef", "Eleni Solomon", "Firon Ayalew", "Geremew Tesfaye",
-    "Hanna Ayalew 🌻", "Yordanos Tadesse", "Kokeb Girma", "Lula Mebratu", "Meron Tekle",
+    "Hanna Ayalew", "Yordanos Tadesse", "Kokeb Girma", "Lula Mebratu", "Meron Tekle",
     "Naot Zewde", "Oliyad Admasu", "Petros Dechasa", "Qumneger Yusuf", "Ribka Kebede",
     "Sendek Haile", "Temesgen Mekonnen", "Wubshet Assefa", "Yacob Tadesse", "Azeb Abebe",
-    "Birtukan Mohammed", "Daniel Yosef", "Ephrem Solomon 🎸", "Fasika Ayalew", "Genet Tesfaye",
+    "Birtukan Mohammed", "Daniel Yosef", "Ephrem Solomon", "Fasika Ayalew", "Genet Tesfaye",
     "Hermela Ayalew", "Yodit Tadesse", "Kiros Girma", "Lidiya Mebratu", "Marta Tekle",
     "Nardos Zewde", "Ornia Admasu", "Paulos Dechasa", "Rahel Yusuf", "Sara Kebede",
     "Tigist Haile", "Woyintu Mekonnen", "Yared Assefa", "Zeritu Tadesse", "Aklilu Abebe",
-    "Bethelhem Mohammed", "Dawit Yosef ✨", "Eyob Solomon", "Frehiwot Ayalew", "Geremew Kassa",
+    "Bethelhem Mohammed", "Dawit Yosef", "Eyob Solomon", "Frehiwot Ayalew", "Geremew Kassa",
     "Haymanot Ayalew", "Yohannes Tadesse", "Kasahun Girma", "Liqemenan Mebratu", "Mesay Tekle",
     "Nati Zewde", "Endale Kassa", "Paulos Dechasa", "Qonjit Yusuf", "Ruhama Kebede",
     "Sendek Tadesse", "Tesfaye Mekonnen", "Walelign Assefa", "Yonatan Tadesse", "Abiy Abebe",
-    "Banchialem Mohammed", "Dereje Yosef", "Elias Solomon", "Fiker Ayalew ❤️", "Gezahegn Tesfaye",
+    "Banchialem Mohammed", "Dereje Yosef", "Elias Solomon", "Fiker Ayalew", "Gezahegn Tesfaye",
     "Habtamu Ayalew", "Yibekal Tadesse", "Kebede Girma", "Lijalem Mebratu", "Mekonnen Tekle",
     "Nahusenay Zewde", "Oliyad Kassa", "Petros Tadesse", "Qonjitu Yusuf", "Ribka Abebe",
     "Solomon Haile", "Tefera Mekonnen", "Worke Assefa", "Yacob Kassa", "Amarech Abebe",
     "Birke Mohammed", "Dagmawi Tadesse", "Ephrem Tadesse", "Fenta Ayalew", "Genet Kassa",
     "Helen Ayalew", "Yodit Kassa", "Kiros Tadesse", "Lidiya Tadesse", "Marta Abebe",
-    "Nardos Kassa 💎", "Ornia Tadesse", "Paulos Tadesse", "Rahel Abebe", "Sara Kassa",
+    "Nardos Kassa", "Ornia Tadesse", "Paulos Tadesse", "Rahel Abebe", "Sara Kassa",
     "Tigist Tadesse", "Woyintu Kassa", "Yared Tadesse", "Zeritu Kassa", "Aklilu Tadesse",
     "Bethelhem Kassa", "Dawit Tadesse", "Eyob Kassa", "Frehiwot Tadesse", "Yohannes Melaku",
-    "Yordanos Zelalem", "Fikadu Anwar 🔥", "Teklehaimanot Tesfaye", "Mohammed Bogale", "Jamal Ayele",
+    "Yordanos Zelalem", "Fikadu Anwar", "Teklehaimanot Tesfaye", "Mohammed Bogale", "Jamal Ayele",
     "Jamal Fikru", "Yonas Zelalem", "Robel Araya", "Dejene Takele", "Anbese Kassa",
     "Yohannes Tadesse", "Yordanos Elsabet", "Amare Mikias", "Girma Gebru", "Lubaba Dechasa",
     "Yibekal Endale", "Lucas Helen", "Umer Mekdes", "Worku Tadesse", "Frehiwot Mohammed",
@@ -49,7 +49,7 @@ const ETHIOPIAN_NAMES = [
     "Ahmed Mekdes", "Worku Mekdes", "Mustefa Muluken", "Mokonnen Samuel", "Kebede Bekele",
     "Samuel Haymanot", "Tesfaye Meseret", "Mekonnen Abrha", "Yordanos Tigist", "Dejene Abrha",
     "Alemayehu Bethelhem", "Mebratu Melaku", "Mehari Mohammed", "Tesfaye Takele", "Abeba Mebratu",
-    "Belachew Mohammed", "Emru Bethelhem", "Birtukan Alemayehu", "Aster Alemayehu 🚀", "Tsehay Gebru",
+    "Belachew Mohammed", "Emru Bethelhem", "Birtukan Alemayehu", "Aster Alemayehu", "Tsehay Gebru",
     "Gebru Hailu", "Endale Zewde", "Solomon Abebe", "Abebe Solomon", "Girma Tadesse",
     "Tadesse Mohammed", "Rahel Helen", "Estifanos Dawit", "Admassu Dessalegn", "Dechasa Anwar",
     "Lubaba Dessalegn", "Girma Anwar", "Lubaba Fikru", "Mekdes Anwar", "Tesfaye Getachew",
@@ -57,7 +57,7 @@ const ETHIOPIAN_NAMES = [
     "Mikiyas Muluken", "Worku Yusuf", "Melaku Bekele", "Kassa Mebratu", "Ayalew Araya",
     "Abebe Yusuf", "Mihret Zelalem", "Woldesenbet Mekdes", "Maryam Takele", "Yohannes Zewde",
     "Ibrahim Mikias", "Sultan Mohammed", "Kebede Elsabet", "Gebru Anwar", "Alemayehu Haile",
-    "Ayele Melaku", "Mesay Kebede", "Bilal Birhanu", "Meseret Kalkidan 🍀", "Yordanos Tigist",
+    "Ayele Melaku", "Mesay Kebede", "Bilal Birhanu", "Meseret Kalkidan", "Yordanos Tigist",
     "Abrha Mebratu", "Lucas Bekele", "Ahmed Birhanu", "Dejene Assefa", "Temesgen Abebe",
     "Gebru Kebede", "Beinesu Tesfaye", "Paulos Selam", "Melaku Haile", "Belachew Yosef",
     "Yisak Gebru", "Tsehay Dessalegn", "Mustefa Kebede", "Mesay Yosef", "Bilal Tadesse",
@@ -67,7 +67,7 @@ const ETHIOPIAN_NAMES = [
     "Frehiwot Zelalem", "Yisak Mebratu", "Beinesu Fikru", "Haymanot Muluken", "Hanna Yonas",
     "Dejene Kassa", "Worku Tekle", "Estifanos Kalkidan", "Fikru Selam", "Fikadu Tesfaye",
     "Tekle Ayalew", "Worku Muluken", "Ali Mekonnen", "Mekonnen Natnael", "Bila Endale",
-    "Mesay Mekdes", "Sendek Yosef", "Fikadu Selam", "Aster Ayele ⚡", "Worku Dechasa",
+    "Mesay Mekdes", "Sendek Yosef", "Fikadu Selam", "Aster Ayele", "Worku Dechasa",
     "Kassa Gessesse", "Birhanu Tigist", "Ahmed Assefa", "Tigist Abebe", "Tsehay Assefa",
     "Fatima Melaku", "Yisak Melaku", "Amare Kemal", "Ginbaru Tesfaye", "Estifanos Meseret",
     "Kebede Tadesse", "Ayalew Bethelhem", "Muluken Kassa", "Teklehaimanot Getachew", "Tekle Assefa",
@@ -77,7 +77,7 @@ const ETHIOPIAN_NAMES = [
     "Natnael Tadesse", "Dechasa Tekle", "Abebe Mebratu", "Lubaba Mekdes", "Elsabet Getachew",
     "Yohannes Fikadu", "Jamal Yosef", "Dejene Abebe", "Dechasa Helen", "Abdul Fikru",
     "Mohammed Admassu", "Nasir Tesfaye", "Elsabet Samuel", "Abrha Bethelhem", "Kemal Tesfaye",
-    "Dessalegn Gebru", "Ali Haymanot 🎯", "Maryam Abrha", "Temesgen Mekonnen", "Birhanu Melaku",
+    "Dessalegn Gebru", "Ali Haymanot", "Maryam Abrha", "Temesgen Mekonnen", "Birhanu Melaku",
     "Yibekal Assefa", "Worku Birhanu", "Yisak Tadesse", "Yosef Admassu", "Tsehay Tadesse",
     "Dejene Anwar", "Getachew Kassa", "Birhanu Mebratu", "Elsabet Kassa", "Kemal Mekonnen",
     "Birhanu Ayele", "Zewde Mebratu", "Bila Abrha", "Kadija Solomon", "Tadesse Kemal",
@@ -88,7 +88,7 @@ const ETHIOPIAN_NAMES = [
     "Zelalem Endale", "Kassa Helen", "Hermela Takele", "Alemayehu Yosef", "Haile Dechasa",
     "Girma Yosef", "Mehari Girma", "Takele Getachew", "Gebru Ayalew", "Fatuma Haymanot",
     "Emebet Bekele", "Abrha Hailu", "Endale Kalkidan", "Mohammed Meseret", "Markos Anwar",
-    "Mustefa Ayalew", "Araya Samuel", "Misrak Selam 💫", "Birtukan Tadesse", "Dessalegn Kassa",
+    "Mustefa Ayalew", "Araya Samuel", "Misrak Selam", "Birtukan Tadesse", "Dessalegn Kassa",
     "Zelalem Ayele", "Kadija Tigist", "Lubaba Haile", "Ibrahim Takele", "Zelalem Bethelhem",
     "Assefaw Ayalew", "Kassa Solomon", "Worku Ayele", "Endale Kassa", "Girma Dejene",
     "Teklehaimanot Samuel", "Tesfaye Elsabet", "Anwar Abebe", "Teklehaimanot Endale", "Selam Admassu",
@@ -386,8 +386,8 @@ class GameEngine {
 
         for (let i = 0; i < targetBotCount; i++) {
             const botId = `bot_${i + 1}`;
-            let baseName = shuffledNames[i % shuffledNames.length];
-            const randomName = `${baseName} (${Math.floor(Math.random() * 900 + 100)})`;
+            // የቦቱን ስም ብቻ እንወስዳለን (ምንም አይነት ቁጥር እና ቅንፍ አናስገባም)
+            const randomName = shuffledNames[i % shuffledNames.length];
 
             this.botProfiles[botId] = { name: randomName };
 
