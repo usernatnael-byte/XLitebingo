@@ -6,7 +6,6 @@ const FirestoreWallet = require('./users');
 const { GameEngine } = require('./gameroom');
 const { admin, db } = require('./firebase');
 
-// 🛑 ሰርቨሩ በድንገት እንዳይጠፋ (Crash እንዳያደርግ) ግሎባል ኤረር ማስተካከያ
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);
 });
@@ -24,7 +23,6 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// ⚡ ቦቱን አስቀድመን እንጥራለን (ሰርቨሩ ከመጀመሩ በፊት እንዲዘጋጅ)
 const bot = require('./bot');
 
 function verifyTelegramInitData(initData) {
@@ -284,6 +282,28 @@ function requireAdmin(req, res, next) {
 }
 app.use('/api/admin', requireAdmin);
 
+// 🟢 አዲስ የላይቭ ጌም/ሩም መረጃ ማሳያ API (Live Game State for Admin)
+app.get('/api/admin/live-game', async (req, res) => {
+    try {
+        const state = engine.get_state ? engine.get_state('admin_viewer') : {};
+        res.json({
+            status: 'success',
+            live: {
+                phase: state.phase || 'unknown',
+                timer: state.timer || 0,
+                humanPlayersCount: Array.isArray(state.players) ? state.players.length : (state.human_count || 0),
+                botCount: state.bot_count || state.botsCount || 0,
+                totalCardsInRoom: state.total_cards || 0,
+                calledNumbersCount: Array.isArray(state.called_numbers) ? state.called_numbers.length : 0,
+                lastCalledNumber: state.last_number || state.called_number || null
+            }
+        });
+    } catch (e) {
+        console.error('live-game api error:', e);
+        res.status(500).json({ status: 'error', message: 'Could not fetch live game state.' });
+    }
+});
+
 app.get('/api/admin/bot-settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('bot_settings').get();
@@ -513,7 +533,7 @@ app.post('/api/admin/review', async(req,res)=>{
         const amountLabel = `${Number(reviewed.amount || 0).toFixed(2)} ETB`;
         const refLabel = `Request ID: ${id}`;
         const notice = type === 'deposit'
-            ? `${approve ? '✅ DEPOSIT APPROVED' : '❌ DEPOSIT REJECTED'}\nAmount: ${amountLabel}\n${refLabel}\n${approve ? 'Bonus Balance ላይ ተጨምሯል።' : 'እባክዎ የክፍያ መረጃውን ያረጋግጡ ወይም Admin ያነጋግጡ።'}`
+            ? `${approve ? '✅ DEPOSIT APPROVED' : '❌ DEPOSIT REJECTED'}\nAmount: ${amountLabel}\n${refLabel}\n${approve ? 'Bonus Balance ላይ ተጨምሯል።' : 'እባክዎ የክፍያ መረጃውን ያረጋግጡ ወይም Admin ያነጋግሩ።'}`
             : `${approve ? '✅ WITHDRAWAL APPROVED' : '❌ WITHDRAWAL REJECTED'}\nAmount: ${amountLabel}\n${refLabel}\n${approve ? 'ጥያቄው ተፈቅዷል፤ Admin በTelebirr ክፍያው ይልካል።' : 'ገንዘቡ ወደ Main Balance ተመልሷል።'}`;
         await bot.telegram.sendMessage(userId, notice).catch(e=>console.warn('wallet review notification failed:',e.message));
         res.json({status:'success'});
