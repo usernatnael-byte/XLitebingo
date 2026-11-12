@@ -81,8 +81,6 @@ function askForContact(ctx) {
     );
 }
 
-
-
 async function showMainMenu(ctx) {
     const replyMarkup = {
         inline_keyboard: [
@@ -112,10 +110,7 @@ async function showMainMenu(ctx) {
     );
 }
 
-
-
-// Handle callback queries for the primary inline menu buttons (ዳታቤዝ እና ሌሎች ሎጂኮች)
-
+// Handle callback queries for the primary inline menu buttons
 bot.on('callback_query', async (ctx) => {
     const action = ctx.callbackQuery?.data;
     const chatId = ctx.callbackQuery?.message?.chat?.id;
@@ -123,15 +118,46 @@ bot.on('callback_query', async (ctx) => {
 
     if (!action || !chatId) return;
 
+    // 🛑  ശ്രദ്ധ፦ verify_channel የተስተካከለው የራሱ የተለየ ሐንድለር ስላለው እዚህ እንዳይቋረጥ ተደርጓል
     if (
-        action === 'verify_channel' ||
         action.startsWith('dp_') ||
         action.startsWith('wd_')
     ) {
         return;
     }
 
-    await ctx.answerCbQuery().catch(() => {});
+    if (action !== 'verify_channel') {
+        await ctx.answerCbQuery().catch(() => {});
+    }
+
+    if (action === 'verify_channel') {
+        await ctx.answerCbQuery();
+
+        // 1. ተጠቃሚው በእርግጥ ቻናሉን መቀላቀሉን ቼክ ማድረግ
+        const isMember = await isChannelMember(ctx);
+        if (!isMember) {
+            return ctx.reply('❌ እስካሁን ቻናሉን አልተቀላቀሉም። እባክዎ መጀመሪያ ቻናሉን ይቀላቀሉ።', 
+                Markup.inlineKeyboard([
+                    [Markup.button.url('📢 ቻናሉን ተቀላቀል', CHANNEL_URL)],
+                    [Markup.button.callback('✅ MELBET ቻናሉን ተቀላቅያለሁ', 'verify_channel')]
+                ])
+            );
+        }
+
+        // 2. ቻናሉን ተቀላቅሎ ከተገኘ ዳታቤዝ ላይ ቻናል ጆይን መደረጉን ማዘመን
+        await db.collection('users').doc(userId).set({
+            channel_joined: true
+        }, { merge: true });
+
+        // 3. ተጠቃሚው ስልክ ቁጥር አለው ወይስ የለውም ማረጋገጥ (የሌለው ከሆነ ስልክ ቁጥር እንዲያጋራ መጠየቅ)
+        const doc = await db.collection('users').doc(userId).get();
+        if (!doc.exists || !doc.data().phone_number) {
+            return askForContact(ctx);
+        }
+
+        // 4. ሁለቱም ካሉ ወደ ዋናው መነሻ ማኑ መውሰድ
+        return showMainMenu(ctx);
+    }
 
     if (action === 'account') {
         const snap = await db.collection('users').doc(userId).get();
@@ -318,27 +344,6 @@ bot.start(async ctx => {
 
         ctx.reply('⚠️ ጊዜያዊ ችግር ተፈጥሯል። እባክዎ /start እንደገና ይላኩ።');
     }
-});
-
-
-bot.action('verify_channel', async ctx => {
-    await ctx.answerCbQuery();
-
-    if (!await isChannelMember(ctx)) {
-        return ctx.reply('❌ ገና ቻናሉን አልተቀላቀሉም። ቻናሉን ይቀላቀሉና እንደገና ይሞክሩ።');
-    }
-
-    const doc = await db.collection('users').doc(String(ctx.from.id)).get();
-
-    if (!doc.exists || !doc.data().phone_number) {
-        return askForContact(ctx);
-    }
-
-    await db.collection('users').doc(String(ctx.from.id)).set({
-        channel_joined: true
-    }, { merge: true });
-
-    await showMainMenu(ctx);
 });
 
 bot.on('contact', async ctx => {
@@ -613,146 +618,25 @@ bot.on('photo', async ctx => {
             aid,
             ctx.message.photo.at(-1).file_id,
             {
-                caption:
-                    `📥 Deposit request\n` +
-                    `User: ${ctx.from.id}\n` +
-                    `Amount: ${money(amount)}\n` +
-                    `Request: ${ref.id}`,
-                ...Markup.inlineKeyboard([
+                caption: `📥 Deposit request (Photo)\nUser: ${ctx.from.id}\nAmount: ${money(amount)}\nRequest: ${ref.id}`,
+                reply_markup: Markup.inlineKeyboard([
                     [
                         Markup.button.callback('✅ Approve', `dp_ok_${ref.id}`),
                         Markup.button.callback('❌ Reject', `dp_no_${ref.id}`)
                     ]
-                ])
+                ]).reply_markup
             }
-        );
+        ).catch(() => {});
     }
 });
 
-async function reviewRequest(ctx, type, id, approve) {
-    if (!isAdmin(ctx)) {
-        return ctx.answerCbQuery('Not authorized', { show_alert: true });
-    }
+bot.launch().then(() => {
+    console.log('Telegram bot is running...');
+}).catch(err => {
+    console.error('Failed to launch bot:', err);
+});
 
-    const collection = type === 'deposit'
-        ? 'deposit_requests'
-        : 'withdrawal_requests';
-
-    const reqRef = db.collection(collection).doc(id);
-
-    try {
-        await db.runTransaction(async tx => {
-            const reqSnap = await tx.get(reqRef);
-
-            if (!reqSnap.exists || reqSnap.data().status !== 'pending') {
-                throw new Error('ALREADY_PROCESSED');
-            }
-
-            const r = reqSnap.data();
-
-            const userRef = db.collection('users').doc(String(r.user_id));
-            const userSnap = await tx.get(userRef);
-
-            if (!userSnap.exists) throw new Error('USER_NOT_FOUND');
-
-            const d = userSnap.data();
-
-            if (type === 'deposit' && approve) {
-                tx.update(userRef, {
-                    bonus: Number(d.bonus || 0) + Number(r.amount),
-                    has_deposited: true,
-                    first_deposit_at: d.first_deposit_at || Date.now(),
-                    transactions: [
-                        ...(d.transactions || []),
-                        {
-                            type: 'deposit',
-                            wallet: 'bonus',
-                            amount: Number(r.amount),
-                            request_id: id,
-                            timestamp: new Date().toISOString()
-                        }
-                    ]
-                });
-            }
-
-            if (type === 'withdrawal' && !approve) {
-                tx.update(userRef, {
-                    balance: Number(d.balance || 0) + Number(r.amount),
-                    transactions: [
-                        ...(d.transactions || []),
-                        {
-                            type: 'withdrawal_refund',
-                            amount: Number(r.amount),
-                            request_id: id,
-                            timestamp: new Date().toISOString()
-                        }
-                    ]
-                });
-            }
-
-            tx.update(reqRef, {
-                status: approve ? 'approved' : 'rejected',
-                reviewed_at: Date.now(),
-                reviewed_by: String(ctx.from.id)
-            });
-        });
-
-        await ctx.answerCbQuery(approve ? 'Approved' : 'Rejected');
-
-        await ctx.editMessageCaption(
-            `${ctx.callbackQuery.message.caption || ''}\n\nStatus: ${approve ? 'APPROVED' : 'REJECTED'}`
-        ).catch(() =>
-            ctx.editMessageText(
-                `${ctx.callbackQuery.message.text || ''}\n\nStatus: ${approve ? 'APPROVED' : 'REJECTED'}`
-            ).catch(() => {})
-        );
-
-        const snap = await reqRef.get();
-
-        const reviewed = snap.data() || {};
-        const amountLabel = money(reviewed.amount || 0);
-
-        const notice = type === 'deposit'
-            ? `${approve ? '✅ DEPOSIT APPROVED' : '❌ DEPOSIT REJECTED'}\nAmount: ${amountLabel}\nReference: ${reviewed.reference || id}\n${approve ? 'Bonus Balance ላይ ተጨምሯል።' : 'እባክዎ የክፍያ መረጃውን ያረጋግጡ።'}`
-            : `${approve ? '✅ WITHDRAWAL APPROVED' : '❌ WITHDRAWAL REJECTED'}\nAmount: ${amountLabel}\nRequest ID: ${id}\n${approve ? 'Admin በTelebirr ክፍያውን ይልካል።' : 'ገንዘቡ ወደ Main Balance ተመልሷል።'}`;
-
-        await bot.telegram.sendMessage(
-            String(reviewed.user_id),
-            notice
-        ).catch(err => console.warn('wallet review notification failed:', err.message));
-
-    } catch (e) {
-        await ctx.answerCbQuery(
-            e.message === 'ALREADY_PROCESSED'
-                ? 'Already processed'
-                : 'Could not process',
-            { show_alert: true }
-        );
-    }
-}
-
-bot.action(/^dp_ok_(.+)$/, ctx =>
-    reviewRequest(ctx, 'deposit', ctx.match[1], true)
-);
-
-bot.action(/^dp_no_(.+)$/, ctx =>
-    reviewRequest(ctx, 'deposit', ctx.match[1], false)
-);
-
-bot.action(/^wd_ok_(.+)$/, ctx =>
-    reviewRequest(ctx, 'withdrawal', ctx.match[1], true)
-);
-
-bot.action(/^wd_no_(.+)$/, ctx =>
-    reviewRequest(ctx, 'withdrawal', ctx.match[1], false)
-);
-
-bot.launch()
-    .then(() => console.log('Telegram Bot polling started.'))
-    .catch(err => console.error('Telegram bot launch failed:', err.message));
-
-bot.catch((err, ctx) =>
-    console.error('Telegram bot handler error:', err, 'update:', ctx.updateType)
-);
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
 
 module.exports = bot;
