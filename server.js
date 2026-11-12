@@ -282,7 +282,7 @@ function requireAdmin(req, res, next) {
 }
 app.use('/api/admin', requireAdmin);
 
-// 🟢 የተስተካከለ የላይቭ ጌም እና ካርቴል መረጃ API (Live Game & Cards State for Admin)
+// 🟢 ላይቭ ጌም መረጃ ማሳያ API (Live Game State for Admin)
 app.get('/api/admin/live-game', async (req, res) => {
     try {
         const liveData = engine.get_state('admin_viewer');
