@@ -680,7 +680,7 @@ app.post('/api/send-support', async (req, res) => {
     try {
         await bot.telegram.sendMessage(
             req.telegramUserId,
-            '🎧 እርዳታ ለማግኘት @Melbetsupporter_bot ያነጋግሩ።'
+            '🎧 እርዳታ ለማግኘት @MELBETTBINGO ያነጋግሩ።'
         );
 
         res.json({ status: 'success' });
