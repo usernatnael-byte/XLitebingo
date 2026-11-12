@@ -235,17 +235,25 @@ app.post('/api/wallet/withdraw', async (req,res) => {
     if(name.length<2||!/^[0-9+]{9,15}$/.test(account)) return res.status(400).json({status:'error',message:'Enter valid Telebirr name and phone number.'});
     try {
         const userRef=db.collection('users').doc(req.telegramUserId), ref=db.collection('withdrawal_requests').doc();
+        
+        // 👉 እዚህ ጋር ያስገባኸውን ትራንዛክሽን በትክክል አስገብተነዋል
         await db.runTransaction(async tx=>{
             const us=await tx.get(userRef);
             if(!us.exists) throw new Error('USER_NOT_FOUND');
             const u=us.data();
+            
+            // 🛑 ዊዝድሮው ለማድረግ ዲፖዚት ማድረግ እና ዲፖዚት ካደረጉ በኋላ ቢያንስ 1 ጌም ማሸነፍ ግዴታ ነው
             if(!u.has_deposited) throw new Error('DEPOSIT_REQUIRED');
+            if(!u.won_after_deposit) throw new Error('WIN_AFTER_DEPOSIT_REQUIRED');
+
             const balance=Number(u.balance||0);
             if(balance<amount) throw new Error('INSUFFICIENT_BALANCE');
+            
             const txs=Array.isArray(u.transactions)?u.transactions:[];
             tx.update(userRef,{balance:balance-amount,transactions:[...txs,{type:'withdrawal_pending',amount,request_id:ref.id,timestamp:new Date().toISOString()}]});
             tx.set(ref,{user_id:req.telegramUserId,amount,payout_name:name,payout_account:account,status:'pending',created_at:Date.now()});
         });
+
         for(const aid of ADMIN_IDS) await bot.telegram.sendMessage(aid,`📤 Withdrawal request\nUser: ${req.telegramUserId}\nName: ${name}\nTelebirr: ${account}\nAmount: ${amount.toFixed(2)} ETB\nRequest ID: ${ref.id}`).catch(()=>{});
         await bot.telegram.sendMessage(req.telegramUserId,`⏳ WITHDRAWAL PENDING\n\nAmount: ${amount.toFixed(2)} ETB\nRequest ID: ${ref.id}\nStatus: PENDING\n\nAdmin ጥያቄዎን እያየ ነው። ሲጸድቅ በTelebirr ክፍያው ይፈጸማል።`).catch(e=>console.warn('withdrawal pending notification failed:',e.message));
         res.json({status:'success',message:'Withdrawal request sent to admin.',requestId:ref.id});
@@ -253,9 +261,11 @@ app.post('/api/wallet/withdraw', async (req,res) => {
         let msg = 'Could not submit withdrawal.';
         if (e.message === 'INSUFFICIENT_BALANCE') msg = 'Insufficient Main Balance.';
         else if (e.message === 'DEPOSIT_REQUIRED') msg = 'ገንዘብ ለማውጣት መጀመሪያ ቢያንስ አንድ ጊዜ Deposit ማድረግ አለብዎት[span_0](start_span)[span_0](end_span)[span_1](start_span)[span_1](end_span)።';
+        else if (e.message === 'WIN_AFTER_DEPOSIT_REQUIRED') msg = 'ገንዘብ ለማውጣት ዲፖዚት ካደረጉ በኋላ ቢያንስ 1 ጌም ማሸነፍ አለብዎት።';
         res.status(400).json({status:'error',message:msg});
     }
 });
+
 
 function requireAdmin(req, res, next) {
     if (!req.telegramUserId || !ADMIN_IDS.has(req.telegramUserId)) return res.status(403).json({ status: 'error', message: 'Admin access only.' });
