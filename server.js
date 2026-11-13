@@ -648,8 +648,12 @@ app.get('/api/leaderboard', async (req, res) => {
             const data = doc.data();
             return {
                 round_id: data.round_id || doc.id,
-                players: Array.isArray(data.players) ? data.players : [],
-                winners: Array.isArray(data.winners) ? data.winners : [],
+                players: Array.isArray(data.players)
+                    ? data.players.map(({ uid, ...player }) => player)
+                    : [],
+                winners: Array.isArray(data.winners)
+                    ? data.winners.map(({ uid, ...winner }) => winner)
+                    : [],
                 no_winner: Boolean(data.no_winner),
                 pool: Number(data.pool || 0),
                 settled_at: data.settled_at || null
