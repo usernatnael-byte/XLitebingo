@@ -630,23 +630,36 @@ app.get('/api/user-data', async (req, res) => {
 
 app.get('/api/leaderboard', async (req, res) => {
     try {
-        const snapshot = await db.collection('users')
-            .orderBy('weekly_cartels', 'desc')
-            .limit(10)
-            .get();
+        const [snapshot, roundsSnapshot] = await Promise.all([
+            db.collection('users').orderBy('total_games_won', 'desc').limit(10).get(),
+            db.collection('rounds').orderBy('settled_at', 'desc').limit(5).get()
+        ]);
 
         const leaderboard = snapshot.docs.map(doc => {
             const data = doc.data();
-
             return {
-                name: data.username || data.first_name || 'Player',
-                cartels: Number(data.weekly_cartels || 0)
+                name: data.first_name || data.username || data.name || 'Player',
+                wins: Number(data.total_games_won || 0),
+                winnings: Number(data.total_winnings || 0)
+            };
+        });
+
+        const recentRounds = roundsSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                round_id: data.round_id || doc.id,
+                players: Array.isArray(data.players) ? data.players : [],
+                winners: Array.isArray(data.winners) ? data.winners : [],
+                no_winner: Boolean(data.no_winner),
+                pool: Number(data.pool || 0),
+                settled_at: data.settled_at || null
             };
         });
 
         res.json({
             status: 'success',
-            leaderboard
+            leaderboard,
+            recentRounds
         });
     } catch (e) {
         console.error('leaderboard error:', e);
