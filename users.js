@@ -165,18 +165,6 @@ class FirestoreWallet {
         }, { merge: true });
     }
 
-    async record_round_result(roundId, result) {
-        await this.db.collection('rounds').doc(String(roundId)).set({
-            status: 'settled',
-            round_id: String(roundId),
-            players: Array.isArray(result.players) ? result.players : [],
-            winners: Array.isArray(result.winners) ? result.winners : [],
-            no_winner: Boolean(result.no_winner),
-            pool: Number(result.pool || 0),
-            settled_at: result.settled_at || new Date().toISOString()
-        }, { merge: true });
-    }
-
     async settle(roundId, payouts) {
         const roundRef = this.db.collection('rounds').doc(String(roundId));
 
@@ -211,7 +199,6 @@ class FirestoreWallet {
                 transaction.update(userRef, {
                     balance: Number(data.balance || 0) + amount,
                     total_winnings: Number(data.total_winnings || 0) + amount,
-                    total_games_won: Number(data.total_games_won || 0) + 1,
                     transactions
                 });
 

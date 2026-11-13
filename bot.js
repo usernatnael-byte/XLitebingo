@@ -16,6 +16,7 @@ const DEPOSIT_MINIMUM = Math.max(100, Number(process.env.DEPOSIT_MINIMUM_ETB || 
 const WITHDRAW_MINIMUM = Math.max(1, Number(process.env.WITHDRAW_MINIMUM_ETB || 100));
 const DEPOSIT_INSTRUCTIONS = process.env.DEPOSIT_INSTRUCTIONS ||
     '💰 ሂሳብ ለመሙላት Telebirr ይምረጡ።\n\nአነስተኛ መጠን: 100 ETB\n👤 ስም: Esraeal\n📱 አካውንት: 0949196145\n\nብሩን ከላኩ በኋላ የክፍያ ማረጋገጫ SMS ወይም የደረሰኝ ፎቶ (Screenshot) ይላኩ። አድሚኑ ካረጋገጠው በኋላ Bonus Balance ይጨመራል።';
+const ADMIN_ID = (process.env.ADMIN_ID || '7396414604').split(',')[0].trim();
 const ADMIN_ID_LIST = [...new Set([...ADMIN_IDS])];
 
 const SUPPORT_CONTACT = process.env.SUPPORT_CONTACT || '@Melbetsupporter_bot';
@@ -27,19 +28,12 @@ if (!CHANNEL_ID || !CHANNEL_URL) {
 const bot = new Telegraf(BOT_TOKEN);
 bot.use(session());
 
-// 🛡️ ግሎባል ቴሌግራም ደህንነት ማስተካከያ (ብሎክ ያደረጉ ተጠቃሚዎች ሰርቨሩን እንዳይዘጉት)
-bot.catch((err, ctx) => {
-    console.error(`Telegram Bot Error for update ${ctx.update?.update_id || 'unknown'}:`, err?.message || err);
-});
-
 bot.use(async (ctx, next) => {
     if (!ctx.from || String(ctx.from.id) === '') return next();
     if (ADMIN_IDS.has(String(ctx.from.id))) return next();
     try {
         const snap = await db.collection('users').doc(String(ctx.from.id)).get();
-        if (snap.exists && snap.data().blocked) {
-            return ctx.reply('⛔ የመለያዎ መዳረሻ በአድሚን ታግዷል።').catch(() => {});
-        }
+        if (snap.exists && snap.data().blocked) return ctx.reply('⛔ የመለያዎ መዳረሻ በአድሚን ታግዷል።');
     } catch (e) { console.error('Block status check failed:', e.message); }
     return next();
 });
@@ -75,7 +69,7 @@ async function askToJoin(ctx) {
             [Markup.button.url('📢 ቻናሉን ተቀላቀል', CHANNEL_URL)],
             [Markup.button.callback('✅ MELBET ቻናሉን ተቀላቅያለሁ', 'verify_channel')]
         ])
-    ).catch(e => console.warn('askToJoin failed:', e.message));
+    );
 }
 
 function askForContact(ctx) {
@@ -84,8 +78,10 @@ function askForContact(ctx) {
         Markup.keyboard([
             [Markup.button.contactRequest('📱 ስልክ ቁጥሮን አጋራ')]
         ]).resize().oneTime()
-    ).catch(e => console.warn('askForContact failed:', e.message));
+    );
 }
+
+
 
 async function showMainMenu(ctx) {
     const replyMarkup = {
@@ -111,135 +107,14 @@ async function showMainMenu(ctx) {
     }
 
     await ctx.reply(
-        'MelBet ከታች ካሉት አማራጮች ይምረጡ።',
+        '✅ ምዝገባዎ ተሳክቷል! እባክዎ ከታች ካሉት አማራጮች ይምረጡ።',
         { reply_markup: replyMarkup }
-    ).catch(e => console.warn('showMainMenu failed:', e.message));
+    );
 }
 
-// ==================== ADMIN APPROVE & REJECT COMMANDS ====================
 
-bot.command('approve', async (ctx) => {
-    if (!isAdmin(ctx)) return;
-    const args = ctx.message.text.split(' ');
-    const reqId = args[1];
-    if (!reqId) return ctx.reply('⚠️ እባክዎ ጥያቄ ቁጥር (Request ID) ያስገቡ።\nምሳሌ: /approve 4503');
 
-    try {
-        let qSnap = await db.collection('deposit_requests').where('req_id', '==', reqId).get();
-
-        if (!qSnap.empty) {
-            const docSnap = qSnap.docs[0];
-            const docRef = docSnap.ref;
-            const data = docSnap.data();
-            if (data.status === 'approved') return ctx.reply('⚠️ ይህ ጥያቄ ቀድሞ ጸድቋል።');
-
-            const userId = data.user_id;
-            const amount = Number(data.amount || 0);
-            const userRef = db.collection('users').doc(userId);
-
-            await db.runTransaction(async (tx) => {
-                const userSnap = await tx.get(userRef);
-                if (!userSnap.exists) throw new Error('USER_NOT_FOUND');
-                const uData = userSnap.data();
-
-                const currentBalance = Number(uData.balance || 0);
-                const newBalance = currentBalance + amount;
-
-                tx.update(userRef, {
-                    balance: newBalance,
-                    has_deposited: true,
-                    transactions: [
-                        ...(uData.transactions || []),
-                        {
-                            type: 'deposit',
-                            amount: amount,
-                            timestamp: new Date().toISOString()
-                        }
-                    ]
-                });
-
-                tx.update(docRef, { status: 'approved' });
-            });
-
-            await ctx.reply(`✅ የዲፖዚት ጥያቄ #${reqId} ተጸድቆ ${amount} ብር ለተጠቃሚው ተጭኗል!`);
-            await bot.telegram.sendMessage(userId, `🎉 የ ${amount} ብር የዲፖዚት ጥያቄዎ በአድሚን ጸድቋል! አካውንትዎ ላይ ተጭኗል።`).catch(() => {});
-            return;
-        }
-
-        let wSnap = await db.collection('withdrawal_requests').where('req_id', '==', reqId).get();
-
-        if (!wSnap.empty) {
-            const docSnap = wSnap.docs[0];
-            const wRef = docSnap.ref;
-            const wData = docSnap.data();
-            if (wData.status === 'approved') return ctx.reply('⚠️ ይህ የዊዝድሮው ጥያቄ ቀድሞ ጸድቋል።');
-
-            await wRef.update({ status: 'approved' });
-            await ctx.reply(`✅ የዊዝድሮው ጥያቄ #${reqId} ጸድቋል!`);
-            await bot.telegram.sendMessage(wData.user_id, `🎉 የ ${wData.amount} ብር የገንዘብ ማውጣት (Withdrawal) ጥያቄዎ ጸድቆ ተልኳል!`).catch(() => {});
-            return;
-        }
-
-        return ctx.reply(`❌ ጥያቄ ቁጥር #${reqId} አልተገኘም!`);
-
-    } catch (e) {
-        console.error('Approve command error:', e);
-        ctx.reply('⚠️ ስህተት ተፈጥሯል: ' + e.message);
-    }
-});
-
-bot.command('reject', async (ctx) => {
-    if (!isAdmin(ctx)) return;
-    const textParts = ctx.message.text.split(' ');
-    const reqId = textParts[1];
-    const reason = textParts.slice(2).join(' ') || 'ምንም ምክንያት አልተሰጠም';
-
-    if (!reqId) return ctx.reply('⚠️ እባክዎ ጥያቄ ቁጥር እና ምክንያት ያስገቡ።\nምሳሌ: /reject 4503 የተሳሳተ ትራንዛክሽን');
-
-    try {
-        let qSnap = await db.collection('deposit_requests').where('req_id', '==', reqId).get();
-
-        if (!qSnap.empty) {
-            const docSnap = qSnap.docs[0];
-            const data = docSnap.data();
-            await docSnap.ref.update({ status: 'rejected', reject_reason: reason });
-            await ctx.reply(`❌ የዲፖዚት ጥያቄ #${reqId} ተሰርዟል።`);
-            await bot.telegram.sendMessage(data.user_id, `❌ የዲፖዚት ጥያቄዎ ውድቅ ተደርጓል።\nምክንያት: ${reason}`).catch(() => {});
-            return;
-        }
-
-        let wSnap = await db.collection('withdrawal_requests').where('req_id', '==', reqId).get();
-
-        if (!wSnap.empty) {
-            const docSnap = wSnap.docs[0];
-            const wData = docSnap.data();
-            const userId = wData.user_id;
-            const amount = Number(wData.amount || 0);
-            const userRef = db.collection('users').doc(userId);
-
-            await db.runTransaction(async (tx) => {
-                const userSnap = await tx.get(userRef);
-                if (userSnap.exists) {
-                    const uData = userSnap.data();
-                    tx.update(userRef, {
-                        balance: Number(uData.balance || 0) + amount
-                    });
-                }
-                tx.update(docSnap.ref, { status: 'rejected', reject_reason: reason });
-            });
-
-            await ctx.reply(`❌ የዊዝድሮው ጥያቄ #${reqId} ተሰርዟል (ገንዘቡ ተመላሽ ሆኗል)።`);
-            await bot.telegram.sendMessage(userId, `❌ የገንዘብ ማውጣት ጥያቄዎ ውድቅ ተደርጓል (ገንዘቡ ወደ አካውንትዎ ተመልሷል)።\nምክንያት: ${reason}`).catch(() => {});
-            return;
-        }
-
-        return ctx.reply(`❌ ጥያቄ ቁጥር #${reqId} አልተገኘም!`);
-
-    } catch (e) {
-        console.error('Reject command error:', e);
-        ctx.reply('⚠️ ስህተት ተፈጥሯል: ' + e.message);
-    }
-});
+// Handle callback queries for the primary inline menu buttons (ዳታቤዝ እና ሌሎች ሎጂኮች)
 
 bot.on('callback_query', async (ctx) => {
     const action = ctx.callbackQuery?.data;
@@ -248,38 +123,15 @@ bot.on('callback_query', async (ctx) => {
 
     if (!action || !chatId) return;
 
-    if (action.startsWith('dp_') || action.startsWith('wd_')) {
+    if (
+        action === 'verify_channel' ||
+        action.startsWith('dp_') ||
+        action.startsWith('wd_')
+    ) {
         return;
     }
 
-    if (action !== 'verify_channel') {
-        await ctx.answerCbQuery().catch(() => {});
-    }
-
-    if (action === 'verify_channel') {
-        await ctx.answerCbQuery().catch(() => {});
-
-        const isMember = await isChannelMember(ctx);
-        if (!isMember) {
-            return ctx.reply('❌ እስካሁን ቻናሉን አልተቀላቀሉም። እባክዎ መጀመሪያ ቻናሉን ይቀላቀሉ።', 
-                Markup.inlineKeyboard([
-                    [Markup.button.url('📢 ቻናሉን ተቀላቀል', CHANNEL_URL)],
-                    [Markup.button.callback('✅ MELBET ቻናሉን ተቀላቅያለሁ', 'verify_channel')]
-                ])
-            ).catch(() => {});
-        }
-
-        await db.collection('users').doc(userId).set({
-            channel_joined: true
-        }, { merge: true });
-
-        const doc = await db.collection('users').doc(userId).get();
-        if (!doc.exists || !doc.data().phone_number) {
-            return askForContact(ctx);
-        }
-
-        return showMainMenu(ctx);
-    }
+    await ctx.answerCbQuery().catch(() => {});
 
     if (action === 'account') {
         const snap = await db.collection('users').doc(userId).get();
@@ -288,7 +140,7 @@ bot.on('callback_query', async (ctx) => {
             return ctx.telegram.sendMessage(
                 chatId,
                 'መጀመሪያ /start በመላክ ይመዝገቡ።'
-            ).catch(() => {});
+            );
         }
 
         const d = snap.data();
@@ -299,7 +151,7 @@ bot.on('callback_query', async (ctx) => {
             `💵 Main Balance: ${money(d.balance)}\n` +
             `🎁 Bonus Balance: ${money(d.bonus)}\n` +
             `💳 Deposit አድርገዋል: ${d.has_deposited ? 'አዎ' : 'ገና አይደለም'}`
-        ).catch(() => {});
+        );
     }
 
     if (action === 'refer') {
@@ -315,7 +167,7 @@ bot.on('callback_query', async (ctx) => {
                     `https://t.me/share/url?url=${encodeURIComponent(link)}`
                 )]
             ])
-        ).catch(() => {});
+        );
     }
 
     if (action === 'rules') {
@@ -326,14 +178,14 @@ bot.on('callback_query', async (ctx) => {
             '• Bonus Balance ቀድሞ ይቀነሳል፤ ቀሪው ከMain Balance ይቀነሳል።\n' +
             '• የጨዋታ ሽልማት ወደ Main Balance ይገባል።\n' +
             '• ገንዘብ ለማውጣት ቢያንስ አንድ ጊዜ Deposit ማድረግ ያስፈልጋል።'
-        ).catch(() => {});
+        );
     }
 
     if (action === 'support') {
         return ctx.telegram.sendMessage(
             chatId,
             `🎧 እርዳታ ለማግኘት ${SUPPORT_CONTACT} ያነጋግሩ።`
-        ).catch(() => {});
+        );
     }
 });
 
@@ -343,7 +195,7 @@ async function completeRegistration(ctx, phoneNumber) {
     const userRef = db.collection('users').doc(uid);
     const pendingRef = db.collection('pending_registrations').doc(uid);
 
-    const referrerIdForNotice = await db.runTransaction(async tx => {
+    await db.runTransaction(async tx => {
         const userSnap = await tx.get(userRef);
         const pendingSnap = await tx.get(pendingRef);
 
@@ -353,7 +205,7 @@ async function completeRegistration(ctx, phoneNumber) {
                 channel_joined: true
             }, { merge: true });
 
-            return null;
+            return;
         }
 
         const pending = pendingSnap.exists ? pendingSnap.data() : {};
@@ -423,16 +275,7 @@ async function completeRegistration(ctx, phoneNumber) {
         }
 
         tx.delete(pendingRef);
-        return referrerSnap?.exists ? referrerId : null;
     });
-
-    if (referrerIdForNotice) {
-        const invitedName = ctx.from.first_name || ctx.from.username || 'አዲስ ተጫዋች';
-        await ctx.telegram.sendMessage(
-            referrerIdForNotice,
-            `🎉 በReferral ሊንክዎ ${invitedName} ተመዝግቧል! የReferral ቦነስዎ ${money(REFERRAL_BONUS)} ተጨምሯል።`
-        ).catch(error => console.warn('Referral notification failed:', error.message));
-    }
 }
 
 bot.start(async ctx => {
@@ -472,8 +315,30 @@ bot.start(async ctx => {
 
     } catch (e) {
         console.error('/start error:', e);
-        ctx.reply('⚠️ ጊዜያዊ ችግር ተፈጥሯል። እባክዎ /start እንደገና ይላኩ።').catch(() => {});
+
+        ctx.reply('⚠️ ጊዜያዊ ችግር ተፈጥሯል። እባክዎ /start እንደገና ይላኩ።');
     }
+});
+
+
+bot.action('verify_channel', async ctx => {
+    await ctx.answerCbQuery();
+
+    if (!await isChannelMember(ctx)) {
+        return ctx.reply('❌ ገና ቻናሉን አልተቀላቀሉም። ቻናሉን ይቀላቀሉና እንደገና ይሞክሩ።');
+    }
+
+    const doc = await db.collection('users').doc(String(ctx.from.id)).get();
+
+    if (!doc.exists || !doc.data().phone_number) {
+        return askForContact(ctx);
+    }
+
+    await db.collection('users').doc(String(ctx.from.id)).set({
+        channel_joined: true
+    }, { merge: true });
+
+    await showMainMenu(ctx);
 });
 
 bot.on('contact', async ctx => {
@@ -481,7 +346,7 @@ bot.on('contact', async ctx => {
         const contact = ctx.message.contact;
 
         if (String(contact.user_id) !== String(ctx.from.id)) {
-            return ctx.reply('⚠️ እባክዎ የራስዎን ስልክ ቁጥር ብቻ ያጋሩ።').catch(() => {});
+            return ctx.reply('⚠️ እባክዎ የራስዎን ስልክ ቁጥር ብቻ ያጋሩ።');
         }
 
         if (!await isChannelMember(ctx)) {
@@ -499,23 +364,40 @@ bot.on('contact', async ctx => {
 
     } catch (e) {
         console.error('Contact registration error:', e);
-        ctx.reply('⚠️ ምዝገባው አልተሳካም። እባክዎ እንደገና ይሞክሩ።').catch(() => {});
+
+        ctx.reply('⚠️ ምዝገባው አልተሳካም። እባክዎ እንደገና ይሞክሩ።');
     }
 });
 
+async function beginWalletFlow(ctx, action) {
+    if (action === 'deposit') {
+        ctx.session.flow = 'deposit_amount';
+        return ctx.reply(`💰 ሂሳብ ለመሙላት የክፍያ አማራጭ: Telebirr\n\n${DEPOSIT_INSTRUCTIONS}\n\nእባክዎ የሚፈልጉትን መጠን በETB ያስገቡ (አነስተኛ ${DEPOSIT_MINIMUM} ETB)።\n/cancel ለመሰረዝ።`);
+    }
+
+    const ref = db.collection('users').doc(String(ctx.from.id));
+    const snap = await ref.get();
+
+    if (!snap.exists || !snap.data().has_deposited) {
+        return ctx.reply('⛔ ገንዘብ ለማውጣት መጀመሪያ ቢያንስ አንድ ጊዜ Deposit ማድረግ አለብዎት።');
+    }
+
+    ctx.session.flow = 'withdraw_amount';
+
+    return ctx.reply(`📤 ለማውጣት የሚፈልጉትን መጠን በETB ያስገቡ።\nዝቅተኛ Withdrawal: ${money(WITHDRAW_MINIMUM)}\nMain Balance: ${money(snap.data().balance)}\n/cancel ለመሰረዝ።`);
+}
+
 bot.command('cancel', ctx => {
-    if (!ctx.session) ctx.session = {};
     ctx.session.flow = null;
     ctx.session.depositAmount = null;
     ctx.session.withdrawAmount = null;
     ctx.session.withdrawName = null;
     ctx.session.withdrawAccount = null;
 
-    ctx.reply('ተሰርዟል።').catch(() => {});
+    ctx.reply('ተሰርዟል።');
 });
 
 bot.on('text', async ctx => {
-    if (!ctx.session) ctx.session = {};
     const flow = ctx.session?.flow;
 
     if (!flow || ctx.message.text.startsWith('/')) return;
@@ -527,14 +409,12 @@ bot.on('text', async ctx => {
 
         if (!amountProof) {
             ctx.session.flow = null;
-            return ctx.reply('Deposit እንደገና ይጀምሩ።').catch(() => {});
+            return ctx.reply('Deposit እንደገና ይጀምሩ።');
         }
 
         const proofRef = db.collection('deposit_requests').doc();
-        const shortReqId = Math.floor(1000 + Math.random() * 9000).toString();
 
         await proofRef.set({
-            req_id: shortReqId,
             user_id: String(ctx.from.id),
             amount: amountProof,
             receipt_text: ctx.message.text.slice(0, 1500),
@@ -545,19 +425,19 @@ bot.on('text', async ctx => {
         ctx.session.flow = null;
         ctx.session.depositAmount = null;
 
-        await ctx.reply('✅ የክፍያ SMS/Transaction መረጃዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Main Balance ይጨመራል።').catch(() => {});
-
-        const adminMsgText = 
-            `🔔 አዲስ ገቢ ጥያቄ #${shortReqId} (Mini App)\n` +
-            `ተጠቃሚ: ${ctx.from.first_name || 'User'} (${ctx.from.username ? '@' + ctx.from.username : 'id:' + ctx.from.id}, id:${ctx.from.id})\n` +
-            `መንገድ: telebirr\n` +
-            `መጠን: ${amountProof} ብር\n` +
-            `ዝርዝር: ${ctx.message.text.slice(0, 500)}\n\n` +
-            `ለማጽደቅ: /approve ${shortReqId}\n` +
-            `ለመሰረዝ: /reject ${shortReqId} <ምክንያት>`;
+        await ctx.reply('✅ የክፍያ SMS/Transaction መረጃዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Bonus Balance ይጨመራል።');
 
         for (const aid of ADMIN_ID_LIST) {
-            await bot.telegram.sendMessage(aid, adminMsgText).catch(() => {});
+            await bot.telegram.sendMessage(
+                aid,
+                `📥 Deposit request\nUser: ${ctx.from.id}\nAmount: ${money(amountProof)}\nSMS: ${ctx.message.text.slice(0, 1000)}\nRequest: ${proofRef.id}`,
+                Markup.inlineKeyboard([
+                    [
+                        Markup.button.callback('✅ Approve', `dp_ok_${proofRef.id}`),
+                        Markup.button.callback('❌ Reject', `dp_no_${proofRef.id}`)
+                    ]
+                ])
+            ).catch(() => {});
         }
 
         return;
@@ -567,26 +447,25 @@ bot.on('text', async ctx => {
         const parts = ctx.message.text.trim().split(/\s*\|\s*/);
 
         if (parts.length < 2 || parts[0].length < 2 || parts[1].length < 5) {
-            return ctx.reply('እባክዎ በዚህ ቅርጽ ይላኩ፦ ስም | Telebirr ቁጥር\nምሳሌ: Natnael | 09XXXXXXXX').catch(() => {});
+            return ctx.reply('እባክዎ በዚህ ቅርጽ ይላኩ፦ ስም | Telebirr ቁጥር\nምሳሌ: Natnael | 09XXXXXXXX');
         }
 
         ctx.session.withdrawName = parts[0].slice(0, 80);
         ctx.session.withdrawAccount = parts[1].slice(0, 40);
         ctx.session.flow = 'withdraw_confirm';
 
-        return ctx.reply(`እባክዎ የWithdrawal መረጃዎን ያረጋግጡ፦\nስም: ${ctx.session.withdrawName}\nTelebirr: ${ctx.session.withdrawAccount}\n\nለመቀጠል CONFIRM ይጻፉ፣ ለመሰረዝ /cancel ይጻፉ።`).catch(() => {});
+        return ctx.reply(`እባክዎ የWithdrawal መረጃዎን ያረጋግጡ፦\nስም: ${ctx.session.withdrawName}\nTelebirr: ${ctx.session.withdrawAccount}\n\nለመቀጠል CONFIRM ይጻፉ፣ ለመሰረዝ /cancel ይጻፉ።`);
     }
 
     if (flow === 'withdraw_confirm') {
         if (ctx.message.text.trim().toUpperCase() !== 'CONFIRM') {
-            return ctx.reply('ለማረጋገጥ CONFIRM ይጻፉ ወይም /cancel ይጠቀሙ።').catch(() => {});
+            return ctx.reply('ለማረጋገጥ CONFIRM ይጻፉ ወይም /cancel ይጠቀሙ።');
         }
 
         const uid = String(ctx.from.id);
         const amount2 = Number(ctx.session.withdrawAmount || 0);
         const userRef = db.collection('users').doc(uid);
         const requestRef = db.collection('withdrawal_requests').doc();
-        const shortReqId = Math.floor(1000 + Math.random() * 9000).toString();
 
         try {
             await db.runTransaction(async tx => {
@@ -616,7 +495,6 @@ bot.on('text', async ctx => {
                 });
 
                 tx.set(requestRef, {
-                    req_id: shortReqId,
                     user_id: uid,
                     player_name: d.first_name || ctx.from.first_name || '',
                     username: d.username || ctx.from.username || '',
@@ -633,19 +511,21 @@ bot.on('text', async ctx => {
             ctx.session.flow = null;
             ctx.session.withdrawAmount = null;
 
-            await ctx.reply('✅ የWithdrawal ጥያቄዎ ወደ Admin Panel ተልኳል። አድሚኑ ካጸደቀ በኋላ ክፍያውን በTelebirr ይልካል።').catch(() => {});
+            await ctx.reply('✅ የWithdrawal ጥያቄዎ ወደ Admin Panel ተልኳል። አድሚኑ ካጸደቀ በኋላ ክፍያውን በTelebirr ይልካል።');
 
-            const adminMsgText = 
-                `🔔 አዲስ የገንዘብ ማውጣት (Withdraw) ጥያቄ #${shortReqId}\n` +
-                `ተጠቃሚ: ${ctx.from.first_name || 'User'} (${ctx.from.username ? '@' + ctx.from.username : 'id:' + uid}, id:${uid})\n` +
-                `መጠን: ${amount2} ብር\n` +
-                `ስም: ${ctx.session.withdrawName}\n` +
-                `አካውንት: ${ctx.session.withdrawAccount}\n\n` +
-                `ለማጽደቅ: /approve ${shortReqId}\n` +
-                `ለመሰረዝ: /reject ${shortReqId} <ምክንያት>`;
+            const saved = await requestRef.get();
 
             for (const aid of ADMIN_ID_LIST) {
-                await bot.telegram.sendMessage(aid, adminMsgText).catch(() => {});
+                await bot.telegram.sendMessage(
+                    aid,
+                    `📤 Withdrawal request\nUser: ${uid}\nName: ${saved.data()?.payout_name}\nTelebirr: ${saved.data()?.payout_account}\nAmount: ${money(amount2)}\nRequest: ${requestRef.id}`,
+                    Markup.inlineKeyboard([
+                        [
+                            Markup.button.callback('✅ Approve', `wd_ok_${requestRef.id}`),
+                            Markup.button.callback('❌ Reject', `wd_no_${requestRef.id}`)
+                        ]
+                    ])
+                ).catch(() => {});
             }
 
         } catch (e) {
@@ -656,7 +536,7 @@ bot.on('text', async ctx => {
                 e.message === 'INSUFFICIENT_BALANCE'
                     ? '❌ Main Balance በቂ አይደለም።'
                     : '⚠️ Withdrawal አልተሳካም።'
-            ).catch(() => {});
+            );
         }
 
         return;
@@ -664,13 +544,13 @@ bot.on('text', async ctx => {
 
     if (flow === 'deposit_amount' || flow === 'withdraw_amount') {
         if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) {
-            return ctx.reply('እባክዎ ትክክለኛ የETB መጠን ያስገቡ።').catch(() => {});
+            return ctx.reply('እባክዎ ትክክለኛ የETB መጠን ያስገቡ።');
         }
     }
 
     if (flow === 'deposit_amount') {
         if (amount < DEPOSIT_MINIMUM) {
-            return ctx.reply(`❌ አነስተኛ Deposit ${DEPOSIT_MINIMUM} ETB ነው። እባክዎ እንደገና ያስገቡ።`).catch(() => {});
+            return ctx.reply(`❌ አነስተኛ Deposit ${DEPOSIT_MINIMUM} ETB ነው። እባክዎ እንደገና ያስገቡ።`);
         }
 
         ctx.session.flow = null;
@@ -679,44 +559,41 @@ bot.on('text', async ctx => {
 
         return ctx.reply(
             `የDeposit መጠን ${money(amount)} ተቀብለናል። እባክዎ የክፍያ SMS ጽሑፍ ወይም የደረሰኝ ፎቶ (Screenshot) ይላኩ።`
-        ).catch(() => {});
+        );
     }
 
     if (flow === 'withdraw_amount') {
         if (amount < WITHDRAW_MINIMUM) {
-            return ctx.reply(`❌ ዝቅተኛ Withdrawal ${WITHDRAW_MINIMUM} ETB ነው።`).catch(() => {});
+            return ctx.reply(`❌ ዝቅተኛ Withdrawal ${WITHDRAW_MINIMUM} ETB ነው።`);
         }
 
         const amount2 = Math.round(amount * 100) / 100;
         const snap = await db.collection('users').doc(String(ctx.from.id)).get();
 
         if (!snap.exists || Number(snap.data().balance || 0) < amount2) {
-            return ctx.reply('❌ Main Balance በቂ አይደለም።').catch(() => {});
+            return ctx.reply('❌ Main Balance በቂ አይደለም።');
         }
 
         ctx.session.withdrawAmount = amount2;
         ctx.session.flow = 'withdraw_details';
 
-        return ctx.reply('የTelebirr ተቀባይ ስምዎን እና ቁጥርዎን በዚህ ቅርጽ ይላኩ፦\nስም | 09XXXXXXXX').catch(() => {});
+        return ctx.reply('የTelebirr ተቀባይ ስምዎን እና ቁጥርዎን በዚህ ቅርጽ ይላኩ፦\nስም | 09XXXXXXXX');
     }
 });
 
 bot.on('photo', async ctx => {
-    if (!ctx.session) ctx.session = {};
     if (ctx.session?.flow !== 'deposit_proof') return;
 
     const amount = Number(ctx.session.depositAmount || 0);
 
     if (!amount) {
         ctx.session.flow = null;
-        return ctx.reply('እባክዎ Deposit እንደገና ይጀምሩ።').catch(() => {});
+        return ctx.reply('እባክዎ Deposit እንደገና ይጀምሩ።');
     }
 
     const ref = db.collection('deposit_requests').doc();
-    const shortReqId = Math.floor(1000 + Math.random() * 9000).toString();
 
     await ref.set({
-        req_id: shortReqId,
         user_id: String(ctx.from.id),
         amount,
         photo_file_id: ctx.message.photo.at(-1).file_id,
@@ -728,33 +605,154 @@ bot.on('photo', async ctx => {
     ctx.session.depositAmount = null;
 
     await ctx.reply(
-        '✅ የDeposit ማረጋገጫዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Main Balance ይጨመራል።'
-    ).catch(() => {});
-
-    const adminMsgText = 
-        `🔔 አዲስ ገቢ ጥያቄ #${shortReqId} (ፎቶ - Mini App)\n` +
-        `ተጠቃሚ: ${ctx.from.first_name || 'User'} (${ctx.from.username ? '@' + ctx.from.username : 'id:' + ctx.from.id}, id:${ctx.from.id})\n` +
-        `መንገድ: telebirr\n` +
-        `መጠን: ${amount} ብር\n\n` +
-        `ለማጽደቅ: /approve ${shortReqId}\n` +
-        `ለመሰረዝ: /reject ${shortReqId} <ምክንያት>`;
+        '✅ የDeposit ማረጋገጫዎ ተልኳል። አድሚኑ ካረጋገጠው በኋላ Bonus Balance ይጨመራል።'
+    );
 
     for (const aid of ADMIN_ID_LIST) {
         await bot.telegram.sendPhoto(
             aid,
             ctx.message.photo.at(-1).file_id,
-            { caption: adminMsgText }
-        ).catch(() => {});
+            {
+                caption:
+                    `📥 Deposit request\n` +
+                    `User: ${ctx.from.id}\n` +
+                    `Amount: ${money(amount)}\n` +
+                    `Request: ${ref.id}`,
+                ...Markup.inlineKeyboard([
+                    [
+                        Markup.button.callback('✅ Approve', `dp_ok_${ref.id}`),
+                        Markup.button.callback('❌ Reject', `dp_no_${ref.id}`)
+                    ]
+                ])
+            }
+        );
     }
 });
 
-bot.launch().then(() => {
-    console.log('Telegram bot is running...');
-}).catch(err => {
-    console.error('Failed to launch bot:', err);
-});
+async function reviewRequest(ctx, type, id, approve) {
+    if (!isAdmin(ctx)) {
+        return ctx.answerCbQuery('Not authorized', { show_alert: true });
+    }
 
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+    const collection = type === 'deposit'
+        ? 'deposit_requests'
+        : 'withdrawal_requests';
+
+    const reqRef = db.collection(collection).doc(id);
+
+    try {
+        await db.runTransaction(async tx => {
+            const reqSnap = await tx.get(reqRef);
+
+            if (!reqSnap.exists || reqSnap.data().status !== 'pending') {
+                throw new Error('ALREADY_PROCESSED');
+            }
+
+            const r = reqSnap.data();
+
+            const userRef = db.collection('users').doc(String(r.user_id));
+            const userSnap = await tx.get(userRef);
+
+            if (!userSnap.exists) throw new Error('USER_NOT_FOUND');
+
+            const d = userSnap.data();
+
+            if (type === 'deposit' && approve) {
+                tx.update(userRef, {
+                    bonus: Number(d.bonus || 0) + Number(r.amount),
+                    has_deposited: true,
+                    first_deposit_at: d.first_deposit_at || Date.now(),
+                    transactions: [
+                        ...(d.transactions || []),
+                        {
+                            type: 'deposit',
+                            wallet: 'bonus',
+                            amount: Number(r.amount),
+                            request_id: id,
+                            timestamp: new Date().toISOString()
+                        }
+                    ]
+                });
+            }
+
+            if (type === 'withdrawal' && !approve) {
+                tx.update(userRef, {
+                    balance: Number(d.balance || 0) + Number(r.amount),
+                    transactions: [
+                        ...(d.transactions || []),
+                        {
+                            type: 'withdrawal_refund',
+                            amount: Number(r.amount),
+                            request_id: id,
+                            timestamp: new Date().toISOString()
+                        }
+                    ]
+                });
+            }
+
+            tx.update(reqRef, {
+                status: approve ? 'approved' : 'rejected',
+                reviewed_at: Date.now(),
+                reviewed_by: String(ctx.from.id)
+            });
+        });
+
+        await ctx.answerCbQuery(approve ? 'Approved' : 'Rejected');
+
+        await ctx.editMessageCaption(
+            `${ctx.callbackQuery.message.caption || ''}\n\nStatus: ${approve ? 'APPROVED' : 'REJECTED'}`
+        ).catch(() =>
+            ctx.editMessageText(
+                `${ctx.callbackQuery.message.text || ''}\n\nStatus: ${approve ? 'APPROVED' : 'REJECTED'}`
+            ).catch(() => {})
+        );
+
+        const snap = await reqRef.get();
+
+        const reviewed = snap.data() || {};
+        const amountLabel = money(reviewed.amount || 0);
+
+        const notice = type === 'deposit'
+            ? `${approve ? '✅ DEPOSIT APPROVED' : '❌ DEPOSIT REJECTED'}\nAmount: ${amountLabel}\nReference: ${reviewed.reference || id}\n${approve ? 'Bonus Balance ላይ ተጨምሯል።' : 'እባክዎ የክፍያ መረጃውን ያረጋግጡ።'}`
+            : `${approve ? '✅ WITHDRAWAL APPROVED' : '❌ WITHDRAWAL REJECTED'}\nAmount: ${amountLabel}\nRequest ID: ${id}\n${approve ? 'Admin በTelebirr ክፍያውን ይልካል።' : 'ገንዘቡ ወደ Main Balance ተመልሷል።'}`;
+
+        await bot.telegram.sendMessage(
+            String(reviewed.user_id),
+            notice
+        ).catch(err => console.warn('wallet review notification failed:', err.message));
+
+    } catch (e) {
+        await ctx.answerCbQuery(
+            e.message === 'ALREADY_PROCESSED'
+                ? 'Already processed'
+                : 'Could not process',
+            { show_alert: true }
+        );
+    }
+}
+
+bot.action(/^dp_ok_(.+)$/, ctx =>
+    reviewRequest(ctx, 'deposit', ctx.match[1], true)
+);
+
+bot.action(/^dp_no_(.+)$/, ctx =>
+    reviewRequest(ctx, 'deposit', ctx.match[1], false)
+);
+
+bot.action(/^wd_ok_(.+)$/, ctx =>
+    reviewRequest(ctx, 'withdrawal', ctx.match[1], true)
+);
+
+bot.action(/^wd_no_(.+)$/, ctx =>
+    reviewRequest(ctx, 'withdrawal', ctx.match[1], false)
+);
+
+bot.launch()
+    .then(() => console.log('Telegram Bot polling started.'))
+    .catch(err => console.error('Telegram bot launch failed:', err.message));
+
+bot.catch((err, ctx) =>
+    console.error('Telegram bot handler error:', err, 'update:', ctx.updateType)
+);
 
 module.exports = bot;

@@ -72,11 +72,11 @@
     </div>
   </header>
 
-  <!-- ==================== PAGE: HOME ==================== -->
-  <div id="page-home" class="flex-1 flex flex-col max-w-md mx-auto w-full pb-36 px-3 pt-2">
+  <!-- ==================== PAGE: MELBET==================== -->
+  <div id="page-home" class="flex-1 flex flex-col max-w-md mx-auto w-full pb-24 px-3 pt-2">
     <div class="bg-gradient-to-b from-[#161616] to-[#0a0a0a] border border-mel-border rounded-2xl p-4 mb-3 shadow-xl relative overflow-hidden">
       <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl"></div>
-
+      
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2">
           <span class="text-xl font-black tracking-wider text-white">MELBET</span>
@@ -106,7 +106,7 @@
         </div>
       </div>
     </div>
-
+   
     <div class="flex justify-between items-center px-1 mb-2">
       <div class="font-extrabold text-sm tracking-wide text-gray-200">
         ካርቴል ይምረጡ <span class="text-xs text-yellow-400 font-normal">(እስከ 4)</span>
@@ -116,16 +116,15 @@
       </div>
     </div>
 
-    <!-- CAROUSEL GRID CONTAINER -->
-    <div class="bg-[#101010] border border-mel-border rounded-2xl p-3 flex-1 h-[50vh] overflow-y-auto shadow-inner relative z-10">
-      <div id="cartel-grid" class="grid grid-cols-10 gap-1.5 pb-20"></div>
+    <div class="bg-[#101010] border border-mel-border rounded-2xl p-3 flex-1 h-[52vh] overflow-y-auto shadow-inner relative">
+      <div id="cartel-grid" class="grid grid-cols-10 gap-1.5 pb-10"></div>
     </div>
   </div>
 
   <!-- ==================== PAGE: TICKET ==================== -->
   <div id="page-ticket" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full pb-28 px-4 pt-2">
     <div class="flex justify-between items-center mb-3">
-      <h2 class="text-lg font-black text-yellow-400 tracking-wide">LIVE BINGO ROOM</h2>
+      <h2 class="text-lg font-black text-yellow-400 tracking-wide">LIVE BINGO ROOM </h2>
       <div class="text-xs font-mono font-bold text-gray-400 bg-[#161616] px-3 py-1.5 rounded-xl border border-mel-border">
         ወጣ: <span id="ticket-draw-count" class="text-yellow-400">0/75</span>
       </div>
@@ -158,7 +157,7 @@
       <div id="ticket-empty-msg" class="text-center text-gray-300 text-xs py-8 bg-[#141414] border border-mel-border rounded-2xl p-4">
         <div class="text-yellow-400 font-bold text-sm mb-1">በዚህ ዙር ካርድ አልመረጡም</div>
         <p class="text-gray-400 mb-2">ቀጣዩ ድል የርስዎ ነው!</p>
-        <button onclick="switchPage('home')" class="mt-2 bg-yellow-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">ካርቴል ምረጥ</button>
+        <button onclick="switchPage('HOME')" class="mt-2 bg-yellow-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">ካርቴል ምረጥ</button>
       </div>
       <div id="ticket-matrices-container" class="grid grid-cols-1 gap-3 hidden"></div>
     </div>
@@ -172,11 +171,11 @@
 
     <div class="bg-[#141414] border border-mel-border rounded-2xl p-5 mb-5 shadow-xl relative overflow-hidden flex flex-col items-center">
       <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl"></div>
-
-      <div class="text-xs font-bold text-gray-400 mb-1">ዋና | Main</div>
+      
+      <div class="text-xs font-bold text-gray-400 mb-1">ዋና|Main</div>
       <div id="wallet-page-main" class="text-2xl font-black text-white font-mono mb-3">0.00 ETB</div>
-
-      <div class="text-xs font-bold text-gray-400 mb-4">መጫወቻ | Play</div>
+      
+      <div class="text-xs font-bold text-gray-400 mb-4">መጫወቻ|Play</div>
       <div id="wallet-page-play" class="text-lg font-black text-yellow-400 font-mono mb-5">0.00 ETB</div>
 
       <div class="flex space-x-3 w-full">
@@ -216,14 +215,14 @@
 
   <!-- DEPOSIT SUBPAGE -->
   <div id="page-deposit" class="hidden flex-1 flex-col max-w-md mx-auto w-full p-4 pb-28">
-    <button onclick="switchPage('wallet')" class="self-start text-yellow-400 mb-3 font-bold text-xs"><i class="fa-solid fa-arrow-left mr-1"></i>ወደ ዋሌት ተመለስ</button>
+    <button onclick="switchPage('wallet')" class="self-start text-yellow-400 mb-3 font-bold text-xs"><i class="fa-solid fa-arrow-left mr-1"></i>Back Wallet</button>
     <h2 class="text-xl font-black mb-3 text-yellow-400">📥 በTelebirr ሂሳብ መሙላት</h2>
-    <div class="bg-[#141414] border border-mel-border rounded-2xl p-4 mb-4 text-xs" id="deposit-instructions">Loading payment details…</div>
+    <div class="bg-[#141414] border border-mel-border rounded-2xl p-4 mb-4 text-xs whitespace-pre-line leading-relaxed" id="deposit-instructions">Loading payment details…</div>
     <label class="block text-xs mb-1 text-gray-300">መጠን (ETB)</label>
     <input id="deposit-amount" type="number" min="100" class="w-full rounded-xl bg-[#141414] border border-mel-border p-3 text-white mb-3 text-xs focus:border-yellow-400 outline-none" placeholder="ቢያንስ 100 ETB">
     <label class="block text-xs mb-1 text-gray-300">የክፍያ ማረጋገጫ ቁጥር / Transaction ID</label>
     <input id="deposit-reference" class="w-full rounded-xl bg-[#141414] border border-mel-border p-3 text-white mb-3 text-xs focus:border-yellow-400 outline-none" placeholder="Transaction ID ያስገቡ">
-    <label class="block text-xs mb-1 text-gray-300">ደረሰኝ Screenshot</label>
+    <label class="block text-xs mb-1 text-gray-300">ደረሰኝ Screenshot </label>
     <input id="deposit-image" type="file" accept="image/png,image/jpeg,image/webp" class="w-full text-xs mb-4 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-yellow-400 file:text-slate-950 file:font-bold">
     <button onclick="submitDeposit()" class="w-full rounded-xl bg-yellow-400 text-slate-950 font-black p-3.5 text-xs shadow-lg">ጥያቄ ላክ</button>
     <p id="deposit-result" class="text-xs mt-3 font-medium"></p>
@@ -254,10 +253,6 @@
     </div>
     <div class="mb-4" id="rank-podium-container"></div>
     <div id="rank-list-container" class="space-y-2"></div>
-    <div class="mt-6 mb-2">
-      <h3 class="text-sm font-black text-yellow-400 mb-2">የቅርብ ጨዋታዎች / Recent Games</h3>
-      <div id="rank-recent-rounds" class="space-y-2"></div>
-    </div>
   </div>
 
   <!-- ==================== PAGE: PROFILE ==================== -->
@@ -298,6 +293,11 @@
       </div>
     </div>
 
+    <div class="space-y-2">
+      <button id="profile-help-btn" class="w-full bg-[#141414] border border-mel-border hover:bg-[#1a1a1a] rounded-2xl p-3.5 flex justify-between items-center text-xs font-bold">
+        <span class="flex items-center gap-2.5 text-yellow-400"><i class="fa-solid fa-headset text-sm"></i><span>እርዳታ ማግኘት</span></span>
+        <i class="fa-solid fa-chevron-right text-gray-600 text-[10px]"></i>
+      </button>
       <button id="game-rules-btn" class="w-full bg-[#141414] border border-mel-border hover:bg-[#1a1a1a] rounded-2xl p-3.5 flex justify-between items-center text-xs font-bold">
         <span class="flex items-center gap-2.5 text-yellow-400"><i class="fa-solid fa-book text-sm"></i><span>የጨዋታ ህጎች</span></span>
         <i class="fa-solid fa-chevron-right text-gray-600 text-[10px]"></i>
@@ -349,7 +349,7 @@
     </button>
   </nav>
 
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- JAVASCRIPT LOGIC FULLY SYNCED WITH BACKEND -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     window.currentUserName = "Player";
@@ -391,37 +391,13 @@
             profileHelpBtn.addEventListener('click', async () => {
                 const tg = window.Telegram?.WebApp;
                 try {
-                    const response = await fetch('/api/send-support', {
+                    await fetch('/api/send-support', {
                         method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json', 
-                            'X-Telegram-Init-Data': (window.Telegram?.WebApp?.initData || '') 
-                        },
+                        headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': (window.Telegram?.WebApp?.initData || '') },
                         body: JSON.stringify({ userId: window.currentUserId })
                     });
-
-                    const data = await response.json();
-                    const supportTarget = data.supportUrl || data.supportContact || data.username;
-                    if (supportTarget) {
-                        let cleanUsername = supportTarget.replace('https://t.me/', '').replace('@', '').trim();
-                        let targetUrl = `https://t.me/${cleanUsername}`;
-
-                        if (tg && tg.openTelegramLink) {
-                            tg.openTelegramLink(targetUrl);
-                        } else {
-                            window.open(targetUrl, '_blank');
-                        }
-                        return;
-                    }
-                } catch (err) {
-                    console.error("Support connection error:", err);
-                }
-
-                if (tg && tg.openTelegramLink) {
-                    tg.openTelegramLink('https://t.me/Barosupport1');
-                } else {
-                    window.open('https://t.me/Barosupport1', '_blank');
-                }
+                } catch (err) {}
+                if (tg) tg.close();
             });
         }
 
@@ -542,16 +518,15 @@
       masterBoardChevron.classList.toggle('rotate-180');
     }
 
-    const CLS_FREE  = 'h-8 bg-[#161616] hover:bg-[#222] text-white font-bold text-xs rounded-lg border border-mel-border flex items-center justify-center transition-all cursor-pointer';
-    const CLS_MINE  = 'h-8 bg-yellow-400 text-slate-950 font-black text-xs rounded-lg border border-yellow-200 flex items-center justify-center cursor-pointer';
-    const CLS_TAKEN = 'h-8 bg-[#1f1208] text-yellow-600 font-bold text-xs rounded-lg border border-yellow-900/40 flex items-center justify-center opacity-65 cursor-not-allowed';
+    const CLS_FREE  = 'h-8 bg-[#161616] hover:bg-[#222] text-white font-bold text-xs rounded-lg border border-mel-border flex items-center justify-center transition-all';
+    const CLS_MINE  = 'h-8 bg-yellow-400 text-slate-950 font-black text-xs rounded-lg border border-yellow-200 flex items-center justify-center';
+    const CLS_TAKEN = 'h-8 bg-[#1f1208] text-yellow-600 font-bold text-xs rounded-lg border border-yellow-900/40 flex items-center justify-center opacity-60 cursor-not-allowed';
 
     function initGrid() {
       gridContainer.innerHTML = '';
       gridState = [];
       for (let i = 1; i <= 500; i++) {
         const btn = document.createElement('button');
-        btn.type = 'button';
         btn.id = `cartel-${i}`;
         btn.className = CLS_FREE;
         btn.innerText = i;
@@ -659,7 +634,7 @@
       const fromBonus = Math.min(serverBonus, reserved);
       const playShown = Math.max(0, serverBonus - fromBonus);
       const mainShown = Math.max(0, serverBalance - Math.max(0, reserved - fromBonus));
-
+      
       if (!balanceRefreshing) {
         playWalletDisplay.innerText = playShown.toFixed(2);
         walletPagePlay.innerText = playShown.toFixed(2) + ' ETB';
@@ -805,18 +780,8 @@
       playCall('bingo');
       document.getElementById('winner-total-prize').innerText = `${Number(s.pool).toFixed(2)} ETB`;
       document.getElementById('winner-share-status').innerText = winners.length > 1 ? 'በጋራ አሸንፈዋል!' : '';
+      winnersListContainer.innerHTML = winners.map(w => `<div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-2 flex justify-between items-center text-xs"><span class="text-yellow-300 font-bold">${esc(w.name)}</span><span class="text-yellow-400 font-mono font-bold">${Number(w.prize).toFixed(2)} ETB</span></div>`).join('');
       
-      // አሸናፊዎችን ሲያሳይ ስሙን ብቻ (ምንም አይነት የቅንፍ ቁጥር ሳይኖረው) እንዲያሳይ ማድረግ
-      winnersListContainer.innerHTML = winners.map(w => {
-        const winnerType = w.type === 'bot' ? 'BOT' : 'PLAYER';
-        return `
-          <div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-2.5 flex justify-between items-center text-xs">
-            <span class="text-yellow-300 font-bold">${esc(w.name || 'Player')} <span class="text-[9px] text-gray-500">${winnerType}</span></span>
-            <span class="text-yellow-400 font-mono font-bold">${Number(w.prize).toFixed(2)} ETB</span>
-          </div>
-        `;
-      }).join('');
-
       if (currentPage === 'home' || currentPage === 'ticket') {
         winnerModal.classList.remove('hidden');
       }
@@ -859,7 +824,7 @@
       }
 
       gameStatusLabel.innerText = statusText(s);
-
+      
       if (s.phase === 'drawing' && prevPhase !== 'drawing' && selectedTickets.length > 0 && currentPage === 'home') {
         switchPage('ticket');
       }
@@ -951,34 +916,7 @@
         const d = await api('/api/wallet/config');
         if (d.status !== 'success') throw new Error();
         walletConfig = d;
-
-        let name = d.telebirrName || 'Esraeal';
-        let number = d.telebirrNumber || '0949196145';
-        let minDeposit = d.depositMinimum || 100;
-
-        let htmlContent = `
-          <div class="space-y-2">
-            <div class="flex items-center space-x-2 text-yellow-400 font-bold text-xs mb-1">
-              <i class="fa-solid fa-wallet"></i>
-              <span>በቴሌብር ብቻ ገንዘብ ያስገቡ</span>
-            </div>
-            <div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-3 space-y-1.5 font-mono text-xs">
-              <div class="flex justify-between items-center text-gray-300">
-                <span class="text-gray-400">የቴሌብር ስም:</span>
-                <span class="text-yellow-400 font-bold">${esc(name)}</span>
-              </div>
-              <div class="flex justify-between items-center text-gray-300">
-                <span class="text-gray-400">ስልክ ቁጥር:</span>
-                <span class="text-yellow-400 font-bold select-all">${esc(number)}</span>
-              </div>
-              <div class="flex justify-between items-center text-gray-300 pt-1.5 border-t border-mel-border">
-                <span class="text-gray-400">ቢያንስ ሊገባ የሚችለው:</span>
-                <span class="text-white font-bold">${minDeposit} ETB</span>
-              </div>
-            </div>
-          </div>
-        `;
-        document.getElementById('deposit-instructions').innerHTML = htmlContent;
+        document.getElementById('deposit-instructions').innerText = `${d.depositInstructions}\n\nAccount: ${d.telebirrName} (${d.telebirrNumber})\nMinimum: ${d.depositMinimum} ETB`;
         document.getElementById('withdraw-balance').innerText = Number(d.mainBalance).toFixed(2) + ' ETB';
       } catch(e) {}
     }
@@ -1002,26 +940,10 @@
     async function submitWithdrawal() {
       const out = document.getElementById('withdraw-result'); out.innerText='Sending…';
       try {
-        const res = await api('/api/wallet/withdraw', { 
-          method: 'POST', 
-          body: JSON.stringify({ 
-            amount: Number(document.getElementById('withdraw-amount').value), 
-            name: document.getElementById('withdraw-name').value, 
-            account: document.getElementById('withdraw-account').value 
-          }) 
-        });
-
-        if(res.status !== 'success') {
-          let cleanMsg = res.message || 'ማውጣት አልተቻለም';
-          cleanMsg = cleanMsg.replace(/\[span_\d+\]\(start_span\)|\[span_\d+\]\(end_span\)/g, '').replace(/::$/, '');
-          throw new Error(cleanMsg);
-        }
-
-        out.innerText = '✅ ' + (res.message || 'የማውጣት ጥያቄ ተልኳል');
-        loadWalletConfig();
-      } catch(e) { 
-        out.innerText = '❌ ' + e.message; 
-      }
+        const d = await api('/api/wallet/withdraw', { method: 'POST', body: JSON.stringify({ amount: Number(document.getElementById('withdraw-amount').value), name: document.getElementById('withdraw-name').value, account: document.getElementById('withdraw-account').value }) });
+        if(d.status !== 'success') throw new Error(d.message);
+        out.innerText = '✅ ' + d.message; loadWalletConfig();
+      } catch(e) { out.innerText = '❌ ' + e.message; }
     }
 
     const CALL_FILE = 'calls.mp3';
@@ -1077,10 +999,7 @@
         const response = await fetch('/api/leaderboard', { headers: { 'X-Telegram-Init-Data': (window.Telegram?.WebApp?.initData || '') } });
         if (response.ok) {
           const data = await response.json();
-          if (data.status === 'success') {
-            renderLeaderboardUI(data.leaderboard || []);
-            renderRecentRounds(data.recentRounds || []);
-          }
+          if (data.status === 'success') renderLeaderboardUI(data.leaderboard);
         }
       } catch (error) {}
     }
@@ -1090,24 +1009,24 @@
       const list = document.getElementById('rank-list-container');
       if (!podium || !list) return;
       const fullList = [...players];
-      while (fullList.length < 10) fullList.push({ name: '---', wins: 0 });
+      while (fullList.length < 10) fullList.push({ name: '---', cartels: 0 });
 
       podium.innerHTML = `
         <div class="grid grid-cols-3 gap-2">
           <div class="bg-[#141414] border border-mel-border rounded-2xl p-3 flex flex-col items-center justify-center text-center">
             <div class="w-7 h-7 rounded-full bg-slate-300 text-slate-950 font-bold flex items-center justify-center text-xs mb-1">2</div>
             <div class="text-xs font-bold text-white truncate max-w-[80px]">${esc(fullList[1].name)}</div>
-            <div class="text-[10px] font-mono text-yellow-400 mt-0.5">${fullList[1].wins} Wins</div>
+            <div class="text-[10px] font-mono text-yellow-400 mt-0.5">${fullList[1].cartels} Cartels</div>
           </div>
           <div class="bg-[#141414] border border-yellow-400 rounded-2xl p-3 flex flex-col items-center justify-center text-center shadow-lg">
             <div class="w-8 h-8 rounded-full bg-yellow-400 text-slate-950 font-black flex items-center justify-center text-sm mb-1"><i class="fa-solid fa-crown"></i></div>
             <div class="text-xs font-bold text-yellow-400 truncate max-w-[80px]">${esc(fullList[0].name)}</div>
-            <div class="text-xs font-mono font-bold text-yellow-300 mt-0.5">${fullList[0].wins} Wins</div>
+            <div class="text-xs font-mono font-bold text-yellow-300 mt-0.5">${fullList[0].cartels} Cartels</div>
           </div>
           <div class="bg-[#141414] border border-mel-border rounded-2xl p-3 flex flex-col items-center justify-center text-center">
             <div class="w-7 h-7 rounded-full bg-amber-700 text-white font-bold flex items-center justify-center text-xs mb-1">3</div>
             <div class="text-xs font-bold text-white truncate max-w-[80px]">${esc(fullList[2].name)}</div>
-            <div class="text-[10px] font-mono text-yellow-400 mt-0.5">${fullList[2].wins} Wins</div>
+            <div class="text-[10px] font-mono text-yellow-400 mt-0.5">${fullList[2].cartels} Cartels</div>
           </div>
         </div>
       `;
@@ -1118,50 +1037,9 @@
             <div class="w-6 h-6 rounded-lg bg-[#1f1f1f] text-yellow-400 font-bold flex items-center justify-center text-[11px]">${i + 4}</div>
             <div class="font-bold text-white">${esc(p.name)}</div>
           </div>
-          <div class="font-mono text-yellow-400 font-bold">${p.wins} Wins</div>
+          <div class="font-mono text-yellow-400 font-bold">${p.cartels} Cartels</div>
         </div>
       `).join('');
-    }
-
-    function renderRecentRounds(rounds) {
-      const container = document.getElementById('rank-recent-rounds');
-      if (!container) return;
-      if (!rounds.length) {
-        container.innerHTML = '<div class="text-xs text-gray-500 bg-[#141414] rounded-xl p-3">ገና የተመዘገበ የጨዋታ ታሪክ የለም።</div>';
-        return;
-      }
-
-      container.innerHTML = rounds.map(round => {
-        const players = Array.isArray(round.players) ? round.players : [];
-        const winners = Array.isArray(round.winners) ? round.winners : [];
-        const playerRows = players.map((player, index) => {
-          const role = player.type === 'bot' ? 'BOT' : 'PLAYER';
-          const cards = Array.isArray(player.cartels) ? player.cartels.join(', ') : '';
-          return `
-            <div class="flex items-center justify-between gap-2 text-xs py-1">
-              <span class="text-gray-300">${esc(player.label || `Player ${index + 1}`)} · ${role}</span>
-              <span class="text-white font-bold truncate">${esc(player.name || 'Player')} <span class="text-gray-500 font-normal">#${esc(cards)}</span></span>
-            </div>`;
-        }).join('');
-
-        const winnerRows = winners.length
-          ? winners.map(w => `
-              <div class="flex items-center justify-between gap-2 text-xs py-1">
-                <span class="text-yellow-400 font-bold">🏆 ${esc(w.type === 'bot' ? 'Bot winner' : 'Winner')}</span>
-                <span class="text-yellow-300 font-bold truncate">${esc(w.name || 'Player')} · ${Number(w.prize || 0).toFixed(2)} ETB</span>
-              </div>`).join('')
-          : '<div class="text-xs text-gray-500 py-1">ምንም አሸናፊ የለም</div>';
-
-        return `
-          <div class="bg-[#141414] border border-mel-border rounded-xl p-3">
-            <div class="flex justify-between items-center text-[10px] text-gray-400 mb-2">
-              <span>Round ${esc(round.round_id || '')}</span>
-              <span>Pool: ${Number(round.pool || 0).toFixed(2)} ETB</span>
-            </div>
-            <div class="divide-y divide-[#292929]">${playerRows || '<div class="text-xs text-gray-500 py-1">Player list unavailable</div>'}</div>
-            <div class="border-t border-[#292929] mt-2 pt-2">${winnerRows}</div>
-          </div>`;
-      }).join('');
     }
 
     async function displayUserReferralLink() {
@@ -1177,6 +1055,48 @@
     function copyReferralLink() {
       const linkBox = document.getElementById("referral-link-display");
       if (linkBox) navigator.clipboard.writeText(linkBox.innerText);
+    }
+            const profileHelpBtn = document.getElementById('profile-help-btn');
+        if (profileHelpBtn) {
+            profileHelpBtn.addEventListener('click', async () => {
+                const tg = window.Telegram?.WebApp;
+                try {
+                    // ከሰርቨር ጋር በመገናኘት Environment ላይ የተመዘገበውን የሰፖርት ዩዘርኔም/ሊንክ እንጠይቃለን
+                    const response = await fetch('/api/send-support', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'X-Telegram-Init-Data': (window.Telegram?.WebApp?.initData || '') 
+                        },
+                        body: JSON.stringify({ userId: window.currentUserId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // ሰርቨሩ SUPPORT_CONTACT ወይም supportUrl ከመለሰ በቴሌግራም በኩል በቀጥታ ይክፈተው
+                    const supportTarget = data.supportUrl || data.supportContact || data.username;
+                    if (supportTarget) {
+                        let cleanUsername = supportTarget.replace('https://t.me/', '').replace('@', '').trim();
+                        let targetUrl = `https://t.me/${cleanUsername}`;
+                        
+                        if (tg && tg.openTelegramLink) {
+                            tg.openTelegramLink(targetUrl);
+                        } else {
+                            window.open(targetUrl, '_blank');
+                        }
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Support connection error:", err);
+                }
+                
+                // ድንገት ከሰርቨር መረጃ ማግኘት ካልተቻለ በነባሪነት ወደሚታወቀው የሰፖርት ሊንክ ይመራዋል
+                if (tg && tg.openTelegramLink) {
+                    tg.openTelegramLink('https://t.me/Barosupport1');
+                } else {
+                    window.open('https://t.me/Barosupport1', '_blank');
+                }
+            });
     }
   </script>
 </body>

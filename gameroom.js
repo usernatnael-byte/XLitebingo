@@ -6,22 +6,118 @@ const BALLS = 75;
 
 const matrixCache = {};
 
-// 🟢 100% ንጹህ እና ልዩ (Unique) የሆኑ የኢትዮጵያዊያን የወንድ ስሞች ብቻ (First Names Only)
-const ETHIOPIAN_MALE_NAMES = [
-    "Kebede", "Dawit", "Yonas", "Kemal", "Natnael", "Fikru", "Samuel", "Mikiyas", 
-    "Endale", "Birhanu", "Anwar", "Amare", "Eyob", "Adnew", "Belachew", "Getachew", 
-    "Sintayehu", "Tadesse", "Teferi", "Alemayehu", "Beyene", "Dessalegn", "Eshetu", 
-    "Fantahun", "Gizaw", "Habtamu", "Linsa", "Mohammed", "Assefa", "Tamirat", "Worku", 
-    "Abraham", "Biniyam", "Dagmawi", "Firon", "Geremew", "Kokeb", "Oliyad", "Petros", 
-    "Qumneger", "Sendek", "Temesgen", "Wubshet", "Yacob", "Kiros", "Paulos", "Aklilu", 
-    "Kasahun", "Mesay", "Nati", "Walelign", "Yonatan", "Abiy", "Dereje", "Elias", 
-    "Gezahegn", "Yibekal", "Nahusenay", "Tefera", "Yared", "Fikadu", "Teklehaimanot", 
-    "Jamal", "Robel", "Dejene", "Anbese", "Amare", "Girma", "Umer", "Sultan", 
-    "Birhanu", "Bogale", "Migbu", "Abrha", "Bilal", "Ayele", "Nasir", "Estifanos", 
-    "Admassu", "Hassen", "Ahmed", "Mustefa", "Mokonnen", "Bekele", "Tesfaye", "Mekonnen", 
-    "Mehari", "Ayalew", "Mihret", "Woldesenbet", "Ibrahim", "Lucas", "Yisak", "Beinesu", 
-    "Ali", "Bila", "Gessesse", "Ginbaru", "Muluken", "Markos", "Emru", "Abdul", 
-    "Kadija", "Haile", "Takele", "Assefaw", "Bitew", "Naol", "Mebratu", "Abdu"
+const ETHIOPIAN_NAMES = [
+    "አበበ ከበደ", "Meseret Haile", "ዳዊት መኮንን 🌟", "Tigist Assefa", "ዮናስ ታደሰ",
+"Selam Abebe", "ከማል መሀመድ", "Helen Yosef", "ናትናኤል ሰለሞን", "Bethelhem Ayalew 👑",
+"ቃልኪዳን ተስፋዬ", "Fikru Ayalew", "መቅደስ ታደሰ", "Samuel Girma", "ኤልሳቤጥ መብራቱ",
+"Mikiyas Tekle", "ሀይማኖት ዘውዴ", "Endale Admasu", "ብርሀኑ ደቻሳ", "Anwar Yusuf 🌙",
+"አማረ አያሌው", "Eyob Kebede", "አድነው መኮንን", "Belachew Assefa", "ጌታቸው ታደሰ",
+"Melaku Abebe", "ስንታየሁ መሀመድ", "Tadesse Yosef", "ተፈሪ ሰለሞን", "Zenebech Ayalew",
+"አለማየሁ ተስፋዬ 🌍", "Beyene Ayalew", "ደሳለኝ ታደሰ", "Eshetu Girma", "ፋንታሁን መብራቱ",
+"Gizaw Tekle", "ሀብታሙ ዘውዴ", "Kebede Admasu", "ሊንሳ ደቻሳ", "Mohammed Yusuf",
+"አሰፋ ከበደ", "Tamirat Haile", "ወርቁ መኮንን", "Yeshihareg Assefa", "ዘውዴ ታደሰ",
+"Abraham Abebe", "ቢኒያም መሀመድ", "Dagmawi Yosef", "እሌኒ ሰለሞን", "Firon Ayalew",
+"ገረመው ተስፋዬ", "Hanna Ayalew 🌻", "ኢዮርዳኖስ ታደሰ", "Kokeb Girma", "ሉላ መብራቱ",
+"Meron Tekle", "ናኦት ዘውዴ", "Oliyad Admasu", "ጴጥሮስ ደቻሳ", "Qumneger Yusuf",
+"ርብቃ ከበደ", "Sendek Haile", "ተመስገን መኮንን", "Wubshet Assefa", "ያዕቆብ ታደሰ",
+"Azeb Abebe", "ብርቱካን መሀመድ", "Daniel Yosef", "ኤፍሬም ሰለሞን 🎸", "Fasika Ayalew",
+"ገነት ተስፋዬ", "Hermela Ayalew", "ዮዲት ታደሰ", "Kiros Girma", "ሊዲያ መብራቱ",
+"Marta Tekle", "ናርዶስ ዘውዴ", "Ornia Admasu", "ፓውሎስ ደቻሳ", "Rahel Yusuf",
+"ሳራ ከበደ", "Tigist Haile", "ውይንቱ መኮንን", "Yared Assefa", "ዘሪቱ ታደሰ",
+"Aklilu Abebe", "ቤተልሄም መሀመድ", "Dawit Yosef ✨", "እዮብ ሰለሞን", "Frehiwot Ayalew",
+"ገረመው ካሳ", "Haymanot Ayalew", "ዮሐንስ ታደሰ", "Kasahun Girma", "ሊቀመናን መብራቱ",
+"Mesay Tekle", "ናቲ ዘውዴ", "Endale Kassa", "ጳውሎስ ደቻሳ", "Qonjit Yusuf",
+"ሩሃማ ከበደ", "Sendek Tadesse", "ተስፋዬ መኮንን", "Walelign Assefa", "ዮናታን ታደሰ",
+"Abiy Abebe", "ባንቺአለም መሀመድ", "Dereje Yosef", "ኤልያስ ሰለሞን", "Fiker Ayalew ❤️",
+"ገዛኸኝ ተስፋዬ", "Habtamu Ayalew", "ይበቃል ታደሰ", "Kebede Girma", "ልጅአለም መብራቱ",
+"Mekonnen Tekle", "ናሁሰናይ ዘውዴ", "Oliyad Kassa", "ጴጥሮስ ታደሰ", "Qonjitu Yusuf",
+"ርብቃ አበበ", "Solomon Haile", "ተፈራ መኮንን", "Worke Assefa", "ያዕቆብ ካሳ",
+"Amarech Abebe", "ብርቄ መሀመድ", "Dagmawi Tadesse", "ኤፍሬም ታደሰ", "Fenta Ayalew",
+"ገነት ካሳ", "Helen Ayalew", "ዮዲት ካሳ", "Kiros Tadesse", "ሊዲያ ታደሰ",
+"Marta Abebe", "ናርዶስ ካሳ 💎", "Ornia Tadesse", "ፓውሎስ ታደሰ", "Rahel Abebe",
+"ሳራ ካሳ", "Tigist Tadesse", "ውይንቱ ካሳ", "Yared Tadesse", "ዘሪቱ ካሳ",
+"Aklilu Tadesse", "ቤተልሄም ካሳ", "Dawit Tadesse", "እዮብ ካሳ", "Frehiwot Tadesse",
+"ዮሐንስ መላኩ", "Yordanos Zelalem", "ፍቃዱ አንዋር 🔥", "Teklehaimanot Tesfaye", "መሀመድ ቦጋለ",
+"Jamal Ayele", "ጀማል ፍቅሩ", "Yonas Zelalem", "ሮቤል አርአያ", "Dejene Takele",
+"አንበሴ ካሳ", "Yohannes Tadesse", "ዮርዳኖስ ኤልሳቤጥ", "Amare Mikias", "ግርማ ገብሩ",
+"Lubaba Dechasa", "ይበቃል እንዳለ", "Lucas Helen", "ዑመር መቅደስ", "Worku Tadesse",
+"ፍሬህይወት መሀመድ", "Sultan Samuel", "ግርማ ቤተልሄም", "Meseret Bethelhem", "መሰረት አርአያ",
+"Birhanu Meseret", "ጴጥሮስ ቦጋለ", "Bogale Ayalew", "ምግቡ አብርሀ", "Abrha Muluken",
+"ቢላል መቅደስ", "Ayele Zewde", "ናስር አያሌው", "Yonas Zewde", "ናትናኤል ግርማ",
+"Estifanos Melaku", "አድማሱ አበበ", "Amina Mohammed", "ማርያም አብርሀ", "Haymanot Kemal",
+"ዮናስ ታከለ", "Abrha Haymanot", "ዘላለም ሳሙኤል", "Fikadu Mikias", "ሀሰን ፍቃዱ",
+"Belachew Admassu", "አህመድ መቅደስ", "Worku Mekdes", "ሙስጠፋ ሙሉቀን", "Mokonnen Samuel",
+"ከበደ በቀለ", "Samuel Haymanot", "ተስፋዬ መሰረት", "Mekonnen Abrha", "ዮርዳኖስ ትግስት",
+"Dejene Abrha", "አለማየሁ ቤተልሄም", "Mebratu Melaku", "መሀሪ መሀመድ", "Tesfaye Takele",
+"አበባ መብራቱ", "Belachew Mohammed", "እምሩ ቤተልሄም", "Birtukan Alemayehu", "አስቴር አለማየሁ",
+"Tsehay Gebru", "ገብሩ ሀይሉ", "Endale Zewde", "ሰለሞን አበበ", "Abebe Solomon",
+"ግርማ ታደሰ", "Tadesse Mohammed", "ራሄል ሔለን", "Estifanos Dawit", "አድማሱ ደሳለኝ",
+"Dechasa Anwar", "ሉባባ ደሳለኝ", "Girma Anwar", "ሉባባ ፍቅሩ", "Mekdes Anwar",
+"ተስፋዬ ጌታቸው", "Mehari Dessalegn", "አሚና ሚኪያስ", "Yosef Kemal", "ገነት አብርሀ",
+"Mesay Tadesse", "ሚኪያስ ሙሉቀን", "Worku Yusuf", "መላኩ በቀለ", "Kassa Mebratu",
+"አያሌው አርአያ", "Abebe Yusuf", "ምህረት ዘላለም", "Woldesenbet Mekdes", "ማርያም ታከለ",
+"Yohannes Zewde", "ኢብራሂም ሚኪያስ", "Sultan Mohammed", "ከበደ ኤልሳቤጥ", "Gebru Anwar",
+"አለማየሁ ሀይሌ", "Ayele Melaku", "መሳይ ከበደ", "Bilal Birhanu", "መሰረት ቃልኪዳን",
+"Yordanos Tigist", "አብርሀ መብራቱ", "Lucas Bekele", "አህመድ ብርሀኑ", "Dejene Assefa",
+"ተመስገን አበበ", "Gebru Kebede", "በእነሱ ተስፋዬ", "Paulos Selam", "መላኩ ሀይሌ",
+"Belachew Yosef", "ይስሀቅ ገብሩ", "Tsehay Dessalegn", "ሙስጠፋ ከበደ", "Mesay Yosef",
+"ቢላል ታደሰ", "Temesgen Kalkidan", "ገነት ታደሰ", "Tsehay Tadesse", "ካሳ አያሌው",
+"Birtukan Mekdes", "አስቴር ጌታቸው", "Girma Kemal", "አማረ ወርቁ", "Fikadu Yosef",
+"ብርቱካን ገብሩ", "Temesgen Mekdes", "ካሳ አበበ", "Estifanos Tadesse", "ፀሀይ ሔለን",
+"Fatima Mekdes", "ፍሬህይወት ዘላለም", "Yisak Mebratu", "በእነሱ ፍቅሩ", "Haymanot Muluken",
+"ሐና ዮናስ", "Dejene Kassa", "ወርቁ ተክሌ", "Estifanos Kalkidan", "ፍቅሩ ሰላም",
+"Fikadu Tesfaye", "ተክሌ አያሌው", "Worku Muluken", "አሊ መኮነን", "Mekonnen Natnael",
+"ቢላ እንዳለ", "Mesay Mekdes", "ሰንደቅ ዮሴፍ", "Fikadu Selam", "አስቴር አየለ",
+"Worku Dechasa", "ካሳ ገሰሰ", "Birhanu Tigist", "አህመድ አሰፋ", "Tigist Abebe",
+"ፀሀይ አሰፋ", "Fatima Melaku", "ይስሀቅ መላኩ", "Amare Kemal", "ግንባሩ ተስፋዬ",
+"Estifanos Meseret", "ከበደ ታደሰ", "Ayalew Bethelhem", "ሙሉቀን ካሳ", "Teklehaimanot Getachew",
+"ተክሌ አሰፋ", "Estifanos Yonas", "በቀለ ሙሉቀን", "Woldesenbet Zelalem", "ሮቤል ዘውዴ",
+"Teklehaimanot Haymanot", "መሀመድ ዘውዴ", "Markos Zewde", "እምሩ ታከለ", "Sultan Meseret",
+"አብረሃም በላቸው", "Gebru Fikadu", "አንበሴ ሳሙኤል", "Birhanu Tadesse", "አያሌው ጌታቸው",
+"Tesfaye Dawit", "ናትናኤል ታደሰ", "Dechasa Tekle", "አበበ መብራቱ", "Lubaba Mekdes",
+"ኤልሳቤጥ ጌታቸው", "Yohannes Fikadu", "ጀማል ዮሴፍ", "Dejene Abebe", "ደቻሳ ሔለን",
+"Abdul Fikru", "መሀመድ አድማሱ", "Nasir Tesfaye", "ኤልሳቤጥ ሳሙኤል", "Abrha Bethelhem",
+"ከማል ተስፋዬ", "Dessalegn Gebru", "አሊ ሀይማኖት", "Maryam Abrha", "ተመስገን መኮነን",
+"Birhanu Melaku", "ይበቃል አሰፋ", "Worku Birhanu", "ይስሀቅ ታደሰ", "Yosef Admassu",
+"ፀሀይ ታደሰ", "Dejene Anwar", "ጌታቸው ካሳ", "Birhanu Mebratu", "ኤልሳቤጥ ካሳ",
+"Kemal Mekonnen", "ብርሀኑ አየለ", "Zewde Mebratu", "ቢላ አብርሀ", "Kadija Solomon",
+"ታደሰ ከማል", "Sultan Takele", "አበባ መኮንን", "Tigist Kebede", "ገብረማርያም ኤልሳቤጥ",
+"Mekdes Haymanot", "ቤተልሄም ዮናስ", "Naol Muluken", "ይበቃል ሳሙኤል", "Mebratu Alemayehu",
+"አለማየሁ ሰለሞን", "Estifanos Haymanot", "አዳነች ናትናኤል", "Natnael Takele", "እምሩ ሚኪያስ",
+"Tigist Alemayehu", "ዩሱፍ አበበ", "Abdul Haymanot", "ታደሰ አበበ", "Zewde Assefa",
+"ምህረት ከማል", "Zelalem Endale", "ካሳ ሔለን", "Hermela Takele", "አለማየሁ ዮሴፍ",
+"Haile Dechasa", "ግርማ ዮሴፍ", "Mehari Girma", "ታከለ ጌታቸው", "Gebru Ayalew",
+"ፋጡማ ሀይማኖት", "Emebet Bekele", "አብርሀ ሀይሉ", "Endale Kalkidan", "መሀመድ መሰረት",
+"Markos Anwar", "ሙስጠፋ አያሌው", "Araya Samuel", "ምስራቅ ሰላም", "Birtukan Tadesse",
+"ደሳለኝ ካሳ", "Zelalem Ayele", "ከዲጃ ትግስት", "Lubaba Haile", "ኢብራሂም ታከለ",
+"Zelalem Bethelhem", "አሰፋው አያሌው", "Kassa Solomon", "ወርቁ አየለ", "Endale Kassa",
+"ግርማ ደጀኔ", "Teklehaimanot Samuel", "ተስፋዬ ኤልሳቤጥ", "Anwar Abebe", "ተክለሀይማኖት እንዳለ",
+"Selam Admassu", "ሉባባ ሙሉቀን", "Yusuf Mohammed", "ሐና መላኩ", "Aster Tekle",
+"ይበቃል ትግስት", "Mokonnen Takele", "ግንባሩ አለማየሁ", "Yordanos Muluken", "ሰላም ቃልኪዳን",
+"Petros Selam", "ዩሱፍ ካሳ", "Petros Abrha", "ብርቱካን ዘላለም", "Bekele Getachew",
+"ዮሴፍ ሙሉቀን", "Maryam Muluken", "ቢተው ከማል", "Kadija Dechasa", "ሉባባ ተስፋዬ",
+"Woldesenbet Natnael", "ከበደ ካሳ", "Teklehaimanot Fikadu", "ዩሱፍ መላኩ", "Worku Melaku",
+"ዘውዴ መኮንን", "Sultan Solomon", "ራሄል አለማየሁ", "Lucas Gebru", "መቅደስ አበበ",
+"Tigist Ayalew", "አስቴር መብራቱ", "Fatima Gebru", "ሉባባ ቤተልሄም", "Mehari Bethelhem",
+"ይስሀቅ ወርቁ", "Kebede Tekle", "ሰለሞን ካሳ", "Aster Assefa", "አብዱል ሔለን",
+"Lubaba Mikias", "አሚና ናትናኤል", "Bekele Haymanot", "ሮቤል መላኩ", "Paulos Bethelhem",
+"ቢተው ቃልኪዳን", "Kassa Kemal", "ይበቃል ቦጋለ", "Maryam Gebru", "ከማል ብርሀኑ",
+"Araya Zelalem", "ተክሌ እንዳለ", "Sultan Yusuf", "እድለም ከበደ", "Mekdes Tigist",
+"ተክሌ ካሳ", "Naol Getachew", "ጌታቸው አበበ", "Emebet Amare", "ደሳለኝ መሀመድ",
+"Bethelhem Fikadu", "ፋጡማ ካሳ", "Petros Natnael", "ብርሀኑ ወርቁ", "Tesfaye Endale",
+"ናስር አሰፋ", "Anwar Selam", "ታከለ ግርማ", "Dejene Admassu", "ወልደሰንበት ከበደ",
+"Bekele Zewde", "ይስሀቅ ሀይሌ", "Solomon Mikias", "ይበቃል ታደሰ", "Yohannes Muluken",
+"ካሳ ግርማ", "Yordanos Tekle", "ቃልኪዳን መኮንን", "Tigist Endale", "ጳውሎስ ቃልኪዳን",
+"Endale Bekele", "ሰለሞን መሰረት", "Woldesenbet Kalkidan", "አበባ በቀለ", "Selam Ayalew",
+"አብዱ ዮሴፍ", "Abraham Ayalew", "ትግስት ፍቅሩ", "Gebremariam Tekle", "መቅደስ እንዳለ",
+"Fikru Haile", "አያሌው ካሳ", "Fikadu Alemayehu", "በቀለ መቅደስ", "Zeyneb Girma",
+"ሐና ቃልኪዳን", "Markos Tadesse", "መሀሪ ተክሌ", "Ayele Kebede", "ግንባሩ መላኩ",
+"Araya Fikadu", "ዑመር አየለ", "Bilal Selam", "መሀሪ ፍቃዱ", "Mebratu Bethelhem",
+"ገብሩ ግርማ", "Zelalem Gebru", "ሄርሜላ አየለ", "Worku Alemayehu", "በእነሱ አሰፋ",
+"Zelalem Zewde", "ታደሰ ገብሩ", "Hermela Helen", "ቢተው ዩሱፍ", "Jamal Melaku",
+"ዮሐንስ መቅደስ", "Zelalem Ayele", "መኮንን ሀይሉ", "Zeyneb Abrha", "ተስፋዬ አማረ",
+"Kebede Bethelhem", "ጴጥሮስ ሙሉቀን", "Temesgen Tekle", "አድማሱ ፍቃዱ", "Birtukan Selam",
+"አብዱ ከበደ", "Bethelhem Admassu", "መሀመድ ካሳ", "Mehari Samuel", "ሰንደቅ ተስፋዬ"
 ];
 
 function seededRandom(seed) {
@@ -91,7 +187,7 @@ class GameEngine {
         this.wallet = wallet;
         this.min_players = Math.max(1, min_players);
         this.selection_seconds = selection_seconds;
-        this.draw_interval = draw_interval;
+        this.draw_interval = draw_interval; // 3 ሰከንድ ጋፕ ለቁጥር መውጫ
         this.result_seconds = result_seconds;
         this.first_draw_delay = 3.0;
 
@@ -102,8 +198,7 @@ class GameEngine {
         this.botSettings = {
             botCount: 50,
             botWinPercent: 20,
-            botCardsPerUser: 2,
-            restrictDepositedWin: true
+            botCardsPerUser: 2
         };
 
         this._newRound();
@@ -146,7 +241,6 @@ class GameEngine {
         this.phase_ends_at = now + this.selection_seconds;
         this.cartels = {};
         this.botProfiles = {};
-        this.restrictedUsers = new Set();
         this.draw_order = [];
         this.drawn = [];
         this.next_draw_at = null;
@@ -154,7 +248,7 @@ class GameEngine {
         this.no_winner = false;
         this._pending = null;
         this._botsInjected = false;
-        this.botQueue = [];
+        this.botQueue = []; // የሮቦቶች ተራ በተራ የመምረጫ ኪዩ (Queue)
         this.botInjectIndex = 0;
 
         this._seq++;
@@ -255,6 +349,7 @@ class GameEngine {
                 this._botsInjected = true;
             }
 
+            // ሮቦቶች በአንድ ጊዜ ሳይሆን በየተራ (በየጊዜው የተወሰኑትን) ካርቴል እንዲይዙ ማድረግ (Realism)
             this._processBotQueue();
 
             if (now >= this.phase_ends_at) {
@@ -293,20 +388,20 @@ class GameEngine {
         this.botProfiles = {};
         this.botQueue = [];
 
-        let shuffledNames = [...ETHIOPIAN_MALE_NAMES].sort(() => Math.random() - 0.5);
-
         for (let i = 0; i < targetBotCount; i++) {
             const botId = `bot_${i + 1}`;
-            const randomName = shuffledNames[i % shuffledNames.length];
-
+            const randomName = ETHIOPIAN_NAMES[Math.floor(Math.random() * ETHIOPIAN_NAMES.length)] + ` (${Math.floor(Math.random() * 900 + 100)})`;
+            
             this.botProfiles[botId] = { name: randomName };
 
+            // እያንዳንዱ ሮቦት የሚይዛቸውን ካርቴሎች ብዛት በሴቲንግ መሰረት ማዘጋጀት
             const howManyCards = Math.floor(Math.random() * cardsPerBot) + 1;
             for (let c = 0; c < howManyCards; c++) {
                 this.botQueue.push(botId);
             }
         }
 
+        // ሮቦቶች በቅደም ተከተል እንዳይይዙ ቀላቅላቸው (Randomize)
         this.botQueue.sort(() => Math.random() - 0.5);
         this.botInjectIndex = 0;
     }
@@ -314,12 +409,14 @@ class GameEngine {
     _processBotQueue() {
         if (!this.botQueue || this.botInjectIndex >= this.botQueue.length) return;
 
+        // በየቲክ ሰዓቱ ከክፍ ክፍሎች ጥቂት ሮቦቶች (ለምሳሌ 1 እስከ 3) ተራ በተራ ካርቴል እንዲይዙ ማድረግ
         let steps = Math.floor(Math.random() * 3) + 1;
         let changed = false;
 
         for (let s = 0; s < steps && this.botInjectIndex < this.botQueue.length; s++) {
             const botId = this.botQueue[this.botInjectIndex++];
-
+            
+            // እስካሁን ያልተያዙ ክፍት ካርቴሎችን መፈለግ
             let availableCartels = [];
             for (let i = 1; i <= CARTEL_COUNT; i++) {
                 if (!this.cartels[i]) availableCartels.push(i);
@@ -327,14 +424,14 @@ class GameEngine {
 
             if (availableCartels.length === 0) break;
 
+            // ከነጻዎቹ ውስጥ አንዱን በራንደም መምረጥ
             const chosenCartel = availableCartels[Math.floor(Math.random() * availableCartels.length)];
-
-            if (chosenCartel >= 1 && chosenCartel <= CARTEL_COUNT) {
-                const botExistingCount = Object.values(this.cartels).filter(u => u === botId).length;
-                if (botExistingCount < MAX_SELECTION) {
-                    this.cartels[chosenCartel] = botId;
-                    changed = true;
-                }
+            
+            // ይህ ሮቦት ከዚህ በፊት የያዛቸው ካርቴሎች ብዛት ማረጋገጥ (ከ MAX_SELECTION እንዳያልፍ)
+            const botExistingCount = Object.values(this.cartels).filter(u => u === botId).length;
+            if (botExistingCount < MAX_SELECTION) {
+                this.cartels[chosenCartel] = botId;
+                changed = true;
             }
         }
 
@@ -363,7 +460,6 @@ class GameEngine {
         }
 
         let paid = {};
-        this.restrictedUsers = new Set();
 
         for (let [uid, cartels] of Object.entries(byUser)) {
             let res = await this.wallet.charge(
@@ -375,13 +471,6 @@ class GameEngine {
 
             if (res !== null) {
                 for (let c of cartels) paid[c] = uid;
-
-                if (this.botSettings.restrictDepositedWin) {
-                    const prof = await this.wallet.profile(uid);
-                    if (prof && prof.has_deposited) {
-                        this.restrictedUsers.add(String(uid));
-                    }
-                }
             } else {
                 await this.wallet.refund(uid, rid);
             }
@@ -424,53 +513,8 @@ class GameEngine {
     }
 
     _draw_one(now) {
-        let nextIndex = this.drawn.length;
-        let chosenNumber = this.draw_order[nextIndex];
+        let number = this.draw_order[this.drawn.length];
 
-        if (this.botSettings.restrictDepositedWin && this.restrictedUsers && this.restrictedUsers.size > 0) {
-            let safeIndex = -1;
-
-            for (let i = nextIndex; i < this.draw_order.length; i++) {
-                let candidateNum = this.draw_order[i];
-                let testSet = new Set(this.drawn);
-                testSet.add(candidateNum);
-
-                let makesRestrictedWin = false;
-
-                for (let [cartel, uid] of Object.entries(this.cartels)) {
-                    if (this.restrictedUsers.has(String(uid))) {
-                        if (checkBingo(generateMatrix(Number(cartel)), testSet)) {
-                            makesRestrictedWin = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!makesRestrictedWin) {
-                    safeIndex = i;
-                    break;
-                }
-            }
-
-            if (safeIndex !== -1) {
-                chosenNumber = this.draw_order[safeIndex];
-                this.draw_order[safeIndex] = this.draw_order[nextIndex];
-                this.draw_order[nextIndex] = chosenNumber;
-            } else {
-                const nonRestrictedCartels = Object.entries(this.cartels)
-                    .filter(([c, u]) => !this.restrictedUsers.has(String(u)))
-                    .map(([c]) => Number(c));
-
-                if (nonRestrictedCartels.length > 0) {
-                    const luckyCartel = nonRestrictedCartels[Math.floor(Math.random() * nonRestrictedCartels.length)];
-                    this._pending = ['win', [luckyCartel]];
-                    this.phase = 'settling';
-                    return;
-                }
-            }
-        }
-
-        let number = chosenNumber;
         this.drawn.push(number);
         this._seq++;
 
@@ -478,11 +522,8 @@ class GameEngine {
         let winning = [];
 
         for (let [cartel, uid] of Object.entries(this.cartels)) {
-            const cartelNum = Number(cartel);
-            if (cartelNum >= 1 && cartelNum <= CARTEL_COUNT) {
-                if (checkBingo(generateMatrix(cartelNum), drawnSet)) {
-                    winning.push(cartelNum);
-                }
+            if (checkBingo(generateMatrix(Number(cartel)), drawnSet)) {
+                winning.push(Number(cartel));
             }
         }
 
@@ -490,9 +531,9 @@ class GameEngine {
             const botWinChance = Number(this.botSettings.botWinPercent) || 0;
             if (Math.random() * 100 < botWinChance) {
                 const botCartels = Object.entries(this.cartels)
-                    .filter(([c, u]) => String(u).startsWith('bot_') && Number(c) >= 1 && Number(c) <= CARTEL_COUNT)
+                    .filter(([c, u]) => String(u).startsWith('bot_'))
                     .map(([c]) => Number(c));
-
+                
                 if (botCartels.length > 0) {
                     const chosenBotCartel = botCartels[Math.floor(Math.random() * botCartels.length)];
                     winning.push(chosenBotCartel);
@@ -519,11 +560,6 @@ class GameEngine {
         let tickets = { ...this.cartels };
         let pending = this._pending;
         let pool = 0;
-        let profiles = {};
-        const realUserIds = [...new Set(Object.values(tickets).filter(uid => !String(uid).startsWith('bot_')).map(String))];
-        for (const uid of realUserIds) {
-            profiles[uid] = await this.wallet.profile(uid) || {};
-        }
 
         if (pending[0] === 'win') {
             let wins = pending[1];
@@ -542,6 +578,12 @@ class GameEngine {
                 realWinnersList.push({ cartel: c, uid: uid });
             }
 
+            let profiles = {};
+
+            for (let uid of Object.keys(payouts)) {
+                profiles[uid] = await this.wallet.profile(uid) || {};
+            }
+
             if (Object.keys(payouts).length > 0) {
                 await this.wallet.prepare_settlement(rid, payouts);
                 await this.wallet.settle(rid, payouts);
@@ -550,19 +592,17 @@ class GameEngine {
             this.winners = realWinnersList.map(w => {
                 const isBot = String(w.uid).startsWith('bot_');
                 let winnerName = 'Player';
-
                 if (isBot) {
                     winnerName = this.botProfiles[w.uid]?.name || 'ተጫዋች';
                 } else {
-                    winnerName = profiles[w.uid]?.first_name || profiles[w.uid]?.username || profiles[w.uid]?.name || 'Player';
+                    winnerName = profiles[w.uid]?.name || profiles[w.uid]?.username || 'Player';
                 }
 
                 return {
                     uid: w.uid,
-                    cartel: Number(w.cartel),
+                    cartel: w.cartel,
                     prize: share,
-                    name: winnerName,
-                    type: isBot ? 'bot' : 'player'
+                    name: winnerName
                 };
             });
 
@@ -574,39 +614,6 @@ class GameEngine {
             this.winners = [];
             this.no_winner = true;
         }
-
-        const playersById = new Map();
-        for (const [cartel, rawUid] of Object.entries(tickets)) {
-            const uid = String(rawUid);
-            if (!playersById.has(uid)) {
-                const isBot = uid.startsWith('bot_');
-                const profile = profiles[uid] || {};
-                playersById.set(uid, {
-                    uid,
-                    name: isBot
-                        ? (this.botProfiles[uid]?.name || 'Bot')
-                        : (profile.first_name || profile.username || profile.name || 'Player'),
-                    type: isBot ? 'bot' : 'player',
-                    cartels: []
-                });
-            }
-            playersById.get(uid).cartels.push(Number(cartel));
-        }
-        const roundPlayers = [...playersById.values()]
-            .sort((a, b) => Math.min(...a.cartels) - Math.min(...b.cartels))
-            .map((player, index) => ({
-                ...player,
-                label: `Player ${index + 1}`,
-                cartels: player.cartels.sort((a, b) => a - b)
-            }));
-
-        await this.wallet.record_round_result(rid, {
-            players: roundPlayers,
-            winners: this.winners,
-            no_winner: this.no_winner,
-            pool,
-            settled_at: new Date().toISOString()
-        });
 
         this.phase = 'result';
         this.phase_ends_at = Date.now() / 1000 + this.result_seconds;
