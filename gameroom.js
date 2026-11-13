@@ -519,6 +519,11 @@ class GameEngine {
         let tickets = { ...this.cartels };
         let pending = this._pending;
         let pool = 0;
+        let profiles = {};
+        const realUserIds = [...new Set(Object.values(tickets).filter(uid => !String(uid).startsWith('bot_')).map(String))];
+        for (const uid of realUserIds) {
+            profiles[uid] = await this.wallet.profile(uid) || {};
+        }
 
         if (pending[0] === 'win') {
             let wins = pending[1];
@@ -537,12 +542,6 @@ class GameEngine {
                 realWinnersList.push({ cartel: c, uid: uid });
             }
 
-            let profiles = {};
-
-            for (let uid of Object.keys(payouts)) {
-                profiles[uid] = await this.wallet.profile(uid) || {};
-            }
-
             if (Object.keys(payouts).length > 0) {
                 await this.wallet.prepare_settlement(rid, payouts);
                 await this.wallet.settle(rid, payouts);
@@ -555,14 +554,15 @@ class GameEngine {
                 if (isBot) {
                     winnerName = this.botProfiles[w.uid]?.name || 'ተጫዋች';
                 } else {
-                    winnerName = profiles[w.uid]?.name || profiles[w.uid]?.username || 'Player';
+                    winnerName = profiles[w.uid]?.first_name || profiles[w.uid]?.username || profiles[w.uid]?.name || 'Player';
                 }
 
                 return {
                     uid: w.uid,
                     cartel: Number(w.cartel),
                     prize: share,
-                    name: winnerName
+                    name: winnerName,
+                    type: isBot ? 'bot' : 'player'
                 };
             });
 
@@ -574,6 +574,39 @@ class GameEngine {
             this.winners = [];
             this.no_winner = true;
         }
+
+        const playersById = new Map();
+        for (const [cartel, rawUid] of Object.entries(tickets)) {
+            const uid = String(rawUid);
+            if (!playersById.has(uid)) {
+                const isBot = uid.startsWith('bot_');
+                const profile = profiles[uid] || {};
+                playersById.set(uid, {
+                    uid,
+                    name: isBot
+                        ? (this.botProfiles[uid]?.name || 'Bot')
+                        : (profile.first_name || profile.username || profile.name || 'Player'),
+                    type: isBot ? 'bot' : 'player',
+                    cartels: []
+                });
+            }
+            playersById.get(uid).cartels.push(Number(cartel));
+        }
+        const roundPlayers = [...playersById.values()]
+            .sort((a, b) => Math.min(...a.cartels) - Math.min(...b.cartels))
+            .map((player, index) => ({
+                ...player,
+                label: `Player ${index + 1}`,
+                cartels: player.cartels.sort((a, b) => a - b)
+            }));
+
+        await this.wallet.record_round_result(rid, {
+            players: roundPlayers,
+            winners: this.winners,
+            no_winner: this.no_winner,
+            pool,
+            settled_at: new Date().toISOString()
+        });
 
         this.phase = 'result';
         this.phase_ends_at = Date.now() / 1000 + this.result_seconds;

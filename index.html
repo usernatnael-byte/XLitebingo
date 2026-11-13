@@ -254,6 +254,10 @@
     </div>
     <div class="mb-4" id="rank-podium-container"></div>
     <div id="rank-list-container" class="space-y-2"></div>
+    <div class="mt-6 mb-2">
+      <h3 class="text-sm font-black text-yellow-400 mb-2">የቅርብ ጨዋታዎች / Recent Games</h3>
+      <div id="rank-recent-rounds" class="space-y-2"></div>
+    </div>
   </div>
 
   <!-- ==================== PAGE: PROFILE ==================== -->
@@ -804,10 +808,10 @@
       
       // አሸናፊዎችን ሲያሳይ ስሙን ብቻ (ምንም አይነት የቅንፍ ቁጥር ሳይኖረው) እንዲያሳይ ማድረግ
       winnersListContainer.innerHTML = winners.map(w => {
-        let cleanName = esc(w.name).replace(/\s*\(.*?\)/g, '');
+        const winnerType = w.type === 'bot' ? 'BOT' : 'PLAYER';
         return `
           <div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-2.5 flex justify-between items-center text-xs">
-            <span class="text-yellow-300 font-bold">${cleanName}</span>
+            <span class="text-yellow-300 font-bold">${esc(w.name || 'Player')} <span class="text-[9px] text-gray-500">${winnerType}</span></span>
             <span class="text-yellow-400 font-mono font-bold">${Number(w.prize).toFixed(2)} ETB</span>
           </div>
         `;
@@ -1073,7 +1077,10 @@
         const response = await fetch('/api/leaderboard', { headers: { 'X-Telegram-Init-Data': (window.Telegram?.WebApp?.initData || '') } });
         if (response.ok) {
           const data = await response.json();
-          if (data.status === 'success') renderLeaderboardUI(data.leaderboard);
+          if (data.status === 'success') {
+            renderLeaderboardUI(data.leaderboard || []);
+            renderRecentRounds(data.recentRounds || []);
+          }
         }
       } catch (error) {}
     }
@@ -1083,24 +1090,24 @@
       const list = document.getElementById('rank-list-container');
       if (!podium || !list) return;
       const fullList = [...players];
-      while (fullList.length < 10) fullList.push({ name: '---', cartels: 0 });
+      while (fullList.length < 10) fullList.push({ name: '---', wins: 0 });
 
       podium.innerHTML = `
         <div class="grid grid-cols-3 gap-2">
           <div class="bg-[#141414] border border-mel-border rounded-2xl p-3 flex flex-col items-center justify-center text-center">
             <div class="w-7 h-7 rounded-full bg-slate-300 text-slate-950 font-bold flex items-center justify-center text-xs mb-1">2</div>
             <div class="text-xs font-bold text-white truncate max-w-[80px]">${esc(fullList[1].name)}</div>
-            <div class="text-[10px] font-mono text-yellow-400 mt-0.5">${fullList[1].cartels} Cartels</div>
+            <div class="text-[10px] font-mono text-yellow-400 mt-0.5">${fullList[1].wins} Wins</div>
           </div>
           <div class="bg-[#141414] border border-yellow-400 rounded-2xl p-3 flex flex-col items-center justify-center text-center shadow-lg">
             <div class="w-8 h-8 rounded-full bg-yellow-400 text-slate-950 font-black flex items-center justify-center text-sm mb-1"><i class="fa-solid fa-crown"></i></div>
             <div class="text-xs font-bold text-yellow-400 truncate max-w-[80px]">${esc(fullList[0].name)}</div>
-            <div class="text-xs font-mono font-bold text-yellow-300 mt-0.5">${fullList[0].cartels} Cartels</div>
+            <div class="text-xs font-mono font-bold text-yellow-300 mt-0.5">${fullList[0].wins} Wins</div>
           </div>
           <div class="bg-[#141414] border border-mel-border rounded-2xl p-3 flex flex-col items-center justify-center text-center">
             <div class="w-7 h-7 rounded-full bg-amber-700 text-white font-bold flex items-center justify-center text-xs mb-1">3</div>
             <div class="text-xs font-bold text-white truncate max-w-[80px]">${esc(fullList[2].name)}</div>
-            <div class="text-[10px] font-mono text-yellow-400 mt-0.5">${fullList[2].cartels} Cartels</div>
+            <div class="text-[10px] font-mono text-yellow-400 mt-0.5">${fullList[2].wins} Wins</div>
           </div>
         </div>
       `;
@@ -1111,9 +1118,50 @@
             <div class="w-6 h-6 rounded-lg bg-[#1f1f1f] text-yellow-400 font-bold flex items-center justify-center text-[11px]">${i + 4}</div>
             <div class="font-bold text-white">${esc(p.name)}</div>
           </div>
-          <div class="font-mono text-yellow-400 font-bold">${p.cartels} Cartels</div>
+          <div class="font-mono text-yellow-400 font-bold">${p.wins} Wins</div>
         </div>
       `).join('');
+    }
+
+    function renderRecentRounds(rounds) {
+      const container = document.getElementById('rank-recent-rounds');
+      if (!container) return;
+      if (!rounds.length) {
+        container.innerHTML = '<div class="text-xs text-gray-500 bg-[#141414] rounded-xl p-3">ገና የተመዘገበ የጨዋታ ታሪክ የለም።</div>';
+        return;
+      }
+
+      container.innerHTML = rounds.map(round => {
+        const players = Array.isArray(round.players) ? round.players : [];
+        const winners = Array.isArray(round.winners) ? round.winners : [];
+        const playerRows = players.map((player, index) => {
+          const role = player.type === 'bot' ? 'BOT' : 'PLAYER';
+          const cards = Array.isArray(player.cartels) ? player.cartels.join(', ') : '';
+          return `
+            <div class="flex items-center justify-between gap-2 text-xs py-1">
+              <span class="text-gray-300">${esc(player.label || `Player ${index + 1}`)} · ${role}</span>
+              <span class="text-white font-bold truncate">${esc(player.name || 'Player')} <span class="text-gray-500 font-normal">#${esc(cards)}</span></span>
+            </div>`;
+        }).join('');
+
+        const winnerRows = winners.length
+          ? winners.map(w => `
+              <div class="flex items-center justify-between gap-2 text-xs py-1">
+                <span class="text-yellow-400 font-bold">🏆 ${esc(w.type === 'bot' ? 'Bot winner' : 'Winner')}</span>
+                <span class="text-yellow-300 font-bold truncate">${esc(w.name || 'Player')} · ${Number(w.prize || 0).toFixed(2)} ETB</span>
+              </div>`).join('')
+          : '<div class="text-xs text-gray-500 py-1">ምንም አሸናፊ የለም</div>';
+
+        return `
+          <div class="bg-[#141414] border border-mel-border rounded-xl p-3">
+            <div class="flex justify-between items-center text-[10px] text-gray-400 mb-2">
+              <span>Round ${esc(round.round_id || '')}</span>
+              <span>Pool: ${Number(round.pool || 0).toFixed(2)} ETB</span>
+            </div>
+            <div class="divide-y divide-[#292929]">${playerRows || '<div class="text-xs text-gray-500 py-1">Player list unavailable</div>'}</div>
+            <div class="border-t border-[#292929] mt-2 pt-2">${winnerRows}</div>
+          </div>`;
+      }).join('');
     }
 
     async function displayUserReferralLink() {

@@ -343,7 +343,7 @@ async function completeRegistration(ctx, phoneNumber) {
     const userRef = db.collection('users').doc(uid);
     const pendingRef = db.collection('pending_registrations').doc(uid);
 
-    await db.runTransaction(async tx => {
+    const referrerIdForNotice = await db.runTransaction(async tx => {
         const userSnap = await tx.get(userRef);
         const pendingSnap = await tx.get(pendingRef);
 
@@ -353,7 +353,7 @@ async function completeRegistration(ctx, phoneNumber) {
                 channel_joined: true
             }, { merge: true });
 
-            return;
+            return null;
         }
 
         const pending = pendingSnap.exists ? pendingSnap.data() : {};
@@ -423,7 +423,16 @@ async function completeRegistration(ctx, phoneNumber) {
         }
 
         tx.delete(pendingRef);
+        return referrerSnap?.exists ? referrerId : null;
     });
+
+    if (referrerIdForNotice) {
+        const invitedName = ctx.from.first_name || ctx.from.username || 'አዲስ ተጫዋች';
+        await ctx.telegram.sendMessage(
+            referrerIdForNotice,
+            `🎉 በReferral ሊንክዎ ${invitedName} ተመዝግቧል! የReferral ቦነስዎ ${money(REFERRAL_BONUS)} ተጨምሯል።`
+        ).catch(error => console.warn('Referral notification failed:', error.message));
+    }
 }
 
 bot.start(async ctx => {
