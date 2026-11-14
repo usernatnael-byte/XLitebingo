@@ -235,12 +235,37 @@ app.post('/api/wallet/withdraw', async (req,res) => {
     if(name.length<2||!/^[0-9+]{9,15}$/.test(account)) return res.status(400).json({status:'error',message:'Enter valid Telebirr name and phone number.'});
     try {
         const userRef=db.collection('users').doc(req.telegramUserId), ref=db.collection('withdrawal_requests').doc();
-        await db.runTransaction(async tx=>{const us=await tx.get(userRef);if(!us.exists)throw new Error('USER_NOT_FOUND');const u=us.data();const balance=Number(u.balance||0);if(balance<amount)throw new Error('INSUFFICIENT_BALANCE');const txs=Array.isArray(u.transactions)?u.transactions:[];tx.update(userRef,{balance:balance-amount,transactions:[...txs,{type:'withdrawal_pending',amount,request_id:ref.id,timestamp:new Date().toISOString()}]});tx.set(ref,{user_id:req.telegramUserId,amount,payout_name:name,payout_account:account,status:'pending',created_at:Date.now()});});
+        
+        // 👉 እዚህ ጋር ያስገባኸውን ትራንዛክሽን በትክክል አስገብተነዋል
+        await db.runTransaction(async tx=>{
+            const us=await tx.get(userRef);
+            if(!us.exists) throw new Error('USER_NOT_FOUND');
+            const u=us.data();
+            
+            // 🛑 ዊዝድሮው ለማድረግ ዲፖዚት ማድረግ እና ዲፖዚት ካደረጉ በኋላ ቢያንስ 1 ጌም ማሸነፍ ግዴታ ነው
+            if(!u.has_deposited) throw new Error('DEPOSIT_REQUIRED');
+            if(!u.won_after_deposit) throw new Error('WIN_AFTER_DEPOSIT_REQUIRED');
+
+            const balance=Number(u.balance||0);
+            if(balance<amount) throw new Error('INSUFFICIENT_BALANCE');
+            
+            const txs=Array.isArray(u.transactions)?u.transactions:[];
+            tx.update(userRef,{balance:balance-amount,transactions:[...txs,{type:'withdrawal_pending',amount,request_id:ref.id,timestamp:new Date().toISOString()}]});
+            tx.set(ref,{user_id:req.telegramUserId,amount,payout_name:name,payout_account:account,status:'pending',created_at:Date.now()});
+        });
+
         for(const aid of ADMIN_IDS) await bot.telegram.sendMessage(aid,`📤 Withdrawal request\nUser: ${req.telegramUserId}\nName: ${name}\nTelebirr: ${account}\nAmount: ${amount.toFixed(2)} ETB\nRequest ID: ${ref.id}`).catch(()=>{});
         await bot.telegram.sendMessage(req.telegramUserId,`⏳ WITHDRAWAL PENDING\n\nAmount: ${amount.toFixed(2)} ETB\nRequest ID: ${ref.id}\nStatus: PENDING\n\nAdmin ጥያቄዎን እያየ ነው። ሲጸድቅ በTelebirr ክፍያው ይፈጸማል።`).catch(e=>console.warn('withdrawal pending notification failed:',e.message));
         res.json({status:'success',message:'Withdrawal request sent to admin.',requestId:ref.id});
-    } catch(e){res.status(e.message==='INSUFFICIENT_BALANCE'?400:500).json({status:'error',message:e.message==='INSUFFICIENT_BALANCE'?'Insufficient Main Balance.':'Could not submit withdrawal.'});}
+    } catch(e){
+        let msg = 'Could not submit withdrawal.';
+        if (e.message === 'INSUFFICIENT_BALANCE') msg = 'Insufficient Main Balance.';
+        else if (e.message === 'DEPOSIT_REQUIRED') msg = 'ገንዘብ ለማውጣት መጀመሪያ ቢያንስ አንድ ጊዜ Deposit ማድረግ አለብዎት[span_0](start_span)[span_0](end_span)[span_1](start_span)[span_1](end_span)።';
+        else if (e.message === 'WIN_AFTER_DEPOSIT_REQUIRED') msg = 'ገንዘብ ለማውጣት ዲፖዚት ካደረጉ በኋላ ቢያንስ 1 ጌም ማሸነፍ አለብዎት።';
+        res.status(400).json({status:'error',message:msg});
+    }
 });
+
 
 function requireAdmin(req, res, next) {
     if (!req.telegramUserId || !ADMIN_IDS.has(req.telegramUserId)) return res.status(403).json({ status: 'error', message: 'Admin access only.' });
@@ -251,7 +276,7 @@ app.use('/api/admin', requireAdmin);
 app.get('/api/admin/bot-settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('bot_settings').get();
-        res.json({ status: 'success', settings: doc.exists ? doc.data() : { botCount: 50, botWinPercent: 20, botCardsPerUser: 2 } });
+        res.json({ status: 'success', settings: doc.exists ? doc.data() : { botCount: 50, botWinPercent: 20, botCardsPerUser: 2, restrictDepositedWin: true } });
     } catch(e) {
         res.status(500).json({ status: 'error', message: 'Could not load bot settings.' });
     }
@@ -259,14 +284,16 @@ app.get('/api/admin/bot-settings', async (req, res) => {
 
 app.post('/api/admin/bot-settings', async (req, res) => {
     try {
-        const botCount = Number(req.body?.botCount || 50);
-        const botWinPercent = Number(req.body?.botWinPercent || 20);
-        const botCardsPerUser = Number(req.body?.botCardsPerUser || 2);
+        const botCount = Number(req.body?.botCount ?? 50);
+        const botWinPercent = Number(req.body?.botWinPercent ?? 20);
+        const botCardsPerUser = Number(req.body?.botCardsPerUser ?? 2);
+        const restrictDepositedWin = Boolean(req.body?.restrictDepositedWin);
         
         const settingsData = {
             botCount,
             botWinPercent,
             botCardsPerUser,
+            restrictDepositedWin,
             updated_at: Date.now()
         };
 
@@ -277,8 +304,6 @@ app.post('/api/admin/bot-settings', async (req, res) => {
         res.status(500).json({ status: 'error', message: 'Could not save bot settings.' });
     }
 });
-
-// --- PROMO & AUTO BONUS ADMIN ENDPOINTS ---
 
 app.get('/api/admin/promos', async (req, res) => {
     try {
@@ -344,8 +369,6 @@ app.post('/api/admin/promos/delete', async (req, res) => {
         res.status(500).json({ status: 'error', message: 'Could not delete promo code.' });
     }
 });
-
-// --- USER REDEEM PROMO CODE API ---
 
 app.post('/api/promo/redeem', async (req, res) => {
     const code = String(req.body?.code || '').trim().toUpperCase();
@@ -420,14 +443,17 @@ app.get('/api/admin/overview', async (req, res) => {
         res.json({status:'success', stats:{users:users.size, mainBalance:userRows.reduce((n,u)=>n+Number(u.balance||0),0), bonusBalance:userRows.reduce((n,u)=>n+Number(u.bonus||0),0), pendingDeposits:pendingDeposits.length, pendingWithdrawals:pendingWithdrawals.length, rounds:rounds.size, weeklyDeposits, weeklyWithdrawals, weeklyWinnings}});
     } catch(e) { console.error('admin overview',e); res.status(500).json({status:'error',message:'Could not load dashboard.'}); }
 });
+
 app.get('/api/admin/users', async (req,res)=>{
     try { const q=String(req.query.q||'').toLowerCase().slice(0,80); const snap=await db.collection('users').get(); const users=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>!q||[u.id,u.username,u.first_name,u.phone_number].some(v=>String(v||'').toLowerCase().includes(q))).slice(0,150); res.json({status:'success',users}); }
     catch(e){res.status(500).json({status:'error',message:'Could not load users.'});}
 });
+
 app.get('/api/admin/requests', async(req,res)=>{
     try { const [d,w]=await Promise.all([db.collection('deposit_requests').get(),db.collection('withdrawal_requests').get()]); const map=(snap,type)=>snap.docs.map(x=>({id:x.id,type,...x.data()})); res.json({status:'success',requests:[...map(d,'deposit'),...map(w,'withdrawal')].sort((a,b)=>Number(b.created_at||0)-Number(a.created_at||0)).slice(0,250)}); }
     catch(e){res.status(500).json({status:'error',message:'Could not load requests.'});}
 });
+
 app.post('/api/admin/review', async(req,res)=>{
     const {id,type,approve}=req.body||{}; if(!id||!['deposit','withdrawal'].includes(type)||typeof approve!=='boolean') return res.status(400).json({status:'error',message:'Invalid review.'});
     const reqRef=db.collection(type==='deposit'?'deposit_requests':'withdrawal_requests').doc(String(id));
@@ -482,6 +508,7 @@ app.post('/api/admin/review', async(req,res)=>{
         res.json({status:'success'});
     } catch(e){res.status(e.message==='ALREADY_PROCESSED'?409:400).json({status:'error',message:e.message==='ALREADY_PROCESSED'?'Already reviewed.':'Review failed.'});}
 });
+
 app.post('/api/admin/user-action', async(req,res)=>{
     const {userId,action,amount,walletType='main'}=req.body||{};
     if(!userId||!['block','unblock','credit','debit'].includes(action)||!['main','bonus'].includes(walletType)) return res.status(400).json({status:'error',message:'Invalid action.'});
@@ -502,6 +529,7 @@ app.post('/api/admin/user-action', async(req,res)=>{
         res.json({status:'success',result});
     } catch(e){res.status(400).json({status:'error',message:e.message==='USER_NOT_FOUND'?'User not found.':e.message==='INSUFFICIENT_BALANCE'?'Insufficient balance.':'Action failed.'});}
 });
+
 app.post('/api/admin/broadcast', async(req,res)=>{
     const message=String(req.body?.message||'').trim();
     const audience=String(req.body?.audience||'all');
@@ -630,7 +658,6 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
-// 1. የሪፈራል ሊንክ ማመንጫ API
 app.get('/api/referral-link', async (req, res) => {
     try {
         const me = await bot.telegram.getMe();
@@ -644,45 +671,6 @@ app.get('/api/referral-link', async (req, res) => {
         res.status(502).json({ status: 'error' });
     }
 });
-
-// 2. ሪፈራል ተጠቃሚ ሲመዝገብ እና ኖቲፊኬሽን ሲልክ የሚሰራ ሎጂክ (ለምሳሌ /start?start=ref_ID ሲገባ ወይም ቴሌግራም ዌብአፕ ሪጅስተር ሲያደርግ)
-async function handleNewUserReferral(newUserId, newUserName, referrerId) {
-    if (!referrerId || referrerId === newUserId) return;
-
-    try {
-        const bonusAmount = 20; // የሚሰጠው የቦነስ መጠን (20 ብር)
-
-        // ዳታቤዝ ውስጥ የጋባዡን (Referrer) የቦነስ ባላንስ እና የሪፈራል ብዛት ማሳደግ
-        const updateResult = await db.collection('users').findOneAndUpdate(
-            { id: referrerId },
-            { 
-                $inc: { 
-                    bonus: bonusAmount, 
-                    total_referrals: 1 
-                } 
-            },
-            { returnDocument: 'after' }
-        );
-
-        if (updateResult) {
-            // ለጋባዡ (Referrer) በእያንዳንዱ አዲስ ተመዝጋቢ ልክ በቦቱ በኩል ኖቲፊኬሽን መላክ
-            const botToken = process.env.BOT_TOKEN;
-            const notificationText = `🎉 እንኳን ደስ አለዎት!\n\nአዲስ ተጠቃሚ (${newUserName || 'ተጠቃሚ'}) በርስዎ የሪፈራል ሊንክ ገብቶ ተመዝግቧል።\n💰 <b>+${bonusAmount} ETB</b> ፖነስ ባላንስዎ ላይ ተጨምሯል።`;
-            
-            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: referrerId,
-                    text: notificationText,
-                    parse_mode: 'HTML'
-                })
-            });
-        }
-    } catch (err) {
-        console.error("Error processing referral registration or notification:", err);
-    }
-}
 
 app.post('/api/send-support', async (req, res) => {
     try {
