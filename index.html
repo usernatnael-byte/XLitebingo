@@ -11,7 +11,6 @@
       --bg-mid: #1a1240;
       --bg-bot: #0b1128;
       --panel-bg: rgba(24, 29, 54, 0.88);
-      --card-bg: rgba(34, 41, 74, 0.82);
       --border-subtle: rgba(255, 255, 255, 0.14);
       --gold: #f5b935;
       --gold-dark: #c88a12;
@@ -21,8 +20,6 @@
       --green-2: #0a8c5a;
       --blue-1: #4a7dff;
       --blue-2: #364fc7;
-      --purple-1: #9b38f8;
-      --purple-2: #6d18c7;
       --text-main: #ffffff;
       --text-muted: #b6bfd9;
     }
@@ -1371,6 +1368,7 @@
   <script>
     const CARTEL_COUNT = 500;
     const MAX_SELECTION = 4;
+    const API_BASE = '';
 
     const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) {
@@ -1412,9 +1410,58 @@
       walletHistory: []
     };
 
+    try {
+      const savedSound = localStorage.getItem('bingo_sound');
+      if (savedSound === 'off') state.soundEnabled = false;
+    } catch (_) {}
+
+    const CALL_FILE = 'calls.mp3';
+    const CALL_MAP = {"1":[0.0,1.47],"2":[1.57,1.48],"3":[3.15,1.49],"4":[4.74,1.49],"5":[6.33,1.51],"6":[7.94,1.56],"7":[9.6,1.6],"8":[11.3,1.42],"9":[12.82,1.35],"10":[14.27,1.4],"11":[15.77,1.51],"12":[17.38,1.43],"13":[18.91,1.57],"14":[20.58,1.65],"15":[22.33,1.63],"16":[24.06,1.76],"17":[25.92,1.81],"18":[27.83,1.8],"19":[29.73,1.61],"20":[31.44,1.32],"21":[32.86,1.6],"22":[34.56,1.54],"23":[36.2,1.61],"24":[37.91,1.63],"25":[39.64,1.54],"26":[41.28,1.71],"27":[43.09,1.64],"28":[44.83,1.61],"29":[46.54,1.52],"30":[48.16,1.47],"31":[49.73,1.5],"32":[51.33,1.93],"33":[53.36,1.87],"34":[55.33,1.85],"35":[57.28,1.73],"36":[59.11,1.73],"37":[60.94,1.85],"38":[62.89,1.88],"39":[64.87,1.67],"40":[66.64,1.4],"41":[68.14,1.65],"42":[69.891,1.85],"43":[71.841,1.7],"44":[73.641,1.64],"45":[75.381,1.66],"46":[77.141,1.95],"47":[79.191,1.7],"48":[80.991,2.15],"49":[83.241,1.58],"50":[84.921,1.38],"51":[86.401,1.55],"52":[88.051,1.84],"53":[89.991,1.54],"54":[91.631,1.87],"55":[93.601,1.66],"56":[95.361,1.58],"57":[97.041,1.74],"58":[98.881,1.79],"59":[100.771,1.65],"60":[102.521,1.42],"61":[104.041,1.52],"62":[105.661,1.8],"63":[107.561,1.42],"64":[109.081,1.69],"65":[110.871,1.43],"66":[112.401,1.65],"67":[114.151,1.74],"68":[115.991,1.61],"69":[117.701,1.48],"70":[119.281,1.25],"71":[120.631,1.86],"72":[122.591,1.66],"73":[124.351,1.51],"74":[125.961,1.64],"75":[127.701,1.5],"bingo":[129.301,1.09]};
+    let audioCtx = null, callBuffer = null, callsLoading = false, currentCall = null;
+
+    async function loadCalls() {
+      if (callBuffer || callsLoading) return;
+      callsLoading = true;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const res = await fetch(CALL_FILE);
+        const data = await res.arrayBuffer();
+        callBuffer = await new Promise((ok, fail) => audioCtx.decodeAudioData(data, ok, fail));
+      } catch (_) {}
+      finally { callsLoading = false; }
+    }
+
+    function unlockAudio() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (!callBuffer) loadCalls();
+      } catch (_) {}
+    }
+
+    ['pointerdown', 'touchstart', 'click'].forEach(ev =>
+      document.addEventListener(ev, unlockAudio, { passive: true })
+    );
+
+    function playCall(key) {
+      if (!state.soundEnabled || !callBuffer || !audioCtx) return;
+      const slot = CALL_MAP[String(key)];
+      if (!slot) return;
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (currentCall) { try { currentCall.stop(); } catch (_) {} currentCall = null; }
+        const src = audioCtx.createBufferSource();
+        src.buffer = callBuffer;
+        src.connect(audioCtx.destination);
+        src.start(0, slot[0], slot[1]);
+        currentCall = src;
+        src.onended = () => { if (currentCall === src) currentCall = null; };
+      } catch (_) {}
+    }
+
     const matrixCache = {};
     function seededRandom(seed) {
-      const x = Math.sin(seed) * 10000;
+      let x = Math.sin(seed) * 10000;
       return x - Math.floor(x);
     }
 
@@ -1454,21 +1501,6 @@
       showToast._t = setTimeout(() => el.classList.remove('show'), 2800);
     }
 
-    function speakBall(num) {
-      if (!state.soundEnabled || !num) return;
-      const letter = getLetterForBall(num);
-      const text = `${letter} ${num}`;
-      if ('speechSynthesis' in window) {
-        try {
-          window.speechSynthesis.cancel();
-          const utter = new SpeechSynthesisUtterance(`${letter} - ${num}`);
-          utter.rate = 1.0;
-          window.speechSynthesis.speak(utter);
-        } catch (_) {}
-      }
-      return text;
-    }
-
     async function apiFetch(url, options = {}) {
       const headers = Object.assign(
         { 'Content-Type': 'application/json' },
@@ -1477,7 +1509,7 @@
       if (initData) {
         headers['X-Telegram-Init-Data'] = initData;
       }
-      const res = await fetch(url, Object.assign({}, options, { headers }));
+      const res = await fetch(API_BASE + url, Object.assign({}, options, { headers }));
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(data.message || `Request failed (${res.status})`);
@@ -1551,12 +1583,16 @@
 
     function toggleSound() {
       state.soundEnabled = !state.soundEnabled;
+      try { localStorage.setItem('bingo_sound', state.soundEnabled ? 'on' : 'off'); } catch (_) {}
+      if (state.soundEnabled) unlockAudio();
       syncSoundUI();
       showToast(state.soundEnabled ? 'ድምፅ ተከፍቷል' : 'ድምፅ ተዘግቷል');
     }
 
     function toggleSoundFromProfile() {
       state.soundEnabled = document.getElementById('profile-sound-toggle').checked;
+      try { localStorage.setItem('bingo_sound', state.soundEnabled ? 'on' : 'off'); } catch (_) {}
+      if (state.soundEnabled) unlockAudio();
       syncSoundUI();
     }
 
@@ -1619,19 +1655,31 @@
     async function fetchRound() {
       const data = await apiFetch('/api/round');
       if (data && data.state) {
+        const prevRoundId = state.round ? state.round.round_id : null;
         const prevDrawnLen = state.round && Array.isArray(state.round.drawn) ? state.round.drawn.length : 0;
+        const prevPhase = state.round ? state.round.phase : null;
+
         if (typeof data.state.server_time === 'number') {
           state.serverClockOffset = data.state.server_time - (Date.now() / 1000);
         }
         state.round = data.state;
 
+        if (prevRoundId && data.state.round_id !== prevRoundId) {
+          state.lastSpokenBall = null;
+        }
+
         const drawn = Array.isArray(state.round.drawn) ? state.round.drawn : [];
         if (drawn.length > prevDrawnLen && drawn.length > 0) {
           const latest = drawn[drawn.length - 1];
-          if (latest !== state.lastSpokenBall) {
+          if (latest !== state.lastSpokenBall && (drawn.length - prevDrawnLen) <= 3) {
             state.lastSpokenBall = latest;
-            speakBall(latest);
+            playCall(latest);
           }
+        }
+
+        if (prevPhase !== 'result' && state.round.phase === 'result') {
+          playCall('bingo');
+          fetchUserData().catch(() => {});
         }
 
         if (state.round.phase !== 'selection' && state.screen === 'selection') {
@@ -2094,10 +2142,20 @@
       }
     }
 
+    syncSoundUI();
+    syncAutoUI();
+    loadCalls();
+
     setInterval(updateTimerDisplay, 500);
     setInterval(() => {
       fetchRound().catch(() => {});
-    }, 1500);
+    }, 1000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        fetchRound().catch(() => {});
+      }
+    });
 
     syncAll(false);
   </script>
