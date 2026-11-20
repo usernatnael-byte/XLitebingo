@@ -17,7 +17,7 @@ if (!keyPath) {
 if (!admin.apps.length) {
     admin.initializeApp({
         credential: admin.credential.cert(require(keyPath)),
-        databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://litebingo-513a9-default-rtdb.firebaseio.com'
+        databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://gamesporo18-default-rtdb.firebaseio.com/'
     });
 }
 
