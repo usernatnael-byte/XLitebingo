@@ -1,88 +1,2193 @@
 <!DOCTYPE html>
-<html lang="am" class="h-full bg-[#050505]">
+<html lang="am">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Melbet Bingo - Maintenance</title>
-  <!-- Tailwind CSS CDN -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Beteseb Bingo</title>
+  <!-- Telegram WebApp Official SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Noto Sans Ethiopic -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Inter', 'Noto Sans Ethiopic', sans-serif;
+    }
+
+    body {
+      background-color: #070913;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* Mobile-first App Shell matching Beteseb Bingo dark violet/indigo theme */
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #3c1464 0%, #231347 22%, #111833 58%, #0b0e1c 100%);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+      overflow-x: hidden;
+    }
+
+    /* Custom Thin Scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 22, 46, 0.35);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.45);
+      border-radius: 9999px;
+    }
+
+    /* Glassy Cards */
+    .glass-card {
+      background: rgba(25, 32, 58, 0.68);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .gold-border-card {
+      background: rgba(34, 32, 62, 0.78);
+      border: 1px solid rgba(217, 155, 38, 0.55);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Stake Button */
+    .btn-play-10 {
+      background: linear-gradient(90deg, #05c283 0%, #03967b 100%);
+      box-shadow: 0 4px 16px rgba(5, 194, 131, 0.35);
+    }
+    .btn-play-10:active {
+      transform: scale(0.98);
+    }
+
+    /* Cartela Grid Cells (1 to 500) */
+    .cartela-cell {
+      background: rgba(42, 49, 77, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: all 0.14s ease;
+    }
+    .cartela-cell.taken {
+      background: #e84c18;
+      border-color: #ff7849;
+      color: #ffffff;
+      cursor: not-allowed;
+    }
+    .cartela-cell.selected {
+      background: #10b981;
+      border: 2px solid #fde047;
+      color: #ffffff;
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.65);
+      z-index: 2;
+    }
+    .cartela-cell.pending-req {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    /* Master 1-75 Board Cells */
+    .master-num {
+      background: rgba(58, 63, 88, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      transition: all 0.2s ease;
+    }
+    .master-num.called {
+      background: #00c853;
+      border-color: #69f0ae;
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .master-num.latest {
+      background: #e85d04;
+      border-color: #ffb703;
+      color: #ffffff;
+      font-weight: 800;
+      transform: scale(1.07);
+      box-shadow: 0 0 10px rgba(232, 93, 4, 0.7);
+    }
+
+    /* Featured Glowing Ball Stage */
+    .caller-stage {
+      background: radial-gradient(circle at center, rgba(168, 124, 50, 0.42) 0%, rgba(45, 43, 62, 0.88) 75%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .bingo-ball-main {
+      width: 76px;
+      height: 76px;
+      border-radius: 9999px;
+      background: #ffffff;
+      border: 4px solid #facc15;
+      box-shadow: 0 0 24px rgba(250, 204, 21, 0.55), inset 0 -4px 8px rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.55); opacity: 0.35; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .ball-pop {
+      animation: popIn 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Player 5x5 Card Cells */
+    .card-cell {
+      background: rgba(36, 44, 72, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: all 0.14s ease;
+      user-select: none;
+    }
+    .card-cell.marked {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-color: #6ee7b7;
+      color: #ffffff;
+      font-weight: 800;
+      box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.25);
+    }
+    .card-cell.free {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border-color: #fde68a;
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    /* Toggle Switch */
+    .switch-track {
+      width: 44px;
+      height: 24px;
+      border-radius: 9999px;
+      background: #334155;
+      position: relative;
+      transition: background 0.2s ease;
+      cursor: pointer;
+    }
+    .switch-track.on {
+      background: #0d9468;
+    }
+    .switch-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 9999px;
+      background: #cbd5e1;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .switch-track.on .switch-thumb {
+      transform: translateX(20px);
+      background: #ffffff;
+    }
+
+    /* Toast Notification */
+    #toast-container {
+      position: fixed;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 120;
+      width: 92%;
+      max-width: 420px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell" id="app">
+    <!-- Top Telegram Mini-App Header -->
+    <header class="sticky top-0 z-40 bg-[#181920]/95 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button id="header-left-btn" onclick="handleHeaderLeftAction()" class="text-gray-300 hover:text-white p-1 rounded-lg transition" aria-label="Close or Back">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <h1 class="text-[17px] font-bold tracking-tight text-white">Beteseb Bingo</h1>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <!-- Live Server Phase Badge -->
+        <span id="header-phase-badge" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-bold uppercase tracking-wider text-emerald-300 border border-white/10">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="header-phase-text">CONNECTING</span>
+        </span>
+
+        <!-- Real Balance Pill (Main + Play/Bonus) -->
+        <button onclick="switchTab('wallet')" class="bg-white/10 hover:bg-white/15 px-2.5 py-1 rounded-full text-xs font-bold text-amber-300 flex items-center gap-1 border border-amber-400/25 transition">
+          <span id="header-total-balance">0.00</span>
+          <span class="text-[10px] text-gray-300 font-semibold">ETB</span>
+        </button>
+
+        <!-- Send Rules to Telegram Bot -->
+        <button onclick="requestBotRules()" class="text-gray-300 hover:text-white p-1 rounded-lg" title="Send Rules to Telegram">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="flex flex-col gap-2"></div>
+
+    <!-- ==================== TELEGRAM AUTH / CHANNEL GATE OVERLAY ==================== -->
+    <section id="auth-gate-screen" class="hidden flex-1 flex flex-col items-center justify-center px-6 py-10 text-center">
+      <div class="w-20 h-20 rounded-3xl bg-white/10 border border-white/15 flex items-center justify-center shadow-2xl mb-5">
+        <svg class="w-10 h-10 text-[#38bdf8]" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+        </svg>
+      </div>
+      <h2 id="auth-gate-title" class="text-2xl font-extrabold text-white">Telegram Authentication Required</h2>
+      <p id="auth-gate-message" class="text-sm text-gray-300 mt-3 leading-relaxed max-w-xs">
+        እባክዎ ይህን ጨዋታ ከቴሌግራም ቦቱ (Telegram Bot) ውስጥ ይክፈቱት። ያለ ቴሌግራም ማረጋገጫ መጫወት አይቻልም።
+      </p>
+      <div class="mt-6 w-full max-w-xs flex flex-col gap-2.5">
+        <button onclick="retryAuthentication()" class="w-full py-3 rounded-xl bg-gradient-to-r from-[#05c283] to-[#03967b] font-bold text-sm text-white shadow-lg transition">
+          ↻ Retry Connection
+        </button>
+        <a id="telegram-channel-link" href="https://t.me" target="_blank" rel="noopener noreferrer" class="hidden w-full py-3 rounded-xl bg-[#2589ff] hover:bg-blue-500 font-bold text-sm text-white shadow-lg transition">
+          Join Required Telegram Channel
+        </a>
+      </div>
+    </section>
+
+    <!-- ==================== INITIAL LOADING SCREEN ==================== -->
+    <section id="loading-screen" class="flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
+      <div class="w-12 h-12 border-4 border-amber-400/30 border-t-amber-400 rounded-full animate-spin mb-4"></div>
+      <div class="text-sm font-bold text-white">Connecting to Beteseb Bingo Server...</div>
+      <div class="text-xs text-gray-400 mt-1">Verifying Telegram session & syncing live round</div>
+    </section>
+
+    <!-- ==================== MAIN AUTHENTICATED CONTENT ==================== -->
+    <main id="main-content" class="hidden flex-1 flex flex-col pb-20">
+
+      <!-- ==================== 1. LOBBY / GAME HOME SCREEN ==================== -->
+      <section id="screen-lobby" class="px-4 pt-4 pb-6 flex flex-col gap-5">
+        <!-- Brand Row + Rules Button -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md">
+              <span class="text-[#5b21b6] font-extrabold text-xl">B</span>
+            </div>
+            <div>
+              <div class="font-bold text-base text-white leading-tight">Beteseb Bingo</div>
+              <div class="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span id="lobby-live-status">Round Syncing...</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="requestBotRules()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-sm font-medium text-gray-100 transition">
+            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Rules</span>
+          </button>
+        </div>
+
+        <!-- Hero Title -->
+        <div class="text-center mt-1">
+          <h2 class="text-[28px] leading-tight font-extrabold tracking-tight text-white">
+            Welcome to <span class="text-[#f59e0b]">Beteseb<br/>Bingo</span>
+          </h2>
+        </div>
+
+        <!-- Choose Your Stake Card (Connected strictly to TICKET_PRICE = 10 ETB) -->
+        <div class="gold-border-card rounded-2xl p-5 flex flex-col gap-4">
+          <div class="flex items-center justify-center gap-2 text-base font-bold text-white">
+            <svg class="w-4 h-4 text-[#f59e0b]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+            </svg>
+            <span>Choose Your Stake</span>
+          </div>
+
+          <button onclick="enterGameRoomView()" class="btn-play-10 w-full py-3.5 rounded-xl font-bold text-white text-base flex items-center justify-center gap-2.5 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+            </svg>
+            <span>Play 10 ETB</span>
+          </button>
+
+          <!-- Live Round Summary Strip -->
+          <div class="grid grid-cols-3 gap-2 pt-1 text-center">
+            <div class="bg-black/25 rounded-xl py-2 px-1 border border-white/5">
+              <div class="text-[10px] text-gray-400">Active Players</div>
+              <div id="lobby-players-count" class="text-sm font-extrabold text-white mt-0.5">0</div>
+            </div>
+            <div class="bg-black/25 rounded-xl py-2 px-1 border border-white/5">
+              <div class="text-[10px] text-gray-400">Current Derash</div>
+              <div class="text-sm font-extrabold text-amber-300 mt-0.5"><span id="lobby-pool-amount">0</span> ETB</div>
+            </div>
+            <div class="bg-black/25 rounded-xl py-2 px-1 border border-white/5">
+              <div class="text-[10px] text-gray-400">Round Status</div>
+              <div id="lobby-phase-label" class="text-xs font-extrabold text-emerald-400 uppercase mt-1">Selection</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deposit Prompt Banner (Shown if user has zero total balance) -->
+        <div id="lobby-deposit-banner" class="hidden glass-card rounded-2xl p-4 border-amber-400/40 flex items-center justify-between gap-3">
+          <div>
+            <div class="text-xs font-bold text-amber-300">ቀሪ ሂሳብዎ 0 ETB ነው</div>
+            <div class="text-[11px] text-gray-300 mt-0.5">ካርቴላ ለመምረጥ መጀመሪያ ዲፖዚት ያድርጉ።</div>
+          </div>
+          <button onclick="openDepositModal()" class="shrink-0 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition">
+            Deposit
+          </button>
+        </div>
+
+        <!-- Live Weekly Leaderboard Card (Powered by GET /api/leaderboard) -->
+        <div class="glass-card rounded-2xl p-4 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-white flex items-center gap-1.5">
+              <span>🏆</span>
+              <span>Weekly Top Players</span>
+            </h3>
+            <button onclick="fetchLeaderboard()" class="text-[11px] text-gray-400 hover:text-white">Refresh</button>
+          </div>
+          <div id="leaderboard-list" class="flex flex-col gap-2">
+            <div class="text-xs text-gray-400 text-center py-3">Loading leaderboard...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 2. CARTELA SELECTION SCREEN (1 to 500) ==================== -->
+      <section id="screen-cartela" class="hidden px-3 pt-3 pb-6 flex flex-col gap-3">
+        <!-- Top Action Bar (Back & Refresh ONLY - No manual Start button) -->
+        <div class="flex items-center justify-between">
+          <button onclick="leaveToLobby()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-sm font-semibold text-white transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            <span>Back</span>
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button onclick="enterWatchingLiveBoard()" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-gray-200 transition">
+              Watch Board
+            </button>
+            <button onclick="forcePollRound(true)" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-sm font-semibold text-white transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Wallet & Server Countdown Strip -->
+        <div class="grid grid-cols-4 gap-1.5">
+          <div class="glass-card rounded-xl p-2">
+            <div class="text-[10px] text-gray-300 truncate">Main Wallet</div>
+            <div id="cartela-main-wallet" class="text-sm font-extrabold text-white mt-0.5">0</div>
+          </div>
+          <div class="glass-card rounded-xl p-2">
+            <div class="text-[10px] text-gray-300 truncate">Play Wallet</div>
+            <div id="cartela-play-wallet" class="text-sm font-extrabold text-emerald-400 mt-0.5">0</div>
+          </div>
+          <div class="glass-card rounded-xl p-2">
+            <div class="text-[10px] text-gray-300 truncate">Stake</div>
+            <div class="text-sm font-extrabold text-white mt-0.5">10</div>
+          </div>
+          <div class="glass-card rounded-xl p-2 flex flex-col justify-center items-center border-amber-400/35">
+            <div class="text-base font-extrabold text-[#facc15] leading-none">
+              <span id="cartela-countdown">--</span> <span class="text-xs font-semibold text-gray-200">s</span>
+            </div>
+            <div class="text-[9px] text-gray-400 mt-0.5">Auto Lock</div>
+          </div>
+        </div>
+
+        <!-- Range Filter Tabs (1-100, 101-200, 201-300, 301-400, 401-500) + Legend -->
+        <div class="flex flex-col gap-2">
+          <div class="grid grid-cols-5 gap-1 bg-black/30 p-1 rounded-xl border border-white/10">
+            <button onclick="setCartelaRange(1)" id="range-btn-1" class="range-btn py-1.5 rounded-lg bg-[#475569] text-white text-[11px] font-bold transition">1-100</button>
+            <button onclick="setCartelaRange(2)" id="range-btn-2" class="range-btn py-1.5 rounded-lg text-gray-400 text-[11px] font-bold transition">101-200</button>
+            <button onclick="setCartelaRange(3)" id="range-btn-3" class="range-btn py-1.5 rounded-lg text-gray-400 text-[11px] font-bold transition">201-300</button>
+            <button onclick="setCartelaRange(4)" id="range-btn-4" class="range-btn py-1.5 rounded-lg text-gray-400 text-[11px] font-bold transition">301-400</button>
+            <button onclick="setCartelaRange(5)" id="range-btn-5" class="range-btn py-1.5 rounded-lg text-gray-400 text-[11px] font-bold transition">401-500</button>
+          </div>
+
+          <div class="flex items-center justify-between px-1 text-[11px] text-gray-300">
+            <div class="flex items-center gap-3">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#2a314d] border border-white/20 inline-block"></span> Free</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#e84c18] inline-block"></span> Taken</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#10b981] inline-block"></span> Selected (<span id="my-selected-count">0</span>/4)</span>
+            </div>
+            <span class="text-amber-300 font-semibold">Pool: <span id="cartela-pool-preview">0</span> ETB</span>
+          </div>
+        </div>
+
+        <!-- 8-Column Cartela Grid -->
+        <div class="glass-card rounded-2xl p-2.5 max-h-[340px] overflow-y-auto">
+          <div id="cartela-grid" class="grid grid-cols-8 gap-1.5">
+            <!-- Populated dynamically from server state (1 to 500) -->
+          </div>
+        </div>
+
+        <!-- Live 5x5 Cartela Preview Strip for User's Picked Cartels (up to 4) -->
+        <div id="my-cartelas-preview-container" class="hidden glass-card rounded-2xl p-3 border-emerald-400/40 flex flex-col gap-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-300">Your Reserved Cartels (Auto-starts when timer hits 0s)</span>
+            <span class="text-[11px] font-extrabold text-amber-300">Total: <span id="reserved-total-cost">0</span> ETB</span>
+          </div>
+          <div id="my-cartelas-preview-grid" class="grid grid-cols-2 gap-2">
+            <!-- Up to 4 mini 5x5 cards rendered via generateMatrix(ticketId) -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 3. LIVE BINGO GAME ROOM (SERVER-DRIVEN) ==================== -->
+      <section id="screen-live-game" class="hidden px-2.5 pt-2.5 pb-4 flex-1 flex flex-col gap-2.5">
+        <!-- Top 5 Stats Cards -->
+        <div class="grid grid-cols-5 gap-1">
+          <div class="glass-card rounded-lg p-1.5 overflow-hidden">
+            <div class="text-[9px] text-gray-300 truncate">Game ID</div>
+            <div id="live-game-id" class="text-[11px] font-extrabold text-white truncate mt-0.5">--</div>
+          </div>
+          <div class="glass-card rounded-lg p-1.5">
+            <div class="text-[9px] text-gray-300 truncate">Players</div>
+            <div id="live-players" class="text-xs font-extrabold text-white mt-0.5">0</div>
+          </div>
+          <div class="glass-card rounded-lg p-1.5">
+            <div class="text-[9px] text-gray-300 truncate">Bet</div>
+            <div class="text-xs font-extrabold text-white mt-0.5">10</div>
+          </div>
+          <div class="glass-card rounded-lg p-1.5">
+            <div class="text-[9px] text-gray-300 truncate">Derash</div>
+            <div id="live-derash" class="text-xs font-extrabold text-amber-300 mt-0.5">0</div>
+          </div>
+          <div class="glass-card rounded-lg p-1.5">
+            <div class="text-[9px] text-gray-300 truncate">Called</div>
+            <div id="live-called-count" class="text-xs font-extrabold text-emerald-400 mt-0.5">0</div>
+          </div>
+        </div>
+
+        <!-- Main 2-Column Split Area -->
+        <div class="grid grid-cols-12 gap-2 flex-1">
+          
+          <!-- LEFT COLUMN: 1-75 Master Board (5 cols wide) -->
+          <div class="col-span-5 glass-card rounded-xl p-1.5 flex flex-col">
+            <!-- B I N G O Headers -->
+            <div class="grid grid-cols-5 gap-1 mb-1.5 text-center font-extrabold text-xs">
+              <div class="bg-[#2589ff] text-white py-1 rounded">B</div>
+              <div class="bg-[#5b6ef5] text-white py-1 rounded">I</div>
+              <div class="bg-[#a855f7] text-white py-1 rounded">N</div>
+              <div class="bg-[#10b981] text-white py-1 rounded">G</div>
+              <div class="bg-[#f97316] text-white py-1 rounded">O</div>
+            </div>
+            <!-- Numbers 1-75 Grid (15 rows x 5 cols) -->
+            <div id="master-board-grid" class="grid grid-cols-5 gap-1 flex-1 text-center text-[11px] font-semibold">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: Caller + Active Cartels OR Watching Only (7 cols wide) -->
+          <div class="col-span-7 flex flex-col gap-2">
+            
+            <!-- Recent Balls Pill + Sound Toggle -->
+            <div class="glass-card rounded-xl px-2.5 py-2 flex items-center justify-between">
+              <div id="recent-balls-row" class="flex items-center gap-1.5 overflow-x-auto">
+                <span class="text-[11px] text-gray-400 italic">Waiting...</span>
+              </div>
+              <button onclick="toggleSound()" id="live-sound-btn" class="text-gray-200 hover:text-white p-1 shrink-0" title="Toggle Sound">
+                <!-- Icon injected via JS -->
+              </button>
+            </div>
+
+            <!-- Featured Current Call Stage -->
+            <div class="caller-stage rounded-xl py-3.5 px-2 flex flex-col items-center justify-center relative min-h-[108px]">
+              <div id="current-call-ball" class="bingo-ball-main">
+                <span id="current-call-text" class="text-xl font-black text-[#7c3aed] tracking-tight">--</span>
+              </div>
+              <div id="current-call-sub" class="text-[10px] text-amber-200/90 mt-1.5 font-medium">Syncing with server...</div>
+            </div>
+
+            <!-- Automatic Daub Switch Row -->
+            <div class="glass-card rounded-xl px-3 py-2 flex items-center justify-between">
+              <span class="text-xs font-semibold text-gray-200">Automatic</span>
+              <div id="auto-daub-switch" onclick="toggleAutoDaub()" class="switch-track on">
+                <div class="switch-thumb"></div>
+              </div>
+            </div>
+
+            <!-- LOWER RIGHT PANEL: Either Watching Only OR User's Selected Cartels -->
+            <div class="glass-card rounded-xl p-2 flex-1 flex flex-col justify-between overflow-y-auto max-h-[340px]">
+              
+              <!-- State A: Watching Only (When my_cartels.length === 0) -->
+              <div id="watching-only-panel" class="flex-1 flex flex-col items-center justify-center text-center px-2 py-4">
+                <h3 class="text-xl font-extrabold text-white leading-snug mb-4">
+                  Watching<br/>Only
+                </h3>
+                <p class="text-[13px] leading-relaxed text-gray-200 font-medium">
+                  የዚህ ዙር ጨዋታ ተጀምሯል። አዲስ ዙር እስኪጀምር እዚሁ ይጠብቁ።
+                </p>
+              </div>
+
+              <!-- State B: User's Active 5x5 Cartels (1 to 4 cards) -->
+              <div id="active-cartelas-panel" class="hidden flex-1 flex flex-col gap-2.5">
+                <!-- Cards injected dynamically from state.my_cartels -->
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Game Action Bar (Leave, Refresh, Automatic status pill - NO Start button) -->
+        <div class="grid grid-cols-3 gap-2 pt-1">
+          <button onclick="leaveToLobby()" class="py-2.5 rounded-xl bg-gradient-to-r from-[#ff5722] to-[#e64a19] hover:brightness-110 font-bold text-xs text-white shadow transition">
+            Leave
+          </button>
+          <button onclick="forcePollRound(true)" class="py-2.5 rounded-xl bg-[#6d3838]/85 hover:bg-[#6d3838] border border-white/10 font-bold text-xs text-gray-200 flex items-center justify-center gap-1.5 transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            <span>Refresh</span>
+          </button>
+          <button id="bottom-auto-btn" onclick="toggleAutoDaub()" class="py-2.5 rounded-xl bg-[#9e862b] hover:brightness-110 font-bold text-xs text-white/95 shadow transition">
+            Automatic
+          </button>
+        </div>
+      </section>
+
+      <!-- ==================== 4. HISTORY TAB (REAL BACKEND DATA) ==================== -->
+      <section id="screen-history" class="hidden px-4 pt-4 pb-6 flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-extrabold text-white">Game History</h2>
+          <button onclick="loadUserDataAndHistory()" class="text-xs text-gray-300 hover:text-white bg-white/10 px-3 py-1.5 rounded-xl">↻ Sync</button>
+        </div>
+
+        <!-- Summary Stats from GET /api/user-data -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="glass-card rounded-2xl p-4">
+            <div class="text-xs text-gray-300">Total Games</div>
+            <div id="history-total-games" class="text-2xl font-extrabold text-white mt-1">0</div>
+          </div>
+          <div class="glass-card rounded-2xl p-4">
+            <div class="text-xs text-gray-300">Total Winnings</div>
+            <div class="text-2xl font-extrabold text-emerald-400 mt-1"><span id="history-total-winnings">0</span> <span class="text-xs font-semibold">ETB</span></div>
+          </div>
+        </div>
+
+        <h3 class="text-base font-bold text-white mt-1">Recent Games</h3>
+        <div id="history-list" class="flex flex-col gap-3">
+          <div class="text-xs text-gray-400 text-center py-8">Loading game rounds...</div>
+        </div>
+      </section>
+
+      <!-- ==================== 5. WALLET TAB (REAL BACKEND CONFIG & ACTIONS) ==================== -->
+      <section id="screen-wallet" class="hidden px-4 pt-4 pb-6 flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-extrabold text-white">Wallet</h2>
+          <button onclick="refreshWalletAll(true)" class="p-2 rounded-full hover:bg-white/10 text-gray-300 transition" title="Refresh Wallet">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Phone Verification Card -->
+        <div class="glass-card rounded-2xl px-4 py-3.5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+            <span id="wallet-phone-display" class="font-semibold text-white tracking-wide">Not Linked</span>
+          </div>
+          <span id="wallet-verified-badge" class="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-semibold flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span id="wallet-verified-text">Verified</span>
+          </span>
+        </div>
+
+        <!-- Balance / History Segmented Toggle -->
+        <div class="bg-white/10 p-1 rounded-xl grid grid-cols-2 gap-1">
+          <button id="wallet-subtab-balance" onclick="switchWalletSubtab('balance')" class="py-2 rounded-lg bg-[#475569] text-white font-semibold text-sm transition">
+            Balance
+          </button>
+          <button id="wallet-subtab-history" onclick="switchWalletSubtab('history')" class="py-2 rounded-lg text-gray-300 font-semibold text-sm transition">
+            History
+          </button>
+        </div>
+
+        <!-- Sub-view 1: Balance + Deposit / Withdraw / Promo Code -->
+        <div id="wallet-view-balance" class="flex flex-col gap-3">
+          <div class="glass-card rounded-2xl px-4 py-4 flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium text-gray-300">Main Wallet</div>
+              <div class="text-[10px] text-gray-400">Withdrawable Winnings</div>
+            </div>
+            <span id="wallet-main-display" class="text-xl font-extrabold text-white">0.00</span>
+          </div>
+
+          <div class="glass-card rounded-2xl px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375" />
+              </svg>
+              <div>
+                <div class="text-sm font-medium text-gray-300">Play Wallet</div>
+                <div class="text-[10px] text-gray-400">Deposits & Bonus Balance</div>
+              </div>
+            </div>
+            <span id="wallet-play-display" class="text-xl font-extrabold text-emerald-400">0.00</span>
+          </div>
+
+          <!-- Deposit & Withdraw Action Buttons -->
+          <div class="grid grid-cols-2 gap-2.5 mt-1">
+            <button onclick="openDepositModal()" class="py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 font-extrabold text-xs text-white shadow-lg flex items-center justify-center gap-1.5 transition">
+              <span>📥</span>
+              <span>Deposit (Telebirr)</span>
+            </button>
+            <button onclick="openWithdrawModal()" class="py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 font-extrabold text-xs text-white shadow-lg flex items-center justify-center gap-1.5 transition">
+              <span>📤</span>
+              <span>Withdraw</span>
+            </button>
+          </div>
+
+          <!-- Promo Code Redeem Box (POST /api/promo/redeem) -->
+          <div class="glass-card rounded-2xl p-4 mt-1 flex flex-col gap-2.5">
+            <div class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <span>🎁</span>
+              <span>Redeem Promo Code</span>
+            </div>
+            <div class="flex gap-2">
+              <input id="promo-code-input" type="text" placeholder="Enter promo code..." class="flex-1 bg-black/35 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 uppercase focus:outline-none focus:border-amber-400" />
+              <button onclick="redeemPromoCode()" id="promo-redeem-btn" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition">
+                Redeem
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-view 2: Full Transaction History (GET /api/wallet/history) -->
+        <div id="wallet-view-history" class="hidden flex flex-col gap-3">
+          <h3 class="text-base font-bold text-white">Recent Transactions</h3>
+          <div id="wallet-transactions-list" class="flex flex-col gap-2.5">
+            <div class="text-xs text-gray-400 text-center py-8">Loading transactions...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 6. PROFILE TAB (REAL USER DATA & REFERRAL) ==================== -->
+      <section id="screen-profile" class="hidden px-4 pt-5 pb-6 flex flex-col gap-5">
+        <!-- Avatar & Name -->
+        <div class="flex flex-col items-center text-center">
+          <div class="w-20 h-20 rounded-full bg-[#334155] border-2 border-white/15 flex items-center justify-center shadow-lg">
+            <span id="profile-avatar-initial" class="text-3xl font-bold text-white">B</span>
+          </div>
+          <h2 id="profile-display-name" class="text-2xl font-extrabold text-white mt-3">Player</h2>
+          <div id="profile-user-id" class="text-xs text-gray-400 mt-0.5">ID: --</div>
+        </div>
+
+        <!-- Real Stats Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="glass-card rounded-2xl p-4">
+            <div class="flex items-center gap-2 text-xs text-gray-300">
+              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6" />
+              </svg>
+              <span>Main Wallet</span>
+            </div>
+            <div id="profile-main-wallet" class="text-xl font-extrabold text-white mt-2">0.00</div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4">
+            <div class="flex items-center gap-2 text-xs text-gray-300">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6" />
+              </svg>
+              <span>Play Wallet</span>
+            </div>
+            <div id="profile-play-wallet" class="text-xl font-extrabold text-white mt-2">0.00</div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4">
+            <div class="flex items-center gap-2 text-xs text-gray-300">
+              <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872" />
+              </svg>
+              <span>Games Played</span>
+            </div>
+            <div id="profile-games-played" class="text-xl font-extrabold text-white mt-2">0</div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4">
+            <div class="flex items-center gap-2 text-xs text-gray-300">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z" />
+              </svg>
+              <span>Total Invite</span>
+            </div>
+            <div id="profile-total-invite" class="text-xl font-extrabold text-white mt-2">0</div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4 col-span-2">
+            <div class="flex items-center gap-2 text-xs text-gray-300">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+              </svg>
+              <span>Total Earning (ETB)</span>
+            </div>
+            <div id="profile-total-earning" class="text-2xl font-extrabold text-emerald-400 mt-1.5">0.00</div>
+          </div>
+        </div>
+
+        <!-- Referral & Support Actions -->
+        <div class="glass-card rounded-2xl p-4 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-bold text-white">Invite Friends</div>
+              <div class="text-[11px] text-gray-400">Share your Telegram referral link</div>
+            </div>
+            <button onclick="copyReferralLink()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white transition">
+              Copy Link
+            </button>
+          </div>
+          <div class="border-t border-white/10 pt-3 flex items-center justify-between">
+            <span class="text-xs text-gray-300">Need Help? (@zeid369)</span>
+            <button onclick="requestBotSupport()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition">
+              🎧 Support
+            </button>
+          </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div>
+          <h3 class="text-base font-bold text-white mb-2.5">Settings</h3>
+          <div class="glass-card rounded-2xl px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+              </svg>
+              <span class="text-sm font-semibold text-white">Sound & Voice Caller</span>
+            </div>
+            <div id="profile-sound-switch" onclick="toggleSound()" class="switch-track on">
+              <div class="switch-thumb"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- PERSISTENT BOTTOM NAVIGATION BAR (4 Tabs) -->
+    <nav id="bottom-nav" class="hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-[#162038]/95 backdrop-blur-md border-t border-white/10 px-2 py-1.5 grid grid-cols-4 gap-1 z-40">
+      <button onclick="switchTab('game')" id="nav-game" class="nav-item active flex flex-col items-center justify-center py-1.5 rounded-xl bg-blue-500/15 text-[#38bdf8] transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 01-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 00-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 01-.642 5.056c1.518.19 3.058.374 4.613.543a.652.652 0 00.686-.635v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 005.427-.63 48.05 48.05 0 00.582-4.717.532.532 0 00-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.96.401v0a.656.656 0 00.658-.663 48.422 48.422 0 00-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 01-.61-.58v0z" />
+        </svg>
+        <span class="text-[11px] font-semibold mt-0.5">Game</span>
+      </button>
+
+      <button onclick="switchTab('history')" id="nav-history" class="nav-item flex flex-col items-center justify-center py-1.5 rounded-xl text-gray-400 hover:text-gray-200 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-[11px] font-semibold mt-0.5">History</span>
+      </button>
+
+      <button onclick="switchTab('wallet')" id="nav-wallet" class="nav-item flex flex-col items-center justify-center py-1.5 rounded-xl text-gray-400 hover:text-gray-200 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6" />
+        </svg>
+        <span class="text-[11px] font-semibold mt-0.5">Wallet</span>
+      </button>
+
+      <button onclick="switchTab('profile')" id="nav-profile" class="nav-item flex flex-col items-center justify-center py-1.5 rounded-xl text-gray-400 hover:text-gray-200 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+        <span class="text-[11px] font-semibold mt-0.5">Profile</span>
+      </button>
+    </nav>
+
+    <!-- ==================== SERVER ROUND RESULT OVERLAY (phase === 'result') ==================== -->
+    <div id="result-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-[400px] bg-gradient-to-b from-[#2e1a5e] to-[#131a34] border-2 border-amber-400/70 rounded-3xl p-5 text-center shadow-2xl">
+        <div id="result-emoji" class="text-5xl mb-2">🏆</div>
+        <h3 id="result-title" class="text-xl font-black text-amber-400">Round Result</h3>
+        <p id="result-subtitle" class="text-xs text-gray-200 mt-1.5 leading-relaxed">
+          Winners announced by server
+        </p>
+
+        <!-- Server Winners List -->
+        <div id="result-winners-list" class="my-4 bg-black/35 rounded-2xl p-3 border border-white/10 max-h-48 overflow-y-auto flex flex-col gap-2 text-left">
+          <!-- Populated from state.winners -->
+        </div>
+
+        <div class="text-xs text-amber-300 font-bold">
+          Next round starts in <span id="result-countdown">10</span>s...
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== DEPOSIT MODAL (POST /api/wallet/deposit) ==================== -->
+    <div id="deposit-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-[410px] bg-[#18203c] border border-white/15 rounded-2xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+          <h3 class="text-base font-extrabold text-emerald-400">📥 Telebirr Deposit</h3>
+          <button onclick="closeDepositModal()" class="text-gray-400 hover:text-white p-1">✕</button>
+        </div>
+
+        <!-- Real Telebirr Account Info from GET /api/wallet/config -->
+        <div class="mt-3 bg-black/35 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-gray-400">Telebirr Name:</span>
+            <span id="cfg-telebirr-name" class="font-bold text-white">Esraeal</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Telebirr Number:</span>
+            <div class="flex items-center gap-2">
+              <span id="cfg-telebirr-number" class="font-extrabold text-amber-300">0949196145</span>
+              <button onclick="copyTelebirrNumber()" class="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[10px] font-bold text-white">Copy</button>
+            </div>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">Minimum Deposit:</span>
+            <span class="font-bold text-emerald-400"><span id="cfg-deposit-min">100</span> ETB</span>
+          </div>
+        </div>
+
+        <div class="mt-3 space-y-3 text-xs">
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Amount (ETB)</label>
+            <input id="deposit-amount-input" type="number" min="100" placeholder="e.g. 100" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-400" />
+          </div>
+
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Telebirr Transaction Reference / ID</label>
+            <input id="deposit-ref-input" type="text" placeholder="e.g. BHG482910X" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-400" />
+          </div>
+
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Or Upload Receipt Screenshot (Max 4MB)</label>
+            <input id="deposit-receipt-input" type="file" accept="image/jpeg,image/png,image/webp" onchange="handleReceiptFileChange(event)" class="w-full text-[11px] text-gray-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-white/15 file:text-white hover:file:bg-white/25" />
+            <div id="deposit-receipt-status" class="text-[10px] text-emerald-400 mt-1 hidden">✓ Receipt image attached</div>
+          </div>
+
+          <button id="submit-deposit-btn" onclick="submitDepositRequest()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 font-extrabold text-sm text-white shadow-lg transition">
+            Submit Deposit Request
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== WITHDRAW MODAL (POST /api/wallet/withdraw) ==================== -->
+    <div id="withdraw-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-[400px] bg-[#18203c] border border-white/15 rounded-2xl p-5 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+          <h3 class="text-base font-extrabold text-blue-400">📤 Withdraw to Telebirr</h3>
+          <button onclick="closeWithdrawModal()" class="text-gray-400 hover:text-white p-1">✕</button>
+        </div>
+
+        <div class="mt-3 bg-black/35 rounded-xl p-3 text-xs flex justify-between">
+          <span class="text-gray-400">Available Main Wallet:</span>
+          <span class="font-extrabold text-white"><span id="withdraw-avail-main">0.00</span> ETB</span>
+        </div>
+
+        <div class="mt-3 space-y-3 text-xs">
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Amount (Min <span id="cfg-withdraw-min">100</span> ETB)</label>
+            <input id="withdraw-amount-input" type="number" min="100" placeholder="100" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-blue-400" />
+          </div>
+
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Telebirr Account Full Name</label>
+            <input id="withdraw-name-input" type="text" placeholder="Full Name" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-blue-400" />
+          </div>
+
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Telebirr Phone Number</label>
+            <input id="withdraw-account-input" type="tel" placeholder="09XXXXXXXX" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-blue-400" />
+          </div>
+
+          <button id="submit-withdraw-btn" onclick="submitWithdrawRequest()" class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 font-extrabold text-sm text-white shadow-lg transition">
+            Submit Withdrawal
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'mel-black': '#050505',
-            'mel-card': '#121212',
-            'mel-border': '#222222',
-            'mel-gold': '#ffb700',
-            'mel-gold-dark': '#cca100'
+    // ==================== TELEGRAM WEBAPP & PRODUCTION API CLIENT ====================
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#181920');
+      } catch (_) {}
+    }
+
+    const appState = {
+      authenticated: false,
+      activeTab: 'game',
+      gameView: 'lobby', // 'lobby' | 'room' (automatically switches between selection & live board)
+      cartelaRangePage: 1, // 1: 1-100, 2: 101-200, 3: 201-300, 4: 301-400, 5: 401-500
+      soundEnabled: true,
+      autoDaub: true,
+      clockOffsetSec: 0, // server_time - client_time
+
+      // User Data (GET /api/user-data & /api/wallet/config)
+      user: {
+        id: tg?.initDataUnsafe?.user?.id || '',
+        first_name: tg?.initDataUnsafe?.user?.first_name || 'Player',
+        username: tg?.initDataUnsafe?.user?.username || '',
+        phone_number: '',
+        balance: 0, // Main Wallet
+        bonus: 0,   // Play Wallet
+        total_games_played: 0,
+        total_winnings: 0,
+        referral_count: 0,
+        has_deposited: false,
+        transactions: []
+      },
+
+      walletConfig: {
+        depositMinimum: 100,
+        withdrawMinimum: 100,
+        telebirrName: 'Esraeal',
+        telebirrNumber: '0949196145',
+        depositInstructions: ''
+      },
+
+      // Live Round State (GET /api/round)
+      round: {
+        round_id: '',
+        seq: -1,
+        phase: 'selection',
+        server_time: 0,
+        phase_ends_at: null,
+        selection_seconds: 30,
+        result_seconds: 10,
+        min_players: 2,
+        players: 0,
+        taken: [],
+        my_cartels: [],
+        pool: 0,
+        drawn: [],
+        winners: [],
+        no_winner: false
+      },
+
+      // Local manual marks when Automatic toggle is OFF
+      manualMarksByCartel: {}, // { [cartelId]: Set(['2-2', ...]) }
+      lastAnnouncedBall: null,
+      lastSettledRoundId: null,
+      depositImageBase64: '',
+      pollTimer: null,
+      countdownTimer: null
+    };
+
+    // ==================== CORE API HELPER ====================
+    async function apiFetch(url, options = {}) {
+      const initData = tg ? tg.initData : '';
+      const headers = {
+        'Content-Type': 'application/json',
+        'X-Telegram-Init-Data': initData,
+        ...(options.headers || {})
+      };
+
+      const res = await fetch(url, {
+        ...options,
+        headers
+      });
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (_) {}
+
+      if (res.status === 401 || res.status === 403) {
+        showAuthGate(res.status, data.message);
+        throw new Error(data.message || 'Unauthorized');
+      }
+
+      return { ok: res.ok, status: res.status, data };
+    }
+
+    function showAuthGate(status, serverMsg) {
+      appState.authenticated = false;
+      clearInterval(appState.pollTimer);
+      clearInterval(appState.countdownTimer);
+
+      document.getElementById('loading-screen').classList.add('hidden');
+      document.getElementById('main-content').classList.add('hidden');
+      document.getElementById('bottom-nav').classList.add('hidden');
+      document.getElementById('auth-gate-screen').classList.remove('hidden');
+
+      const titleEl = document.getElementById('auth-gate-title');
+      const msgEl = document.getElementById('auth-gate-message');
+      const channelBtn = document.getElementById('telegram-channel-link');
+
+      if (status === 403 && serverMsg && serverMsg.toLowerCase().includes('channel')) {
+        titleEl.textContent = 'Channel Membership Required';
+        msgEl.textContent = 'ጨዋታውን ለመቀጠል መጀመሪያ የቴሌግራም ቻናላችንን ይቀላቀሉ (Join Channel) ከዚያ Retry ይጫኑ።';
+        channelBtn.classList.remove('hidden');
+      } else if (status === 403 && serverMsg && serverMsg.toLowerCase().includes('blocked')) {
+        titleEl.textContent = 'Account Blocked';
+        msgEl.textContent = 'አካውንትዎ ታግዷል። እባክዎ አድሚኑን ያነጋግሩ።';
+        channelBtn.classList.add('hidden');
+      } else {
+        titleEl.textContent = 'Open in Telegram Bot';
+        msgEl.textContent = serverMsg || 'እባክዎ ይህን ጨዋታ ከቴሌግራም ቦቱ ውስጥ ይክፈቱት።';
+        channelBtn.classList.add('hidden');
+      }
+    }
+
+    async function retryAuthentication() {
+      document.getElementById('auth-gate-screen').classList.add('hidden');
+      document.getElementById('loading-screen').classList.remove('hidden');
+      await initApp();
+    }
+
+    // ==================== DETERMINISTIC MATRIX (EXACT MATCH WITH gameroom.js) ====================
+    const matrixCache = {};
+    function seededRandom(seed) {
+      let x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    }
+
+    function generateMatrix(ticketId) {
+      if (matrixCache[ticketId]) return matrixCache[ticketId];
+      let seed = ticketId * 1573;
+      let matrix = [];
+
+      for (let col = 0; col < 5; col++) {
+        let numbers = [];
+        let low = col * 15 + 1;
+        while (numbers.length < 5) {
+          let value = low + Math.floor(seededRandom(seed) * 15);
+          seed++;
+          if (!numbers.includes(value)) numbers.push(value);
+        }
+        matrix.push(numbers);
+      }
+      matrixCache[ticketId] = matrix;
+      return matrix;
+    }
+
+    function getLetterForNumber(num) {
+      if (num <= 15) return 'B';
+      if (num <= 30) return 'I';
+      if (num <= 45) return 'N';
+      if (num <= 60) return 'G';
+      return 'O';
+    }
+
+    function getBallBadgeColor(letter) {
+      switch (letter) {
+        case 'B': return 'bg-[#2589ff]';
+        case 'I': return 'bg-[#5b6ef5]';
+        case 'N': return 'bg-[#a855f7]';
+        case 'G': return 'bg-[#10b981]';
+        default: return 'bg-[#f97316]';
+      }
+    }
+
+    // ==================== SOUND & VOICE CALLER ====================
+    let audioCtx = null;
+    function playBeep(freq = 560, duration = 0.12, type = 'sine') {
+      if (!appState.soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (_) {}
+    }
+
+    function speakBallCall(letter, num) {
+      if (!appState.soundEnabled) return;
+      playBeep(620 + (num % 15) * 16, 0.14);
+      try {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(`${letter} ${num}`);
+          utter.rate = 1.05;
+          utter.pitch = 1.05;
+          window.speechSynthesis.speak(utter);
+        }
+      } catch (_) {}
+    }
+
+    function toggleSound() {
+      appState.soundEnabled = !appState.soundEnabled;
+      if (appState.soundEnabled) playBeep(680, 0.1);
+      updateSoundUI();
+      showToast(appState.soundEnabled ? 'Sound Enabled' : 'Sound Muted');
+    }
+
+    function updateSoundUI() {
+      const liveBtn = document.getElementById('live-sound-btn');
+      const profSw = document.getElementById('profile-sound-switch');
+      if (appState.soundEnabled) {
+        profSw.classList.add('on');
+        liveBtn.innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>`;
+      } else {
+        profSw.classList.remove('on');
+        liveBtn.innerHTML = `<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>`;
+      }
+    }
+
+    // ==================== INITIALIZATION & DATA LOADERS ====================
+    async function initApp() {
+      if (!tg || !tg.initData) {
+        showAuthGate(401, 'Open this game from the Telegram bot to authenticate.');
+        return;
+      }
+
+      try {
+        await Promise.all([
+          loadUserDataAndHistory(),
+          loadWalletConfig(),
+          forcePollRound(false)
+        ]);
+
+        appState.authenticated = true;
+        document.getElementById('loading-screen').classList.add('hidden');
+        document.getElementById('auth-gate-screen').classList.add('hidden');
+        document.getElementById('main-content').classList.remove('hidden');
+        document.getElementById('bottom-nav').classList.remove('hidden');
+
+        updateSoundUI();
+        fetchLeaderboard();
+
+        // Start continuous server polling (~900ms)
+        clearInterval(appState.pollTimer);
+        appState.pollTimer = setInterval(() => forcePollRound(false), 900);
+
+        // Start smooth 250ms UI countdown ticker synced to server_time
+        clearInterval(appState.countdownTimer);
+        appState.countdownTimer = setInterval(updateCountdowns, 250);
+      } catch (err) {
+        console.error('Initialization failed:', err);
+      }
+    }
+
+    async function loadUserDataAndHistory() {
+      const { ok, data } = await apiFetch('/api/user-data');
+      if (!ok || data.status !== 'success') return;
+
+      appState.user.balance = Number(data.balance || 0);
+      appState.user.bonus = Number(data.bonus || 0);
+      appState.user.phone_number = data.phone_number || '';
+      appState.user.first_name = data.first_name || appState.user.first_name;
+      appState.user.total_games_played = Number(data.total_games_played || 0);
+      appState.user.total_winnings = Number(data.total_winnings || 0);
+      appState.user.has_deposited = Boolean(data.has_deposited);
+      appState.user.referral_count = Number(data.referral_count || 0);
+      appState.user.transactions = Array.isArray(data.transactions) ? data.transactions : [];
+
+      syncUserBalancesUI();
+      renderGameHistoryFromTransactions();
+    }
+
+    async function loadWalletConfig() {
+      const { ok, data } = await apiFetch('/api/wallet/config');
+      if (!ok || data.status !== 'success') return;
+
+      appState.walletConfig = {
+        depositMinimum: Number(data.depositMinimum || 100),
+        withdrawMinimum: Number(data.withdrawMinimum || 100),
+        telebirrName: data.telebirrName || 'Esraeal',
+        telebirrNumber: data.telebirrNumber || '0949196145',
+        depositInstructions: data.depositInstructions || ''
+      };
+
+      appState.user.balance = Number(data.mainBalance ?? appState.user.balance);
+      appState.user.bonus = Number(data.bonusBalance ?? appState.user.bonus);
+
+      document.getElementById('cfg-telebirr-name').textContent = appState.walletConfig.telebirrName;
+      document.getElementById('cfg-telebirr-number').textContent = appState.walletConfig.telebirrNumber;
+      document.getElementById('cfg-deposit-min').textContent = appState.walletConfig.depositMinimum;
+      document.getElementById('cfg-withdraw-min').textContent = appState.walletConfig.withdrawMinimum;
+
+      syncUserBalancesUI();
+    }
+
+    async function loadWalletTransactionHistory() {
+      const list = document.getElementById('wallet-transactions-list');
+      const { ok, data } = await apiFetch('/api/wallet/history');
+      if (!ok || data.status !== 'success') {
+        list.innerHTML = `<div class="text-xs text-rose-400 text-center py-6">Could not load transactions.</div>`;
+        return;
+      }
+
+      const items = data.transactions || [];
+      if (items.length === 0) {
+        list.innerHTML = `<div class="text-xs text-gray-400 text-center py-8">No transactions yet.</div>`;
+        return;
+      }
+
+      list.innerHTML = items.map(tx => {
+        const isCredit = ['deposit', 'win', 'promo_bonus', 'bonus', 'withdrawal_refund', 'refund', 'admin_credit_main', 'admin_credit_bonus'].includes(tx.type);
+        const statusColor = tx.status === 'approved'
+          ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30'
+          : tx.status === 'rejected'
+          ? 'text-rose-400 bg-rose-500/15 border-rose-500/30'
+          : 'text-amber-300 bg-amber-500/15 border-amber-500/30';
+        const label = String(tx.type || 'transaction').replace(/_/g, ' ').toUpperCase();
+        const dateStr = tx.timestamp ? new Date(tx.timestamp).toLocaleString() : '';
+
+        return `
+          <div class="glass-card rounded-xl px-3.5 py-3 flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-white truncate">${label}</div>
+              <div class="text-[10px] text-gray-400 mt-0.5">${dateStr}</div>
+              ${tx.reference ? `<div class="text-[10px] text-gray-400 truncate">Ref: ${tx.reference}</div>` : ''}
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-xs font-extrabold ${isCredit ? 'text-emerald-400' : 'text-rose-400'}">
+                ${isCredit ? '+' : '-'}${Number(tx.amount || 0).toFixed(2)} ETB
+              </div>
+              <span class="inline-block mt-1 px-2 py-0.5 rounded border text-[9px] font-bold uppercase ${statusColor}">
+                ${tx.status || 'approved'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function fetchLeaderboard() {
+      const list = document.getElementById('leaderboard-list');
+      try {
+        const { ok, data } = await apiFetch('/api/leaderboard');
+        if (!ok || !Array.isArray(data.leaderboard) || data.leaderboard.length === 0) {
+          list.innerHTML = `<div class="text-xs text-gray-400 text-center py-3">No weekly rankings yet.</div>`;
+          return;
+        }
+        list.innerHTML = data.leaderboard.map((row, idx) => `
+          <div class="flex items-center justify-between bg-black/25 px-3 py-2 rounded-xl border border-white/5 text-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="w-5 h-5 rounded-full ${idx === 0 ? 'bg-amber-400 text-slate-950' : idx === 1 ? 'bg-gray-300 text-slate-900' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-white/10 text-gray-300'} font-extrabold text-[11px] flex items-center justify-center">${idx + 1}</span>
+              <span class="font-semibold text-white truncate max-w-[170px]">${escapeHtml(row.name || 'Player')}</span>
+            </div>
+            <span class="font-extrabold text-emerald-400">${Number(row.cartels || 0)} Cartels</span>
+          </div>
+        `).join('');
+      } catch (_) {
+        list.innerHTML = `<div class="text-xs text-gray-400 text-center py-3">Leaderboard unavailable</div>`;
+      }
+    }
+
+    function syncUserBalancesUI() {
+      const main = appState.user.balance;
+      const play = appState.user.bonus;
+      const total = main + play;
+
+      document.getElementById('header-total-balance').textContent = total.toFixed(2);
+      document.getElementById('cartela-main-wallet').textContent = main.toFixed(0);
+      document.getElementById('cartela-play-wallet').textContent = play.toFixed(0);
+
+      document.getElementById('wallet-main-display').textContent = main.toFixed(2);
+      document.getElementById('wallet-play-display').textContent = play.toFixed(2);
+      document.getElementById('withdraw-avail-main').textContent = main.toFixed(2);
+
+      document.getElementById('profile-main-wallet').textContent = main.toFixed(2);
+      document.getElementById('profile-play-wallet').textContent = play.toFixed(2);
+      document.getElementById('profile-games-played').textContent = appState.user.total_games_played;
+      document.getElementById('profile-total-invite').textContent = appState.user.referral_count;
+      document.getElementById('profile-total-earning').textContent = appState.user.total_winnings.toFixed(2);
+
+      const displayName = appState.user.first_name || appState.user.username || 'Player';
+      document.getElementById('profile-display-name').textContent = displayName;
+      document.getElementById('profile-avatar-initial').textContent = displayName.charAt(0).toUpperCase();
+      document.getElementById('profile-user-id').textContent = appState.user.id ? `Telegram ID: ${appState.user.id}` : '';
+
+      // Phone verification status
+      const phoneEl = document.getElementById('wallet-phone-display');
+      const badgeEl = document.getElementById('wallet-verified-badge');
+      const badgeTxt = document.getElementById('wallet-verified-text');
+      if (appState.user.phone_number) {
+        phoneEl.textContent = appState.user.phone_number;
+        badgeEl.className = 'px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-semibold flex items-center gap-1';
+        badgeTxt.textContent = 'Verified';
+      } else {
+        phoneEl.textContent = 'Share contact in bot';
+        badgeEl.className = 'px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-semibold flex items-center gap-1';
+        badgeTxt.textContent = 'Unverified';
+      }
+
+      // Show deposit banner if total balance < 10 ETB
+      const banner = document.getElementById('lobby-deposit-banner');
+      if (total < 10) {
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    // ==================== LIVE ROUND POLLING & STATE SYNC ====================
+    async function forcePollRound(manualToast = false) {
+      try {
+        const { ok, data } = await apiFetch('/api/round');
+        if (!ok || data.status !== 'success' || !data.state) return;
+
+        const prev = appState.round;
+        const next = data.state;
+
+        // Sync server clock offset
+        if (typeof next.server_time === 'number') {
+          appState.clockOffsetSec = next.server_time - Date.now() / 1000;
+        }
+
+        // Detect new round start -> reset local manual daub marks & refresh wallet balance
+        if (prev.round_id && prev.round_id !== next.round_id) {
+          appState.manualMarksByCartel = {};
+          appState.lastAnnouncedBall = null;
+          document.getElementById('result-modal').classList.add('hidden');
+          loadUserDataAndHistory();
+        }
+
+        // Detect phase transition from selection -> locking/drawing (tickets charged)
+        if (prev.phase === 'selection' && ['locking', 'drawing'].includes(next.phase)) {
+          loadUserDataAndHistory();
+        }
+
+        // Detect newly drawn ball
+        if (Array.isArray(next.drawn) && next.drawn.length > 0) {
+          const latestBall = next.drawn[next.drawn.length - 1];
+          if (latestBall !== appState.lastAnnouncedBall) {
+            appState.lastAnnouncedBall = latestBall;
+            speakBallCall(getLetterForNumber(latestBall), latestBall);
+          }
+        }
+
+        appState.round = next;
+        renderServerState();
+
+        if (manualToast) showToast('Synced with live server');
+      } catch (e) {
+        // Handled by apiFetch
+      }
+    }
+
+    function renderServerState() {
+      const r = appState.round;
+
+      // Header & Lobby Live Indicators
+      document.getElementById('header-phase-text').textContent = r.phase.toUpperCase();
+      document.getElementById('lobby-players-count').textContent = r.players;
+      document.getElementById('lobby-pool-amount').textContent = r.pool;
+      document.getElementById('lobby-phase-label').textContent = r.phase;
+      document.getElementById('lobby-live-status').textContent =
+        r.phase === 'selection'
+          ? `Selection Open (${r.players} Players)`
+          : r.phase === 'drawing'
+          ? `Live Draw (${r.drawn.length}/75 Called)`
+          : `Phase: ${r.phase.toUpperCase()}`;
+
+      // Automatic Screen Routing when user is inside the Game Room View
+      if (appState.activeTab === 'game' && appState.gameView === 'room') {
+        if (r.phase === 'selection') {
+          document.getElementById('screen-lobby').classList.add('hidden');
+          document.getElementById('screen-live-game').classList.add('hidden');
+          document.getElementById('screen-cartela').classList.remove('hidden');
+          document.getElementById('bottom-nav').classList.remove('hidden');
+          renderCartelaSelectionView();
+        } else {
+          // locking | drawing | settling | result
+          document.getElementById('screen-lobby').classList.add('hidden');
+          document.getElementById('screen-cartela').classList.add('hidden');
+          document.getElementById('screen-live-game').classList.remove('hidden');
+          document.getElementById('bottom-nav').classList.add('hidden');
+          renderLiveGameBoardView();
+        }
+      }
+
+      // Result Overlay handling when in live game room
+      if (r.phase === 'result' && appState.activeTab === 'game' && appState.gameView === 'room') {
+        renderResultOverlay();
+      } else {
+        document.getElementById('result-modal').classList.add('hidden');
+      }
+    }
+
+    function updateCountdowns() {
+      const r = appState.round;
+      if (!r.phase_ends_at) return;
+      const nowServer = Date.now() / 1000 + appState.clockOffsetSec;
+      const remaining = Math.max(0, Math.ceil(r.phase_ends_at - nowServer));
+
+      if (r.phase === 'selection') {
+        document.getElementById('cartela-countdown').textContent = remaining;
+      } else if (r.phase === 'result') {
+        document.getElementById('result-countdown').textContent = remaining;
+      }
+    }
+
+    // ==================== CARTELA SELECTION (1 - 500) ====================
+    function setCartelaRange(page) {
+      appState.cartelaRangePage = page;
+      for (let p = 1; p <= 5; p++) {
+        const btn = document.getElementById(`range-btn-${p}`);
+        if (p === page) {
+          btn.className = 'range-btn py-1.5 rounded-lg bg-[#475569] text-white text-[11px] font-bold transition';
+        } else {
+          btn.className = 'range-btn py-1.5 rounded-lg text-gray-400 text-[11px] font-bold transition';
+        }
+      }
+      renderCartelaSelectionView();
+    }
+
+    function renderCartelaSelectionView() {
+      const r = appState.round;
+      const takenSet = new Set(r.taken || []);
+      const mineSet = new Set(r.my_cartels || []);
+
+      document.getElementById('my-selected-count').textContent = mineSet.size;
+      document.getElementById('cartela-pool-preview').textContent = r.pool;
+
+      const start = (appState.cartelaRangePage - 1) * 100 + 1;
+      const end = start + 99;
+      const grid = document.getElementById('cartela-grid');
+      grid.innerHTML = '';
+
+      for (let num = start; num <= end; num++) {
+        const btn = document.createElement('button');
+        const isMine = mineSet.has(num);
+        const isTaken = takenSet.has(num) && !isMine;
+
+        btn.className = 'cartela-cell py-2 rounded-lg text-xs font-bold text-center';
+        if (isMine) {
+          btn.classList.add('selected');
+        } else if (isTaken) {
+          btn.classList.add('taken');
+        }
+        btn.textContent = num;
+        btn.onclick = () => handleCartelaTileClick(num, isMine, isTaken, btn);
+        grid.appendChild(btn);
+      }
+
+      // Render User's Selected Cartels 5x5 Previews
+      const previewContainer = document.getElementById('my-cartelas-preview-container');
+      const previewGrid = document.getElementById('my-cartelas-preview-grid');
+      const mySorted = [...mineSet].sort((a, b) => a - b);
+
+      if (mySorted.length === 0) {
+        previewContainer.classList.add('hidden');
+      } else {
+        previewContainer.classList.remove('hidden');
+        document.getElementById('reserved-total-cost').textContent = mySorted.length * 10;
+        previewGrid.innerHTML = mySorted.map(cid => renderMiniCartelaHtml(cid)).join('');
+      }
+    }
+
+    function renderMiniCartelaHtml(cartelId) {
+      const m = generateMatrix(cartelId); // m[col][row]
+      let cellsHtml = '';
+      ['B', 'I', 'N', 'G', 'O'].forEach((l, i) => {
+        const colors = ['bg-[#2589ff]', 'bg-[#5b6ef5]', 'bg-[#a855f7]', 'bg-[#10b981]', 'bg-[#f97316]'];
+        cellsHtml += `<div class="${colors[i]} text-white text-[9px] font-extrabold py-0.5 rounded">${l}</div>`;
+      });
+
+      for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 5; c++) {
+          const isFree = r === 2 && c === 2;
+          const val = isFree ? '★' : m[c][r];
+          cellsHtml += `<div class="${isFree ? 'bg-amber-500 text-white' : 'bg-white/10 text-gray-100'} text-[10px] font-bold py-0.5 rounded">${val}</div>`;
+        }
+      }
+
+      return `
+        <div class="bg-black/30 border border-white/10 rounded-xl p-2">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-extrabold text-emerald-400">Cartela #${cartelId}</span>
+            <button onclick="unpickCartela(${cartelId})" class="text-[10px] text-rose-400 hover:underline">Remove</button>
+          </div>
+          <div class="grid grid-cols-5 gap-0.5 text-center">${cellsHtml}</div>
+        </div>
+      `;
+    }
+
+    async function handleCartelaTileClick(cartel, isMine, isTaken, btnEl) {
+      if (isTaken) {
+        playBeep(210, 0.1, 'sawtooth');
+        showToast(`Cartela #${cartel} is already taken.`);
+        return;
+      }
+
+      btnEl.classList.add('pending-req');
+      try {
+        if (isMine) {
+          await unpickCartela(cartel);
+        } else {
+          await pickCartela(cartel);
+        }
+      } finally {
+        btnEl.classList.remove('pending-req');
+      }
+    }
+
+    async function pickCartela(cartel) {
+      const { data } = await apiFetch('/api/round/pick', {
+        method: 'POST',
+        body: JSON.stringify({ cartel })
+      });
+
+      if (data.state) {
+        appState.round = data.state;
+        renderServerState();
+      }
+
+      if (data.status === 'success') {
+        playBeep(740, 0.08);
+        return;
+      }
+
+      playBeep(210, 0.14, 'sawtooth');
+      const messages = {
+        balance: 'ቀሪ ሂሳብዎ በቂ አይደለም! እባክዎ መጀመሪያ Deposit ያድርጉ።',
+        full: 'በአንድ ዙር ከ4 ካርቴላ በላይ መምረጥ አይቻልም።',
+        taken: `Cartela #${cartel} አስቀድሞ ተይዟል።`,
+        phase: 'የመምረጫ ሰዓት አልቋል! ጨዋታው እየጀመረ ነው።',
+        invalid: 'Invalid cartel number.'
+      };
+      showToast(messages[data.code] || 'Could not select cartel.');
+
+      if (data.code === 'balance') {
+        setTimeout(() => openDepositModal(), 650);
+      }
+    }
+
+    async function unpickCartela(cartel) {
+      const { data } = await apiFetch('/api/round/unpick', {
+        method: 'POST',
+        body: JSON.stringify({ cartel })
+      });
+      if (data.state) {
+        playBeep(460, 0.07);
+        appState.round = data.state;
+        renderServerState();
+      }
+    }
+
+    // ==================== LIVE GAME BOARD RENDERING ====================
+    function renderLiveGameBoardView() {
+      const r = appState.round;
+      const drawn = r.drawn || [];
+      const drawnSet = new Set(drawn);
+      const latest = drawn.length > 0 ? drawn[drawn.length - 1] : null;
+
+      // Top 5 Stat Cards
+      document.getElementById('live-game-id').textContent = r.round_id || '--';
+      document.getElementById('live-players').textContent = r.players;
+      document.getElementById('live-derash').textContent = r.pool;
+      document.getElementById('live-called-count').textContent = drawn.length;
+
+      // Left 1-75 Master Board (15 rows x 5 cols)
+      const masterGrid = document.getElementById('master-board-grid');
+      masterGrid.innerHTML = '';
+      for (let row = 0; row < 15; row++) {
+        for (let col = 0; col < 5; col++) {
+          const num = col * 15 + row + 1;
+          const cell = document.createElement('div');
+          cell.className = 'master-num rounded flex items-center justify-center py-0.5';
+          if (num === latest) {
+            cell.classList.add('latest');
+          } else if (drawnSet.has(num)) {
+            cell.classList.add('called');
+          }
+          cell.textContent = num;
+          masterGrid.appendChild(cell);
+        }
+      }
+
+      // Recent Called Balls Strip (last 3)
+      const recentRow = document.getElementById('recent-balls-row');
+      if (drawn.length === 0) {
+        recentRow.innerHTML = `<span class="text-[11px] text-gray-400 italic">${r.phase === 'locking' ? 'Locking tickets...' : 'Waiting for first ball...'}</span>`;
+      } else {
+        recentRow.innerHTML = drawn.slice(-3).map(n => {
+          const l = getLetterForNumber(n);
+          return `<span class="${getBallBadgeColor(l)} text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full shrink-0 shadow">${l}-${n}</span>`;
+        }).join('');
+      }
+
+      // Featured Current Ball Display
+      const callTextEl = document.getElementById('current-call-text');
+      const callSubEl = document.getElementById('current-call-sub');
+      if (latest !== null) {
+        const letter = getLetterForNumber(latest);
+        const formatted = `${letter}-${latest}`;
+        if (callTextEl.textContent !== formatted) {
+          const ballEl = document.getElementById('current-call-ball');
+          ballEl.classList.remove('ball-pop');
+          void ballEl.offsetWidth;
+          ballEl.classList.add('ball-pop');
+        }
+        callTextEl.textContent = formatted;
+        callSubEl.textContent = `Ball #${drawn.length} of 75`;
+      } else {
+        callTextEl.textContent = '--';
+        callSubEl.textContent = r.phase === 'locking' ? 'Starting round...' : 'Ready';
+      }
+
+      // Right Lower Panel: Watching Only vs Active Player Cartels
+      const myCartels = (r.my_cartels || []).slice().sort((a, b) => a - b);
+      const watchingPanel = document.getElementById('watching-only-panel');
+      const activePanel = document.getElementById('active-cartelas-panel');
+
+      if (myCartels.length === 0) {
+        watchingPanel.classList.remove('hidden');
+        activePanel.classList.add('hidden');
+      } else {
+        watchingPanel.classList.add('hidden');
+        activePanel.classList.remove('hidden');
+        activePanel.innerHTML = myCartels.map(cid => renderActivePlayerCardHtml(cid, drawnSet)).join('');
+      }
+    }
+
+    function renderActivePlayerCardHtml(cartelId, drawnSet) {
+      const m = generateMatrix(cartelId); // m[col][row]
+      if (!appState.manualMarksByCartel[cartelId]) {
+        appState.manualMarksByCartel[cartelId] = new Set(['2-2']);
+      }
+      const manualSet = appState.manualMarksByCartel[cartelId];
+
+      let headers = '';
+      ['B', 'I', 'N', 'G', 'O'].forEach((l, i) => {
+        const colors = ['bg-[#2589ff]', 'bg-[#5b6ef5]', 'bg-[#a855f7]', 'bg-[#10b981]', 'bg-[#f97316]'];
+        headers += `<div class="${colors[i]} text-white py-0.5 rounded text-[10px] font-extrabold">${l}</div>`;
+      });
+
+      let cells = '';
+      for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 5; c++) {
+          const isFree = r === 2 && c === 2;
+          const val = m[c][r];
+          const key = `${r}-${c}`;
+          const isMarked = isFree || (appState.autoDaub ? drawnSet.has(val) : manualSet.has(key));
+
+          if (isFree) {
+            cells += `<div class="card-cell free py-1.5 rounded text-[10px] flex items-center justify-center">FREE</div>`;
+          } else {
+            cells += `<button onclick="toggleManualCardCell(${cartelId}, ${r}, ${c}, ${val})" class="card-cell ${isMarked ? 'marked' : ''} py-1.5 rounded text-[11px] flex items-center justify-center">${val}</button>`;
           }
         }
       }
-    }
-  </script>
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body { touch-action: manipulation; user-select: none; }
-    @keyframes pulseGlow {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.05); opacity: 0.8; }
-    }
-    .animate-glow { animation: pulseGlow 3s infinite ease-in-out; }
-  </style>
-</head>
-<body class="h-full text-white font-sans antialiased flex flex-col justify-between items-center p-6 overflow-hidden select-none">
 
-  <!-- TOP HEADER BRAND -->
-  <header class="w-full max-w-md py-4 flex justify-center items-center">
-    <div class="flex items-center space-x-2">
-      <span class="text-xl font-black tracking-wider text-white">MELBET</span>
-      <span class="bg-yellow-400 text-slate-950 font-black text-xs px-2 py-0.5 rounded-md tracking-widest">BINGO</span>
-    </div>
-  </header>
-
-  <!-- MAINTENANCE CONTAINER -->
-  <main class="w-full max-w-sm flex-1 flex flex-col items-center justify-center text-center px-4">
-    <!-- Icon Container -->
-    <div class="relative w-24 h-24 mb-6 flex items-center justify-center">
-      <div class="absolute inset-0 bg-yellow-500/20 rounded-full blur-xl animate-glow"></div>
-      <div class="relative w-20 h-20 bg-[#141414] border-2 border-yellow-400/50 rounded-3xl flex items-center justify-center shadow-2xl text-yellow-400 text-3xl">
-        <i class="fa-solid fa-screwdriver-wrench animate-bounce"></i>
-      </div>
-    </div>
-
-    <!-- Title -->
-    <h1 class="text-2xl font-black text-white tracking-wide mb-2">
-      የጥገና ሥራ እየተከናወነ ነው!
-    </h1>
-    <h2 class="text-xs font-bold text-yellow-400 tracking-widest uppercase mb-6">
-      SYSTEM MAINTENANCE
-    </h2>
-
-    <!-- Description Card -->
-    <div class="bg-[#141414] border border-mel-border rounded-2xl p-5 shadow-xl w-full text-center space-y-4">
-      <p class="text-xs text-gray-300 leading-relaxed">
-        ውድ ተጫዋቾቻችን፣ ሲስተማችንን ይበልጥ ለማዘመን እና የተሻለ አገልግሎት ለመስጠት አጭር የጥገና ሥራ እያካሄድን ይገኛል።
-      </p>
-
-      <div class="bg-[#0a0a0a] border border-mel-border rounded-xl p-3">
-        <div class="text-[10px] text-gray-400 mb-1">የሚመለስበት ግምታዊ ጊዜ</div>
-        <div class="text-sm font-black text-yellow-400 font-mono">
-          ነገ ከሰዓት ተስተካክሎ ይጀምራል!
+      return `
+        <div class="bg-black/30 border border-white/10 rounded-xl p-2">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-extrabold text-amber-300">Cartela #${cartelId}</span>
+            <span class="text-[9px] text-emerald-300">${appState.autoDaub ? 'Auto-daub ON' : 'Tap to mark'}</span>
+          </div>
+          <div class="grid grid-cols-5 gap-1 text-center mb-1">${headers}</div>
+          <div class="grid grid-cols-5 gap-1 text-center">${cells}</div>
         </div>
-      </div>
+      `;
+    }
 
-      <p class="text-[11px] text-gray-400">
-        እስከዚያው ድረስ በትዕግስት እንዲጠብቁ በአክብሮት እንጠይቃለን። እናመሰግናለን! 🙏
-      </p>
-    </div>
-  </main>
+    function toggleManualCardCell(cartelId, r, c, val) {
+      if (appState.autoDaub) return;
+      const drawn = appState.round.drawn || [];
+      if (!drawn.includes(val)) {
+        playBeep(210, 0.1, 'sawtooth');
+        showToast(`${getLetterForNumber(val)}-${val} has not been called yet.`);
+        return;
+      }
+      if (!appState.manualMarksByCartel[cartelId]) {
+        appState.manualMarksByCartel[cartelId] = new Set(['2-2']);
+      }
+      const key = `${r}-${c}`;
+      const set = appState.manualMarksByCartel[cartelId];
+      if (set.has(key)) set.delete(key);
+      else {
+        playBeep(680, 0.08);
+        set.add(key);
+      }
+      renderLiveGameBoardView();
+    }
 
-  <!-- FOOTER -->
-  <footer class="w-full max-w-md py-4 text-center text-[10px] text-gray-500 font-mono">
-    &copy; 2026 Melbet Bingo. All rights reserved.
-  </footer>
+    function toggleAutoDaub() {
+      appState.autoDaub = !appState.autoDaub;
+      playBeep(appState.autoDaub ? 660 : 440, 0.08);
+      const sw = document.getElementById('auto-daub-switch');
+      const bottomBtn = document.getElementById('bottom-auto-btn');
+      if (appState.autoDaub) {
+        sw.classList.add('on');
+        bottomBtn.classList.remove('opacity-50');
+      } else {
+        sw.classList.remove('on');
+        bottomBtn.classList.add('opacity-50');
+      }
+      if (appState.gameView === 'room' && appState.round.phase !== 'selection') {
+        renderLiveGameBoardView();
+      }
+    }
 
+    // ==================== SERVER ROUND RESULT OVERLAY ====================
+    function renderResultOverlay() {
+      const r = appState.round;
+      const modal = document.getElementById('result-modal');
+      modal.classList.remove('hidden');
+
+      const emojiEl = document.getElementById('result-emoji');
+      const titleEl = document.getElementById('result-title');
+      const subEl = document.getElementById('result-subtitle');
+      const listEl = document.getElementById('result-winners-list');
+
+      const didUserWin = Array.isArray(r.winners) && r.winners.some(w => w.mine);
+
+      if (r.no_winner || !r.winners || r.winners.length === 0) {
+        emojiEl.textContent = '🔄';
+        titleEl.textContent = 'No Winner This Round';
+        subEl.textContent = 'አሸናፊ ስላልተገኘ የካርቴላ ገንዘብ ወደ ሂሳብዎ ተመልሷል።';
+        listEl.innerHTML = `<div class="text-xs text-center text-gray-300 py-2">Tickets refunded automatically.</div>`;
+      } else if (didUserWin) {
+        emojiEl.textContent = '🏆';
+        titleEl.textContent = 'BINGO! አሸንፈዋል!';
+        subEl.textContent = 'እንኳን ደስ አለዎት! ሽልማትዎ ወደ Main Wallet ገቢ ሆኗል።';
+      } else {
+        emojiEl.textContent = '🎉';
+        titleEl.textContent = 'Round Winners';
+        subEl.textContent = 'የዚህ ዙር አሸናፊዎች ዝርዝር፦';
+      }
+
+      if (r.winners && r.winners.length > 0) {
+        listEl.innerHTML = r.winners.map(w => `
+          <div class="flex items-center justify-between px-3 py-2 rounded-xl ${w.mine ? 'bg-emerald-500/25 border border-emerald-400/50' : 'bg-white/5'}">
+            <div>
+              <div class="text-xs font-extrabold ${w.mine ? 'text-emerald-300' : 'text-white'}">
+                ${escapeHtml(w.name)} ${w.mine ? '(You)' : ''}
+              </div>
+              <div class="text-[10px] text-gray-400">Cartela #${w.cartel}</div>
+            </div>
+            <div class="text-xs font-black text-amber-300">+${Number(w.prize || 0).toFixed(2)} ETB</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // ==================== NAVIGATION & VIEW SWITCHING ====================
+    function enterGameRoomView() {
+      playBeep(620, 0.09);
+      appState.gameView = 'room';
+      renderServerState();
+    }
+
+    function enterWatchingLiveBoard() {
+      // Allows viewing the live master board directly even during selection or drawing
+      document.getElementById('screen-cartela').classList.add('hidden');
+      document.getElementById('screen-live-game').classList.remove('hidden');
+      document.getElementById('bottom-nav').classList.add('hidden');
+      renderLiveGameBoardView();
+    }
+
+    function leaveToLobby() {
+      appState.gameView = 'lobby';
+      document.getElementById('result-modal').classList.add('hidden');
+      document.getElementById('screen-cartela').classList.add('hidden');
+      document.getElementById('screen-live-game').classList.add('hidden');
+      document.getElementById('screen-lobby').classList.remove('hidden');
+      document.getElementById('bottom-nav').classList.remove('hidden');
+    }
+
+    function handleHeaderLeftAction() {
+      if (appState.activeTab === 'game' && appState.gameView === 'room') {
+        leaveToLobby();
+      } else if (appState.activeTab !== 'game') {
+        switchTab('game');
+      } else if (tg) {
+        tg.close();
+      }
+    }
+
+    function switchTab(tab) {
+      appState.activeTab = tab;
+
+      ['game', 'history', 'wallet', 'profile'].forEach(t => {
+        const btn = document.getElementById(`nav-${t}`);
+        if (t === tab) {
+          btn.classList.add('active', 'bg-blue-500/15', 'text-[#38bdf8]');
+          btn.classList.remove('text-gray-400');
+        } else {
+          btn.classList.remove('active', 'bg-blue-500/15', 'text-[#38bdf8]');
+          btn.classList.add('text-gray-400');
+        }
+      });
+
+      ['screen-lobby', 'screen-cartela', 'screen-live-game', 'screen-history', 'screen-wallet', 'screen-profile'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById('bottom-nav').classList.remove('hidden');
+
+      if (tab === 'game') {
+        if (appState.gameView === 'room') {
+          renderServerState();
+        } else {
+          document.getElementById('screen-lobby').classList.remove('hidden');
+        }
+      } else if (tab === 'history') {
+        loadUserDataAndHistory();
+        document.getElementById('screen-history').classList.remove('hidden');
+      } else if (tab === 'wallet') {
+        refreshWalletAll(false);
+        document.getElementById('screen-wallet').classList.remove('hidden');
+      } else if (tab === 'profile') {
+        loadUserDataAndHistory();
+        document.getElementById('screen-profile').classList.remove('hidden');
+      }
+    }
+
+    // ==================== HISTORY RENDERING (REAL TRANSACTIONS) ====================
+    function renderGameHistoryFromTransactions() {
+      const txs = appState.user.transactions || [];
+      // Group play, win, refund transactions by round_id
+      const roundMap = new Map();
+
+      for (const tx of txs) {
+        if (!tx.round_id || !['play', 'win', 'refund'].includes(tx.type)) continue;
+        const rid = String(tx.round_id);
+        if (!roundMap.has(rid)) {
+          roundMap.set(rid, {
+            round_id: rid,
+            stake: 0,
+            won: 0,
+            refunded: 0,
+            timestamp: tx.timestamp || ''
+          });
+        }
+        const entry = roundMap.get(rid);
+        if (tx.type === 'play') {
+          entry.stake += Number(tx.amount || 0);
+          entry.timestamp = tx.timestamp || entry.timestamp;
+        } else if (tx.type === 'win') {
+          entry.won += Number(tx.amount || 0);
+        } else if (tx.type === 'refund') {
+          entry.refunded += Number(tx.amount || 0);
+        }
+      }
+
+      const rounds = Array.from(roundMap.values()).reverse();
+      const totalPlayed = Math.max(appState.user.total_games_played, rounds.length);
+
+      document.getElementById('history-total-games').textContent = totalPlayed;
+      document.getElementById('history-total-winnings').textContent = appState.user.total_winnings.toFixed(2);
+
+      const list = document.getElementById('history-list');
+      if (rounds.length === 0) {
+        list.innerHTML = `<div class="text-xs text-gray-400 text-center py-8">No completed rounds recorded yet.</div>`;
+        return;
+      }
+
+      list.innerHTML = rounds.map(item => {
+        const status = item.won > 0 ? 'Won' : item.refunded > 0 ? 'Refunded' : 'Lost';
+        const badgeClass = status === 'Won'
+          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+          : status === 'Refunded'
+          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+          : 'bg-rose-500/20 text-rose-400 border-rose-500/40';
+        const dotColor = status === 'Won' ? 'bg-emerald-900/60' : 'bg-[#4c2635]';
+        const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleString() : '';
+
+        return `
+          <div class="glass-card rounded-2xl p-4 flex flex-col gap-3">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full ${dotColor} shrink-0"></div>
+                <div>
+                  <div class="font-bold text-white text-sm">Round ${escapeHtml(item.round_id)}</div>
+                  <div class="text-[11px] text-gray-400 mt-0.5">${dateStr}</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-lg border text-xs font-semibold ${badgeClass}">${status}</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/5 text-xs">
+              <div>
+                <div class="text-gray-400 text-[11px]">Stake:</div>
+                <div class="font-bold text-white mt-0.5">${item.stake.toFixed(2)} ETB</div>
+              </div>
+              <div>
+                <div class="text-gray-400 text-[11px]">Cartels:</div>
+                <div class="font-bold text-white mt-0.5">${Math.max(1, Math.round(item.stake / 10))}</div>
+              </div>
+              <div>
+                <div class="text-gray-400 text-[11px]">Payout:</div>
+                <div class="font-bold ${item.won > 0 ? 'text-emerald-400' : 'text-white'} mt-0.5">${(item.won || item.refunded).toFixed(2)} ETB</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== WALLET SUB-TABS, DEPOSIT, WITHDRAW & PROMO ====================
+    async function refreshWalletAll(notify = false) {
+      await Promise.all([loadWalletConfig(), loadWalletTransactionHistory()]);
+      if (notify) showToast('Wallet updated');
+    }
+
+    function switchWalletSubtab(sub) {
+      const balBtn = document.getElementById('wallet-subtab-balance');
+      const histBtn = document.getElementById('wallet-subtab-history');
+      const balView = document.getElementById('wallet-view-balance');
+      const histView = document.getElementById('wallet-view-history');
+
+      if (sub === 'balance') {
+        balBtn.className = 'py-2 rounded-lg bg-[#475569] text-white font-semibold text-sm transition';
+        histBtn.className = 'py-2 rounded-lg text-gray-300 font-semibold text-sm transition';
+        balView.classList.remove('hidden');
+        histView.classList.add('hidden');
+      } else {
+        histBtn.className = 'py-2 rounded-lg bg-[#475569] text-white font-semibold text-sm transition';
+        balBtn.className = 'py-2 rounded-lg text-gray-300 font-semibold text-sm transition';
+        histView.classList.remove('hidden');
+        balView.classList.add('hidden');
+        loadWalletTransactionHistory();
+      }
+    }
+
+    function openDepositModal() {
+      appState.depositImageBase64 = '';
+      document.getElementById('deposit-amount-input').value = '';
+      document.getElementById('deposit-ref-input').value = '';
+      document.getElementById('deposit-receipt-input').value = '';
+      document.getElementById('deposit-receipt-status').classList.add('hidden');
+      document.getElementById('deposit-modal').classList.remove('hidden');
+    }
+    function closeDepositModal() {
+      document.getElementById('deposit-modal').classList.add('hidden');
+    }
+
+    function copyTelebirrNumber() {
+      const num = appState.walletConfig.telebirrNumber;
+      const ta = document.createElement('textarea');
+      ta.value = num;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      showToast(`Copied Telebirr number: ${num}`);
+    }
+
+    function handleReceiptFileChange(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) {
+        appState.depositImageBase64 = '';
+        return;
+      }
+      if (file.size > 4 * 1024 * 1024) {
+        showToast('Receipt image must be 4 MB or smaller.');
+        event.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        appState.depositImageBase64 = reader.result;
+        document.getElementById('deposit-receipt-status').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function submitDepositRequest() {
+      const amount = Number(document.getElementById('deposit-amount-input').value);
+      const reference = document.getElementById('deposit-ref-input').value.trim();
+      const btn = document.getElementById('submit-deposit-btn');
+
+      if (!Number.isFinite(amount) || amount < appState.walletConfig.depositMinimum) {
+        showToast(`Minimum deposit is ${appState.walletConfig.depositMinimum} ETB.`);
+        return;
+      }
+      if (!reference && !appState.depositImageBase64) {
+        showToast('Enter payment reference or attach receipt image.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      try {
+        const { ok, data } = await apiFetch('/api/wallet/deposit', {
+          method: 'POST',
+          body: JSON.stringify({
+            amount,
+            reference,
+            imageBase64: appState.depositImageBase64
+          })
+        });
+        if (ok && data.status === 'success') {
+          showToast('Deposit request sent! Admin will approve shortly.');
+          closeDepositModal();
+          loadWalletTransactionHistory();
+        } else {
+          showToast(data.message || 'Deposit request failed.');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Deposit Request';
+      }
+    }
+
+    function openWithdrawModal() {
+      document.getElementById('withdraw-avail-main').textContent = appState.user.balance.toFixed(2);
+      document.getElementById('withdraw-amount-input').value = '';
+      document.getElementById('withdraw-name-input').value = '';
+      document.getElementById('withdraw-account-input').value = appState.user.phone_number || '';
+      document.getElementById('withdraw-modal').classList.remove('hidden');
+    }
+    function closeWithdrawModal() {
+      document.getElementById('withdraw-modal').classList.add('hidden');
+    }
+
+    async function submitWithdrawRequest() {
+      const amount = Number(document.getElementById('withdraw-amount-input').value);
+      const name = document.getElementById('withdraw-name-input').value.trim();
+      const account = document.getElementById('withdraw-account-input').value.trim();
+      const btn = document.getElementById('submit-withdraw-btn');
+
+      if (!Number.isFinite(amount) || amount < appState.walletConfig.withdrawMinimum) {
+        showToast(`Minimum withdrawal is ${appState.walletConfig.withdrawMinimum} ETB.`);
+        return;
+      }
+      if (amount > appState.user.balance) {
+        showToast('Insufficient Main Wallet balance.');
+        return;
+      }
+      if (name.length < 2 || account.length < 9) {
+        showToast('Enter valid Telebirr full name and phone number.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      try {
+        const { ok, data } = await apiFetch('/api/wallet/withdraw', {
+          method: 'POST',
+          body: JSON.stringify({ amount, name, account })
+        });
+        if (ok && data.status === 'success') {
+          showToast('Withdrawal request submitted to admin.');
+          closeWithdrawModal();
+          await refreshWalletAll(false);
+        } else {
+          showToast(data.message || 'Withdrawal failed.');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Withdrawal';
+      }
+    }
+
+    async function redeemPromoCode() {
+      const input = document.getElementById('promo-code-input');
+      const code = input.value.trim().toUpperCase();
+      if (!code) {
+        showToast('እባክዎ ፕሮሞ ኮድ ያስገቡ');
+        return;
+      }
+      const btn = document.getElementById('promo-redeem-btn');
+      btn.disabled = true;
+      try {
+        const { ok, data } = await apiFetch('/api/promo/redeem', {
+          method: 'POST',
+          body: JSON.stringify({ code })
+        });
+        if (ok && data.status === 'success') {
+          input.value = '';
+          showToast(`+${data.bonusAdded} ETB ቦነስ ተጨምሯል!`);
+          await refreshWalletAll(false);
+        } else {
+          showToast(data.message || 'Invalid promo code');
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ==================== BOT INTEGRATION ACTIONS ====================
+    async function requestBotRules() {
+      const { ok, data } = await apiFetch('/api/send-rules', { method: 'POST' });
+      if (ok && data.status === 'success') {
+        showToast('የጨዋታ ህጎች ወደ ቴሌግራም ቦት ተልከዋል!');
+      } else {
+        showToast(data.message || 'Could not send rules.');
+      }
+    }
+
+    async function requestBotSupport() {
+      const { ok, data } = await apiFetch('/api/send-support', { method: 'POST' });
+      if (ok && data.status === 'success') {
+        showToast('Support contact sent to your Telegram chat.');
+      } else {
+        showToast(data.message || 'Could not send support message.');
+      }
+    }
+
+    async function copyReferralLink() {
+      const { ok, data } = await apiFetch('/api/referral-link');
+      if (!ok || !data.url) {
+        showToast('Could not generate referral link.');
+        return;
+      }
+      const ta = document.createElement('textarea');
+      ta.value = data.url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      showToast('Referral link copied to clipboard!');
+    }
+
+    // ==================== UTILITIES ====================
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      el.className = 'bg-[#1e293b]/95 border border-white/15 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl text-center transition-opacity duration-300';
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      }, 2400);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
 </body>
 </html>
