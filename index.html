@@ -3,25 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Beteseb Bingo</title>
+  <title>BETSEBE Bingo</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-top: #3b196e;
-      --bg-mid: #1a1240;
-      --bg-bot: #0b1128;
-      --panel-bg: rgba(24, 29, 54, 0.88);
-      --border-subtle: rgba(255, 255, 255, 0.14);
+      --bg-0: #0e1621;
+      --bg-1: #17212b;
+      --bg-2: #1f2b3a;
+      --accent: #00b894;
+      --accent-2: #00cec9;
       --gold: #f5b935;
-      --gold-dark: #c88a12;
-      --orange-1: #ff7b1c;
-      --orange-2: #e64212;
-      --green-1: #16b878;
-      --green-2: #0a8c5a;
-      --blue-1: #4a7dff;
-      --blue-2: #364fc7;
-      --text-main: #ffffff;
-      --text-muted: #b6bfd9;
+      --danger: #e74c3c;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --line: rgba(255, 255, 255, 0.12);
     }
 
     * {
@@ -34,352 +29,334 @@
 
     html, body {
       min-height: 100%;
+      background: var(--bg-0);
+      color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Ethiopic", sans-serif;
-      color: var(--text-main);
-      background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 36%, var(--bg-bot) 100%);
-      background-attachment: fixed;
       overflow-x: hidden;
     }
 
-    .app-shell {
+    .app {
       max-width: 480px;
       min-height: 100vh;
       margin: 0 auto;
-      padding: 12px 12px 86px;
+      padding-bottom: 76px;
+    }
+
+    /* Global Header */
+    .global-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(23, 33, 43, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-
-    .screen {
-      display: none;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .screen.active {
-      display: flex;
-    }
-
-    .glass-box {
-      background: var(--panel-bg);
-      border: 1px solid var(--border-subtle);
-      border-radius: 14px;
-      padding: 14px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
-    }
-
-    .gold-frame {
-      background: linear-gradient(180deg, rgba(46, 36, 78, 0.92), rgba(24, 28, 54, 0.95));
-      border: 1.5px solid rgba(245, 185, 53, 0.55);
-      border-radius: 16px;
-      padding: 16px 14px;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
-    }
-
-    .btn {
-      border: none;
-      border-radius: 12px;
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
       gap: 8px;
-      transition: transform 0.12s ease, filter 0.15s ease, opacity 0.15s ease;
-      font-family: inherit;
     }
 
-    .btn:active:not(:disabled) {
-      transform: scale(0.98);
-    }
-
-    .btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-
-    .btn-ghost {
-      background: rgba(45, 50, 84, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      padding: 8px 14px;
-      font-size: 13px;
-      border-radius: 10px;
-    }
-
-    .btn-green {
-      background: linear-gradient(90deg, var(--green-1), var(--green-2));
-      padding: 15px 18px;
-      font-size: 17px;
-      width: 100%;
-      box-shadow: 0 6px 18px rgba(16, 168, 112, 0.35);
-    }
-
-    .btn-blue {
-      background: linear-gradient(90deg, var(--blue-1), var(--blue-2));
-      padding: 15px 18px;
-      font-size: 17px;
-      width: 100%;
-      box-shadow: 0 6px 18px rgba(74, 125, 255, 0.35);
-    }
-
-    .btn-orange {
-      background: linear-gradient(90deg, var(--orange-1), var(--orange-2));
-      padding: 13px 14px;
-      font-size: 15px;
-      box-shadow: 0 6px 16px rgba(255, 102, 20, 0.32);
-    }
-
-    .btn-gold-muted {
-      background: linear-gradient(90deg, rgba(168, 128, 36, 0.72), rgba(132, 98, 24, 0.72));
-      color: rgba(255, 255, 255, 0.85);
-      padding: 13px 14px;
-      font-size: 15px;
-    }
-
-    .lobby-brand-row {
+    .header-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 2px 2px 4px;
-    }
-
-    .lobby-brand-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-circle {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #ffffff;
-      color: #2b1454;
-      font-weight: 900;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    }
-
-    .brand-title {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-    }
-
-    .rules-pill {
-      background: rgba(34, 38, 68, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      color: #fff;
-      border-radius: 10px;
-      padding: 7px 13px;
-      font-size: 13px;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-    }
-
-    .welcome-banner {
-      text-align: center;
-      padding: 6px 4px 2px;
-    }
-
-    .welcome-banner h1 {
-      font-size: 27px;
-      line-height: 1.25;
-      font-weight: 800;
-    }
-
-    .welcome-banner h1 span {
-      color: var(--gold);
-    }
-
-    .stake-heading {
-      text-align: center;
-      font-size: 17px;
-      font-weight: 700;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       gap: 8px;
     }
 
-    .stake-heading .arrow {
-      color: var(--gold);
-      font-size: 15px;
-    }
-
-    .stake-stack {
+    .user-meta {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      min-width: 0;
     }
 
-    .stats-card {
-      background: rgba(32, 37, 68, 0.86);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 16px;
-      padding: 22px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      text-align: center;
-    }
-
-    .stat-num {
-      font-size: 28px;
-      font-weight: 800;
-      line-height: 1.15;
-    }
-
-    .stat-label {
+    .user-name {
       font-size: 14px;
-      color: var(--text-muted);
-      margin-top: 3px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .sel-top-bar {
+    .user-phone {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .header-actions {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .sel-meta-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
       gap: 6px;
     }
 
-    .meta-chip {
-      background: rgba(33, 39, 72, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.13);
+    .icon-btn {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      color: var(--text);
       border-radius: 10px;
-      padding: 8px 6px;
+      height: 34px;
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .wallet-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .bal-pill {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .bal-pill .lbl {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .bal-pill .val {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent-2);
+    }
+
+    .bal-pill.main .val {
+      color: var(--gold);
+    }
+
+    /* Pages */
+    .page {
+      display: none;
+      padding: 12px;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .page.active {
+      display: flex;
+    }
+
+    .card {
+      background: var(--bg-1);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    /* Home Stats & Timer */
+    .round-banner {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
       text-align: center;
     }
 
-    .meta-chip .k {
+    .stat-box {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 6px;
+    }
+
+    .stat-box .k {
       font-size: 11px;
-      color: var(--text-muted);
+      color: var(--muted);
       display: block;
     }
 
-    .meta-chip .v {
-      font-size: 15px;
+    .stat-box .v {
+      font-size: 16px;
       font-weight: 800;
       margin-top: 2px;
       display: block;
     }
 
-    .meta-chip .v.gold {
-      color: var(--gold);
+    .timer-wrap {
+      margin-top: 10px;
     }
 
-    .cartela-toolbar {
+    .timer-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: var(--muted);
+    }
+
+    .timer-track {
+      height: 8px;
+      background: var(--bg-2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--gold));
+      transition: width 0.2s linear;
+    }
+
+    .status-note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--accent-2);
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Cartel Grid */
+    .grid-legend {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
       font-size: 12px;
-      color: var(--text-muted);
+      color: var(--muted);
+      margin-bottom: 8px;
     }
 
-    .legend-dot {
+    .dot {
       display: inline-block;
       width: 10px;
       height: 10px;
       border-radius: 3px;
       margin-right: 4px;
-      vertical-align: middle;
     }
 
-    .cartela-grid {
+    .cartel-grid {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
-      gap: 6px;
-      max-height: 330px;
+      gap: 5px;
+      max-height: 310px;
       overflow-y: auto;
-      padding: 4px 2px;
+      padding-right: 2px;
     }
 
-    .c-btn {
-      height: 36px;
+    .c-tile {
+      height: 35px;
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(45, 53, 92, 0.85);
-      color: #ffffff;
-      font-weight: 700;
+      border: 1px solid var(--line);
+      background: var(--bg-2);
+      color: var(--text);
       font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.1s ease, background 0.15s ease;
     }
 
-    .c-btn:active:not(:disabled) {
-      transform: scale(0.94);
+    .c-tile.mine {
+      background: var(--accent);
+      color: #06211a;
+      border-color: #6ee7b7;
     }
 
-    .c-btn.taken {
-      background: linear-gradient(180deg, #e04826, #a8240c);
-      border-color: rgba(255, 140, 110, 0.45);
-      color: rgba(255, 255, 255, 0.72);
+    .c-tile.taken {
+      background: rgba(231, 76, 60, 0.28);
+      color: #fca5a5;
+      border-color: rgba(231, 76, 60, 0.5);
       cursor: not-allowed;
     }
 
-    .c-btn.mine {
-      background: linear-gradient(180deg, #22c55e, #15803d);
-      border-color: #86efac;
-      color: #ffffff;
-      box-shadow: 0 0 10px rgba(34, 197, 94, 0.45);
-    }
-
-    .c-btn.previewing {
-      outline: 2px solid var(--gold);
-    }
-
-    .preview-card-box {
-      background: rgba(24, 29, 56, 0.92);
-      border: 1px solid rgba(245, 185, 53, 0.35);
-      border-radius: 12px;
-      padding: 10px;
-    }
-
-    .preview-head {
+    /* Ticket Page */
+    .ticket-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 13px;
-      font-weight: 700;
+      gap: 8px;
     }
 
-    .bingo-5x5-letters {
+    @keyframes pulseBall {
+      0% { transform: scale(0.75); opacity: 0.4; }
+      70% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .ball-badge {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffe07d, #eab308 70%, #b45309);
+      color: #111827;
+      font-weight: 900;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      animation: pulseBall 0.35s ease;
+    }
+
+    .master-panel {
+      display: none;
+      margin-top: 10px;
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px;
+    }
+
+    .master-panel.open {
+      display: block;
+    }
+
+    .master-grid {
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      gap: 3px;
+    }
+
+    .m-cell {
+      aspect-ratio: 1 / 1;
+      border-radius: 4px;
+      background: var(--bg-1);
+      border: 1px solid var(--line);
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .m-cell.hit {
+      background: var(--accent);
+      color: #052019;
+      border-color: #6ee7b7;
+    }
+
+    .ticket-card {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .ticket-card.bingo-ready {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px rgba(245, 185, 53, 0.5);
+    }
+
+    .bingo-cols {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 4px;
-      margin-bottom: 4px;
       text-align: center;
       font-weight: 900;
-      font-size: 13px;
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: var(--gold);
     }
-
-    .l-b { color: #38bdf8; }
-    .l-i { color: #f472b6; }
-    .l-n { color: #c084fc; }
-    .l-g { color: #4ade80; }
-    .l-o { color: #fb923c; }
 
     .bingo-5x5 {
       display: grid;
@@ -387,592 +364,182 @@
       gap: 4px;
     }
 
-    .b-cell {
+    .cell-5x5 {
       aspect-ratio: 1 / 1;
-      border-radius: 6px;
-      background: rgba(45, 53, 92, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .b-cell.free {
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-      color: #1a1240;
-      font-size: 10px;
-      font-weight: 900;
-    }
-
-    .b-cell.called {
-      background: linear-gradient(135deg, #22c55e, #15803d);
-      border-color: #86efac;
-      color: #fff;
-    }
-
-    .sel-actions-row {
-      display: grid;
-      grid-template-columns: 1fr 1.35fr;
-      gap: 10px;
-    }
-
-    .live-top-strip {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 5px;
-    }
-
-    .live-stat {
-      border-radius: 9px;
-      padding: 6px 4px;
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(34, 39, 74, 0.9);
-    }
-
-    .live-stat.game-id-box {
-      background: linear-gradient(180deg, #8b3dff, #5c1ec7);
-    }
-
-    .live-stat .lk {
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.82);
-      display: block;
-    }
-
-    .live-stat .lv {
-      font-size: 12px;
-      font-weight: 800;
-      margin-top: 2px;
-      display: block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .live-main-grid {
-      display: grid;
-      grid-template-columns: 1.08fr 1fr;
-      gap: 8px;
-      align-items: start;
-    }
-
-    .master-board {
-      background: rgba(28, 33, 62, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 12px;
-      padding: 6px;
-    }
-
-    .master-header-row {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 4px;
-      margin-bottom: 5px;
-    }
-
-    .m-head {
-      height: 24px;
-      border-radius: 6px;
-      font-weight: 900;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-    }
-
-    .m-head.b { background: #2563eb; }
-    .m-head.i { background: #db2777; }
-    .m-head.n { background: #9333ea; }
-    .m-head.g { background: #16a34a; }
-    .m-head.o { background: #ea580c; }
-
-    .master-cols {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 4px;
-    }
-
-    .m-col {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .m-num {
-      height: 23px;
-      border-radius: 5px;
-      background: rgba(54, 62, 104, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 11px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .m-num.called-b { background: #2563eb; border-color: #93c5fd; }
-    .m-num.called-i { background: #db2777; border-color: #f9a8d4; }
-    .m-num.called-n { background: #9333ea; border-color: #d8b4fe; }
-    .m-num.called-g { background: #16a34a; border-color: #86efac; }
-    .m-num.called-o { background: #ea580c; border-color: #fdba74; }
-
-    .live-right-col {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .recent-calls-bar {
-      background: rgba(28, 33, 62, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 10px;
-      padding: 6px 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      min-height: 36px;
-    }
-
-    .recent-pills {
-      display: flex;
-      gap: 5px;
-      overflow-x: auto;
-      flex: 1;
-    }
-
-    .r-pill {
-      padding: 3px 8px;
       border-radius: 7px;
-      font-size: 11px;
-      font-weight: 800;
-      white-space: nowrap;
-      background: rgba(88, 60, 168, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-    }
-
-    .sound-toggle-btn {
-      background: rgba(48, 55, 94, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      color: #fff;
-      border-radius: 8px;
-      width: 30px;
-      height: 26px;
+      background: var(--bg-1);
+      border: 1px solid var(--line);
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
+      font-weight: 700;
       font-size: 13px;
-      flex-shrink: 0;
     }
 
-    .ball-spotlight {
-      background: linear-gradient(145deg, #4b476e, #24213b);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 12px;
-      height: 112px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .ball-disc {
-      width: 78px;
-      height: 78px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 32% 28%, #ffe07d, #eab308 68%, #b45309 100%);
-      color: #1c1917;
+    .cell-5x5.free {
+      background: rgba(245, 185, 53, 0.22);
+      color: var(--gold);
+      font-size: 10px;
       font-weight: 900;
-      font-size: 21px;
-      display: flex;
+    }
+
+    .cell-5x5.marked {
+      background: var(--accent);
+      color: #042018;
+      border-color: #6ee7b7;
+    }
+
+    /* Buttons & Inputs */
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      color: #fff;
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45), inset 0 2px 5px rgba(255, 255, 255, 0.6);
-      position: relative;
+      gap: 6px;
     }
 
-    .ball-disc::after {
-      content: "";
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #f5b935;
-      box-shadow: 0 0 8px rgba(245, 185, 53, 0.85);
+    .btn-primary {
+      background: var(--accent);
+      color: #052019;
+      border: none;
     }
 
-    .auto-switch-card {
-      background: rgba(28, 33, 62, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+    .btn-gold {
+      background: var(--gold);
+      color: #111827;
+      border: none;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .input {
+      width: 100%;
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--bg-2);
+      color: var(--muted);
+      border: 1px solid var(--line);
+      cursor: pointer;
+    }
+
+    .chip.active {
+      background: var(--accent);
+      color: #052019;
+      border-color: transparent;
+    }
+
+    .tx-item {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    /* Leaderboard */
+    .podium {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .pod-card {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 6px;
+    }
+
+    .pod-card.first {
+      border-color: var(--gold);
+    }
+
+    .rank-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-2);
+      border: 1px solid var(--line);
       border-radius: 10px;
       padding: 9px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      margin-bottom: 6px;
       font-size: 13px;
-      font-weight: 700;
     }
 
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      inset: 0;
-      background-color: #475569;
-      transition: 0.2s;
-      border-radius: 999px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.2s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: #16a34a;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-
-    .status-panel {
-      background: rgba(28, 33, 62, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 12px;
-      padding: 12px 10px;
-      min-height: 215px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: 8px;
-    }
-
-    .watch-title {
-      font-size: 18px;
-      font-weight: 800;
-      color: #ffffff;
-    }
-
-    .watch-amharic {
-      font-size: 13px;
-      line-height: 1.55;
-      color: #cbd5e1;
-    }
-
-    .my-mini-card {
-      width: 100%;
-      background: rgba(18, 22, 44, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 9px;
-      padding: 6px;
-    }
-
-    .my-mini-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      color: var(--gold);
-    }
-
-    .live-bottom-bar {
-      display: grid;
-      grid-template-columns: 1fr 1.15fr 1.25fr;
-      gap: 8px;
-      margin-top: 2px;
-    }
-
-    .banner-box {
-      background: rgba(34, 40, 74, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-
-    .banner-label {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .banner-val {
-      font-size: 24px;
-      font-weight: 800;
-      margin-top: 2px;
-    }
-
-    .history-item {
-      background: rgba(34, 40, 74, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 14px;
-      padding: 13px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .history-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .badge-lost {
-      background: rgba(190, 42, 62, 0.35);
-      border: 1px solid rgba(248, 113, 113, 0.45);
-      color: #fca5a5;
-      padding: 3px 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .badge-win {
-      background: rgba(22, 163, 74, 0.35);
-      border: 1px solid rgba(74, 222, 128, 0.5);
-      color: #86efac;
-      padding: 3px 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .badge-pending {
-      background: rgba(245, 158, 11, 0.25);
-      border: 1px solid rgba(251, 191, 36, 0.5);
-      color: #fde68a;
-      padding: 3px 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .history-metrics {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      font-size: 12px;
-    }
-
-    .history-metrics span {
-      display: block;
-      color: var(--text-muted);
-      font-size: 11px;
-    }
-
-    .history-metrics strong {
-      font-size: 14px;
-      margin-top: 2px;
-      display: block;
-    }
-
-    .wallet-hero {
-      background: linear-gradient(155deg, rgba(110, 42, 178, 0.72), rgba(28, 34, 66, 0.94));
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .phone-verified-row {
-      background: rgba(22, 27, 52, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 12px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-weight: 700;
-    }
-
-    .verified-pill {
-      background: rgba(22, 163, 74, 0.28);
-      border: 1px solid rgba(74, 222, 128, 0.45);
-      color: #86efac;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-    }
-
-    .seg-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .seg-btn {
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(34, 40, 74, 0.75);
-      color: var(--text-muted);
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .seg-btn.active {
-      background: rgba(88, 98, 138, 0.78);
-      color: #ffffff;
-      border-color: rgba(255, 255, 255, 0.28);
-    }
-
-    .wallet-bal-row {
-      background: rgba(26, 31, 58, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 12px;
-      padding: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    .form-input {
-      width: 100%;
-      background: rgba(18, 22, 44, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 10px;
-      padding: 11px 12px;
-      color: #fff;
-      font-size: 14px;
-      font-family: inherit;
-      margin-bottom: 10px;
-    }
-
-    .profile-hero {
-      background: linear-gradient(180deg, rgba(108, 40, 176, 0.75), rgba(24, 29, 56, 0.95));
-      border-radius: 16px;
-      padding: 22px 14px 18px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-    }
-
-    .avatar-circle {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: rgba(58, 68, 94, 0.95);
-      border: 2px solid rgba(255, 255, 255, 0.22);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      font-weight: 800;
-    }
-
-    .profile-grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .p-stat-card {
-      background: rgba(28, 34, 62, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 14px;
-      padding: 14px;
-    }
-
-    .p-stat-card .pt {
-      font-size: 13px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .p-stat-card .pv {
-      font-size: 22px;
-      font-weight: 800;
-      margin-top: 8px;
-    }
-
-    .bottom-nav {
+    /* Popup & Modals */
+    .popup-panel {
       position: fixed;
-      bottom: 0;
       left: 50%;
+      bottom: 68px;
       transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      background: rgba(16, 22, 42, 0.96);
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      padding: 7px 4px 9px;
-      z-index: 40;
-      backdrop-filter: blur(12px);
-    }
-
-    .nav-item {
-      background: none;
-      border: none;
-      color: #8c96b5;
-      display: flex;
-      flex-direction: column;
+      width: calc(100% - 24px);
+      max-width: 456px;
+      background: var(--bg-1);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: none;
       align-items: center;
-      gap: 3px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
+      justify-content: space-between;
+      gap: 8px;
+      z-index: 35;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     }
 
-    .nav-item.active {
-      color: #7da2ff;
+    .popup-panel.open {
+      display: flex;
     }
 
-    .nav-item svg {
-      width: 20px;
-      height: 20px;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
+    @keyframes modalIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
 
-    .modal-backdrop {
+    .modal-bg {
       position: fixed;
       inset: 0;
-      background: rgba(5, 8, 20, 0.78);
+      background: rgba(0, 0, 0, 0.75);
       display: none;
       align-items: center;
       justify-content: center;
@@ -980,37 +547,70 @@
       z-index: 60;
     }
 
-    .modal-backdrop.open {
+    .modal-bg.open {
       display: flex;
     }
 
-    .modal-card {
+    .modal-box {
       width: 100%;
-      max-width: 420px;
-      background: #1b2244;
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      max-width: 400px;
+      background: var(--bg-1);
+      border: 1px solid var(--line);
       border-radius: 16px;
       padding: 16px;
-      max-height: 82vh;
-      overflow-y: auto;
+      animation: modalIn 0.2s ease;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 58px;
+      background: rgba(23, 33, 43, 0.98);
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      z-index: 40;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .nav-btn.active {
+      color: var(--accent-2);
     }
 
     .toast {
       position: fixed;
-      top: 16px;
+      top: 14px;
       left: 50%;
-      transform: translateX(-50%) translateY(-20px);
-      background: rgba(20, 26, 52, 0.96);
-      border: 1px solid rgba(245, 185, 53, 0.55);
-      color: #fff;
-      padding: 10px 16px;
-      border-radius: 12px;
-      font-size: 13px;
+      transform: translateX(-50%) translateY(-16px);
+      background: var(--bg-2);
+      border: 1px solid var(--accent);
+      color: var(--text);
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 12px;
       font-weight: 700;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      z-index: 80;
+      transition: 0.2s ease;
+      z-index: 90;
       max-width: 92%;
       text-align: center;
     }
@@ -1024,369 +624,251 @@
 <body>
   <div id="toast" class="toast"></div>
 
-  <div class="app-shell">
-    <!-- 1. LOBBY SCREEN -->
-    <section id="screen-lobby" class="screen active">
-      <div class="lobby-brand-row">
-        <div class="lobby-brand-left">
-          <div class="brand-circle">B</div>
-          <div class="brand-title">Beteseb Bingo</div>
+  <div class="app">
+    <!-- Global Header -->
+    <header class="global-header">
+      <div class="header-top">
+        <div class="user-meta">
+          <div class="user-name" id="hdr-name">Player</div>
+          <div class="user-phone" id="hdr-phone">---</div>
         </div>
-        <button class="rules-pill" onclick="openRules()">&#9432; Rules</button>
-      </div>
-
-      <div class="welcome-banner">
-        <h1>Welcome to <span>Beteseb Bingo</span></h1>
-      </div>
-
-      <div class="gold-frame">
-        <div class="stake-heading">
-          <span class="arrow">&#9655;</span>
-          <span>Choose Your Stake</span>
-        </div>
-        <div class="stake-stack">
-          <button class="btn btn-green" onclick="enterSelection(10)">&#9655; Play 10</button>
-          <button class="btn btn-blue" onclick="enterSelection(20)">&#9655; Play 20</button>
+        <div class="header-actions">
+          <button class="icon-btn" id="sound-btn" onclick="toggleSound()">🔊</button>
+          <button class="icon-btn" onclick="refreshUserData()">↻</button>
         </div>
       </div>
-
-      <div class="stats-card">
-        <div>
-          <div class="stat-num">45,000+</div>
-          <div class="stat-label">Active Players</div>
+      <div class="wallet-strip">
+        <div class="bal-pill main">
+          <span class="lbl">Main Wallet</span>
+          <span class="val" id="hdr-main">0</span>
         </div>
-        <div>
-          <div class="stat-num">60,000+</div>
-          <div class="stat-label">Games Played</div>
-        </div>
-        <div>
-          <div class="stat-num">500+</div>
-          <div class="stat-label">Winners Daily</div>
+        <div class="bal-pill">
+          <span class="lbl">Play Wallet</span>
+          <span class="val" id="hdr-play">0</span>
         </div>
       </div>
-    </section>
+    </header>
 
-    <!-- 2. CARTELA SELECTION SCREEN -->
-    <section id="screen-selection" class="screen">
-      <div class="sel-top-bar">
-        <button class="btn btn-ghost" onclick="goScreen('lobby')">&larr; Back</button>
-        <button class="btn btn-ghost" onclick="syncAll(true)">&#8635; Refresh</button>
+    <!-- 1. HOME PAGE -->
+    <section id="page-home" class="page active">
+      <div class="card">
+        <div class="round-banner">
+          <div class="stat-box">
+            <span class="k">Countdown</span>
+            <span class="v" id="home-timer">00:30</span>
+          </div>
+          <div class="stat-box">
+            <span class="k">Derash / Jackpot</span>
+            <span class="v" style="color:var(--gold);" id="home-pool">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="k">Players</span>
+            <span class="v" id="home-players">0</span>
+          </div>
+        </div>
+
+        <div class="timer-wrap">
+          <div class="timer-head">
+            <span id="home-phase-lbl">Selection</span>
+            <span id="home-selected-lbl">Selected: 0/4</span>
+          </div>
+          <div class="timer-track">
+            <div class="timer-fill" id="timer-bar"></div>
+          </div>
+        </div>
+        <div class="status-note" id="home-status-note">እስከ 4 ካርቴሎች ይምረጡ (10 ብር እያንዳንዱ)</div>
       </div>
 
-      <div class="sel-meta-strip">
-        <div class="meta-chip">
-          <span class="k">Main Wallet</span>
-          <span class="v" id="sel-main-bal">0</span>
-        </div>
-        <div class="meta-chip">
-          <span class="k">Play Wallet</span>
-          <span class="v" id="sel-play-bal">0</span>
-        </div>
-        <div class="meta-chip">
-          <span class="k">Stake</span>
-          <span class="v" id="sel-stake-val">10</span>
-        </div>
-        <div class="meta-chip">
-          <span class="k" id="sel-phase-label">Timer</span>
-          <span class="v gold" id="sel-timer-val">-- s</span>
-        </div>
-      </div>
-
-      <div class="glass-box">
-        <div class="cartela-toolbar">
+      <div class="card">
+        <div class="grid-legend">
           <div>
-            <span class="legend-dot" style="background:#22c55e;"></span>Mine (<span id="my-cartel-count">0</span>/4)
-            <span class="legend-dot" style="background:#d9381e; margin-left:8px;"></span>Taken
+            <span class="dot" style="background:var(--accent);"></span>Mine
+            <span class="dot" style="background:var(--danger); margin-left:8px;"></span>Taken
           </div>
-          <div style="color:var(--gold); font-weight:700;">Derash: <span id="sel-derash-val">0</span> ETB</div>
+          <span>1–500 Cartels</span>
         </div>
-
-        <div id="cartela-grid" class="cartela-grid" style="margin-top:8px;"></div>
-      </div>
-
-      <div id="cartela-preview-box" class="preview-card-box">
-        <div class="preview-head">
-          <span id="preview-title">Cartela #1 Preview</span>
-          <span style="font-size:11px; color:var(--text-muted);" id="preview-hint">Tap a number to pick</span>
-        </div>
-        <div class="bingo-5x5-letters">
-          <div class="l-b">B</div>
-          <div class="l-i">I</div>
-          <div class="l-n">N</div>
-          <div class="l-g">G</div>
-          <div class="l-o">O</div>
-        </div>
-        <div id="preview-5x5" class="bingo-5x5"></div>
-      </div>
-
-      <div class="sel-actions-row">
-        <button class="btn btn-ghost" style="padding:13px;" onclick="watchOnlyRoom()">Watching Only</button>
-        <button id="btn-join-live" class="btn btn-green" style="padding:13px;" onclick="joinLiveRoom()">Join Live Room</button>
+        <div id="cartel-grid" class="cartel-grid"></div>
       </div>
     </section>
 
-    <!-- 3. LIVE GAME ROOM SCREEN -->
-    <section id="screen-live" class="screen">
-      <div class="live-top-strip">
-        <div class="live-stat game-id-box">
-          <span class="lk">Game ID</span>
-          <span class="lv" id="live-game-id">---</span>
+    <!-- 2. TICKET PAGE -->
+    <section id="page-ticket" class="page">
+      <div class="card">
+        <div class="ticket-top">
+          <div>
+            <div style="font-size:12px; color:var(--muted);">Current Ball</div>
+            <div style="font-size:13px; font-weight:700;" id="ticket-drawn-count">Called: 0/75</div>
+          </div>
+          <div class="ball-badge" id="ticket-ball-text">--</div>
+          <button class="btn" onclick="toggleMasterBoard()">Master Board</button>
         </div>
-        <div class="live-stat">
-          <span class="lk">Players</span>
-          <span class="lv" id="live-players">0</span>
-        </div>
-        <div class="live-stat">
-          <span class="lk">Bet</span>
-          <span class="lv" id="live-bet">10</span>
-        </div>
-        <div class="live-stat">
-          <span class="lk">Derash</span>
-          <span class="lv" id="live-derash">0</span>
-        </div>
-        <div class="live-stat">
-          <span class="lk">Called</span>
-          <span class="lv" id="live-called">0</span>
+
+        <div id="master-panel" class="master-panel">
+          <div id="master-board-grid" class="master-grid"></div>
         </div>
       </div>
 
-      <div class="live-main-grid">
-        <div class="master-board">
-          <div class="master-header-row">
-            <div class="m-head b">B</div>
-            <div class="m-head i">I</div>
-            <div class="m-head n">N</div>
-            <div class="m-head g">G</div>
-            <div class="m-head o">O</div>
+      <div id="ticket-matrices-container"></div>
+    </section>
+
+    <!-- 3. WALLET PAGE -->
+    <section id="page-wallet" class="page">
+      <div class="card">
+        <div style="font-size:15px; font-weight:800; margin-bottom:10px;">Wallet & Promo</div>
+        <div class="row-2" style="margin-bottom:10px;">
+          <div class="stat-box">
+            <span class="k">Main Balance</span>
+            <span class="v" style="color:var(--gold);" id="wal-main">0</span>
           </div>
-          <div id="master-cols" class="master-cols"></div>
+          <div class="stat-box">
+            <span class="k">Play / Bonus</span>
+            <span class="v" style="color:var(--accent-2);" id="wal-play">0</span>
+          </div>
         </div>
-
-        <div class="live-right-col">
-          <div class="recent-calls-bar">
-            <div id="recent-calls" class="recent-pills"></div>
-            <button id="live-sound-btn" class="sound-toggle-btn" onclick="toggleSound()">&#128266;</button>
-          </div>
-
-          <div class="ball-spotlight">
-            <div id="current-ball-disc" class="ball-disc">--</div>
-          </div>
-
-          <div class="auto-switch-card">
-            <span>Automatic</span>
-            <label class="switch">
-              <input id="auto-mark-toggle" type="checkbox" checked onchange="onAutoMarkChange()" />
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <div id="live-status-panel" class="status-panel">
-            <div class="watch-title">Watching Only</div>
-            <div class="watch-amharic">
-              የአሁኑ ዙር ጨዋታ ተጀምሯል። አዲስ ዙር እስኪጀምር እዚሁ ይጠብቁ።
-            </div>
-          </div>
+        <div class="row-2" style="margin-bottom:12px;">
+          <button class="btn btn-primary" onclick="triggerDeposit()">+ Deposit</button>
+          <button class="btn" onclick="triggerWithdraw()">- Withdraw</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input id="promo-code-input" class="input" style="margin-bottom:0;" type="text" placeholder="Promo / Coupon Code" />
+          <button class="btn btn-gold" onclick="redeemPromoCode()">Redeem</button>
         </div>
       </div>
 
-      <div class="live-bottom-bar">
-        <button class="btn btn-orange" onclick="leaveLiveRoom()">Leave</button>
-        <button class="btn btn-ghost" style="background:rgba(166, 68, 52, 0.65); padding:13px;" onclick="syncAll(true)">&#8635; Refresh</button>
-        <button id="live-auto-btn" class="btn btn-gold-muted" onclick="toggleAutoFromBottom()">Automatic</button>
+      <div class="card">
+        <div style="font-size:14px; font-weight:800; margin-bottom:8px;">Transaction History</div>
+        <div class="filter-row">
+          <button class="chip active" data-f="all" onclick="setHistoryFilter('all')">All</button>
+          <button class="chip" data-f="deposit" onclick="setHistoryFilter('deposit')">Deposit</button>
+          <button class="chip" data-f="withdraw" onclick="setHistoryFilter('withdraw')">Withdraw</button>
+          <button class="chip" data-f="bonus" onclick="setHistoryFilter('bonus')">Bonus/Win</button>
+        </div>
+        <div id="transaction-history-list"></div>
       </div>
     </section>
 
-    <!-- 4. HISTORY SCREEN -->
-    <section id="screen-history" class="screen">
-      <h2 style="font-size:22px; font-weight:800;">Game History</h2>
-      <div class="banner-box">
-        <div class="banner-label">Total Games</div>
-        <div class="banner-val" id="history-total-games">0</div>
+    <!-- SUBPAGE: DEPOSIT -->
+    <section id="page-deposit" class="page">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="font-size:16px; font-weight:800;">Telebirr Deposit</h3>
+          <button class="btn" onclick="switchPage('wallet')">← Back</button>
+        </div>
+        <div id="deposit-config-box" style="font-size:12px; color:var(--muted); white-space:pre-line; background:var(--bg-2); padding:10px; border-radius:10px; margin-bottom:10px;"></div>
+        <input id="dep-amount" class="input" type="number" placeholder="Amount (ETB)" />
+        <input id="dep-ref" class="input" type="text" placeholder="Transaction Reference (e.g. FT...)" />
+        <input id="dep-image" class="input" type="file" accept="image/*" />
+        <button class="btn btn-primary btn-block" onclick="submitDeposit()">Submit Deposit</button>
       </div>
-
-      <div style="font-size:17px; font-weight:800; margin-bottom:8px;">Recent Games</div>
-      <div id="history-list"></div>
     </section>
 
-    <!-- 5. WALLET SCREEN -->
-    <section id="screen-wallet" class="screen">
-      <div class="wallet-hero">
-        <div style="display:flex; align-items:center; justify-content:space-between;">
-          <h2 style="font-size:22px; font-weight:800;">Wallet</h2>
-          <button class="btn btn-ghost" style="padding:6px 10px;" onclick="syncAll(true)">&#8635;</button>
+    <!-- SUBPAGE: WITHDRAW -->
+    <section id="page-withdraw" class="page">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="font-size:16px; font-weight:800;">Telebirr Withdraw</h3>
+          <button class="btn" onclick="switchPage('wallet')">← Back</button>
         </div>
-
-        <div class="phone-verified-row">
-          <span>&#9786; <span id="wallet-phone">--</span></span>
-          <span class="verified-pill">&#10003; Verified</span>
-        </div>
-
-        <div class="seg-tabs">
-          <button id="seg-balance-btn" class="seg-btn active" onclick="switchWalletSubtab('balance')">Balance</button>
-          <button id="seg-history-btn" class="seg-btn" onclick="switchWalletSubtab('history')">History</button>
-        </div>
+        <div id="withdraw-config-box" style="font-size:12px; color:var(--muted); margin-bottom:10px;"></div>
+        <input id="wd-name" class="input" type="text" placeholder="Full Name" />
+        <input id="wd-phone" class="input" type="text" placeholder="Telebirr Phone (09...)" />
+        <input id="wd-amount" class="input" type="number" placeholder="Amount (ETB)" />
+        <button class="btn btn-gold btn-block" onclick="submitWithdrawal()">Request Withdraw</button>
       </div>
+    </section>
 
-      <div id="wallet-balance-view">
-        <div class="wallet-bal-row">
-          <span style="color:var(--text-muted); font-weight:600;">Main Wallet</span>
-          <span style="font-size:20px; font-weight:800;" id="wallet-main-bal">0</span>
-        </div>
-        <div class="wallet-bal-row">
-          <span style="color:var(--text-muted); font-weight:600;">&#128176; Play Wallet</span>
-          <span style="font-size:20px; font-weight:800; color:#4ade80;" id="wallet-play-bal">0.0</span>
-        </div>
+    <!-- 4. RANK PAGE -->
+    <section id="page-rank" class="page">
+      <div class="card">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:10px;">Weekly Top 10 Winners</h3>
+        <div id="rank-podium" class="podium"></div>
+        <div id="rank-list"></div>
+      </div>
+    </section>
 
-        <div class="glass-box" style="margin-bottom:10px;">
-          <div style="font-size:15px; font-weight:800; margin-bottom:6px; color:var(--gold);">Deposit (Telebirr)</div>
-          <div id="deposit-instructions-box" style="font-size:12px; color:#cbd5e1; white-space:pre-line; background:rgba(15,20,40,0.75); padding:10px; border-radius:10px; margin-bottom:10px;"></div>
-          <input id="dep-amount" class="form-input" type="number" placeholder="Amount (ETB)" />
-          <input id="dep-ref" class="form-input" type="text" placeholder="Transaction Reference / FT Code" />
-          <input id="dep-file" class="form-input" type="file" accept="image/jpeg,image/png,image/webp" style="padding:8px;" />
-          <button class="btn btn-green" style="padding:12px; font-size:14px;" onclick="submitDeposit()">Submit Deposit</button>
-        </div>
+    <!-- 5. PROFILE PAGE -->
+    <section id="page-profile" class="page">
+      <div class="card">
+        <div style="font-size:17px; font-weight:800;" id="prof-name">Player</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:12px;" id="prof-id">ID: ---</div>
 
-        <div class="glass-box" style="margin-bottom:10px;">
-          <div style="font-size:15px; font-weight:800; margin-bottom:8px; color:#7da2ff;">Withdraw (Main Wallet)</div>
-          <input id="wd-name" class="form-input" type="text" placeholder="Telebirr Full Name" />
-          <input id="wd-account" class="form-input" type="text" placeholder="Telebirr Phone (09...)" />
-          <input id="wd-amount" class="form-input" type="number" placeholder="Amount (ETB)" />
-          <button class="btn btn-blue" style="padding:12px; font-size:14px;" onclick="submitWithdraw()">Request Withdraw</button>
-        </div>
-
-        <div class="glass-box">
-          <div style="font-size:15px; font-weight:800; margin-bottom:8px; color:var(--gold);">Promo Code</div>
-          <div style="display:flex; gap:8px;">
-            <input id="promo-code-input" class="form-input" style="margin-bottom:0;" type="text" placeholder="Enter Promo Code" />
-            <button class="btn btn-orange" style="padding:0 16px; white-space:nowrap;" onclick="submitPromo()">Redeem</button>
+        <div class="row-2" style="margin-bottom:12px;">
+          <div class="stat-box">
+            <span class="k">Games Played</span>
+            <span class="v" id="prof-played">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="k">Total Winnings</span>
+            <span class="v" style="color:var(--gold);" id="prof-won">0</span>
           </div>
         </div>
-      </div>
 
-      <div id="wallet-history-view" style="display:none;">
-        <div style="font-size:16px; font-weight:800; margin-bottom:10px;">Recent Transactions</div>
-        <div id="wallet-tx-list"></div>
-      </div>
-    </section>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px;">Referral Link</div>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input id="referral-link-input" class="input" style="margin-bottom:0;" type="text" readonly />
+          <button class="btn btn-primary" onclick="copyReferralLink()">Copy</button>
+        </div>
 
-    <!-- 6. PROFILE SCREEN -->
-    <section id="screen-profile" class="screen">
-      <div class="profile-hero">
-        <div class="avatar-circle" id="profile-avatar">N</div>
-        <div style="font-size:20px; font-weight:800;" id="profile-name">Player</div>
-      </div>
-
-      <div class="profile-grid-2">
-        <div class="p-stat-card">
-          <div class="pt" style="color:#60a5fa;">&#128179; Main Wallet</div>
-          <div class="pv" id="profile-main-bal">0</div>
+        <div class="row-2">
+          <button class="btn" onclick="sendBotAction('/api/send-support', 'ድጋፍ መልዕክት ተልኳል')">Support</button>
+          <button class="btn" onclick="sendBotAction('/api/send-rules', 'ህጎች ተልከዋል')">Rules</button>
         </div>
-        <div class="p-stat-card">
-          <div class="pt" style="color:#4ade80;">&#128179; Play Wallet</div>
-          <div class="pv" id="profile-play-bal">0</div>
-        </div>
-        <div class="p-stat-card">
-          <div class="pt" style="color:#c084fc;">&#127942; Games Won</div>
-          <div class="pv" id="profile-games-won">0</div>
-        </div>
-        <div class="p-stat-card">
-          <div class="pt" style="color:#fb923c;">&#128101; Total Invite</div>
-          <div class="pv" id="profile-invites">0</div>
-        </div>
-        <div class="p-stat-card">
-          <div class="pt" style="color:#a855f7;">&#8599; Total Earning</div>
-          <div class="pv" id="profile-earnings">0</div>
-        </div>
-      </div>
-
-      <div style="font-size:17px; font-weight:800; margin-top:4px;">Settings</div>
-      <div class="glass-box" style="display:flex; align-items:center; justify-content:space-between; padding:14px;">
-        <span style="font-weight:700;">&#128266; Sound</span>
-        <label class="switch">
-          <input id="profile-sound-toggle" type="checkbox" checked onchange="toggleSoundFromProfile()" />
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <button class="btn btn-ghost" style="padding:12px;" onclick="shareReferral()">Invite Friends</button>
-        <button class="btn btn-ghost" style="padding:12px;" onclick="requestSupport()">Support</button>
       </div>
     </section>
   </div>
 
-  <!-- BOTTOM NAVIGATION -->
-  <nav class="bottom-nav">
-    <button id="nav-game" class="nav-item active" onclick="goScreen('lobby')">
-      <svg viewBox="0 0 24 24">
-        <rect x="2" y="6" width="20" height="12" rx="4" />
-        <path d="M8 10v4M6 12h4M15 11h.01M18 13h.01" />
-      </svg>
-      <span>Game</span>
-    </button>
-    <button id="nav-history" class="nav-item" onclick="goScreen('history')">
-      <svg viewBox="0 0 24 24">
-        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
-        <path d="M3 3v5h5M12 7v5l4 2" />
-      </svg>
-      <span>History</span>
-    </button>
-    <button id="nav-wallet" class="nav-item" onclick="goScreen('wallet')">
-      <svg viewBox="0 0 24 24">
-        <path d="M20 7H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" />
-        <path d="M16 13h2" />
-      </svg>
-      <span>Wallet</span>
-    </button>
-    <button id="nav-profile" class="nav-item" onclick="goScreen('profile')">
-      <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 20a8 8 0 0 1 16 0" />
-      </svg>
-      <span>Profile</span>
-    </button>
-  </nav>
+  <!-- Cartel Popup Panel -->
+  <div id="cartel-popup-panel" class="popup-panel">
+    <div>
+      <div style="font-size:12px; font-weight:800;" id="popup-summary">0 Cartels Selected</div>
+      <div style="font-size:11px; color:var(--muted);" id="popup-ids">None</div>
+    </div>
+    <button class="btn btn-primary" onclick="switchPage('ticket')">View Tickets</button>
+  </div>
 
-  <!-- RULES MODAL -->
-  <div id="rules-modal" class="modal-backdrop" onclick="if(event.target===this)closeRules()">
-    <div class="modal-card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h3 style="font-size:18px; font-weight:800; color:var(--gold);">Bingo Rules</h3>
-        <button class="btn btn-ghost" style="padding:5px 10px;" onclick="closeRules()">&#10005;</button>
+  <!-- Winner Modal -->
+  <div id="winner-modal" class="modal-bg" onclick="if(event.target===this)closeWinnerModal()">
+    <div class="modal-box">
+      <div style="font-size:18px; font-weight:900; color:var(--gold); text-align:center; margin-bottom:10px;">
+        🎉 Round Result
       </div>
-      <div style="font-size:14px; line-height:1.65; color:#e2e8f0; margin-bottom:14px;">
-        • በአንድ ዙር እስከ 4 ካርቴል መምረጥ ይችላሉ።<br />
-        • የአንድ ካርቴል ዋጋ እንደ መረጡት Stake ይሆናል።<br />
-        • ዙሩ ለመጀመር ቢያንስ 2 ተጫዋቾች ያስፈልጋሉ።<br />
-        • በካርድዎ ላይ አግድም፣ ቁም ወይም ሰያፍ መስመር ሲሞላ Bingo ያሸንፋሉ።<br />
-        • የሽልማት ገንዘብ (Derash) በአሸናፊዎች መካከል ይከፈላል።
-      </div>
-      <button class="btn btn-blue" style="padding:11px; font-size:14px;" onclick="sendRulesToBot()">Send Rules to Telegram</button>
+      <div id="winner-modal-body" style="font-size:13px; margin-bottom:14px;"></div>
+      <button class="btn btn-primary btn-block" onclick="closeWinnerModal()">Continue</button>
     </div>
   </div>
 
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-p="home" onclick="switchPage('home')"><span>Home</span></button>
+    <button class="nav-btn" data-p="ticket" onclick="switchPage('ticket')"><span>Ticket</span></button>
+    <button class="nav-btn" data-p="wallet" onclick="switchPage('wallet')"><span>Wallet</span></button>
+    <button class="nav-btn" data-p="rank" onclick="switchPage('rank')"><span>Rank</span></button>
+    <button class="nav-btn" data-p="profile" onclick="switchPage('profile')"><span>Profile</span></button>
+  </nav>
+
   <script>
-    const CARTEL_COUNT = 500;
+    const API_BASE = window.BINGO_API_BASE || '';
     const MAX_SELECTION = 4;
-    const API_BASE = '';
+    const TICKET_PRICE = 10;
+    const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
 
     const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) {
       tg.ready();
       tg.expand();
     }
-
     const initData = tg && tg.initData ? tg.initData : '';
     const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
 
-    const state = {
-      screen: 'lobby',
-      stake: 10,
-      watchingOnly: false,
-      previewCartel: 1,
-      soundEnabled: true,
-      autoMark: true,
+    const appState = {
+      page: 'home',
+      sound: true,
+      historyFilter: 'all',
+      clockOffset: 0,
       lastSpokenBall: null,
+      lastPhase: null,
+      lastShownWinnerRound: null,
+      autoSwitchedRound: null,
       user: {
         id: tgUser ? String(tgUser.id) : '',
         first_name: tgUser ? (tgUser.first_name || 'Player') : 'Player',
@@ -1394,41 +876,46 @@
         balance: 0,
         bonus: 0,
         total_games_played: 0,
-        total_winnings: 0,
-        referral_count: 0,
-        transactions: []
+        total_winnings: 0
       },
+      round: {
+        round_id: null,
+        phase: 'selection',
+        phase_ends_at: null,
+        drawn: [],
+        pool: 0,
+        players: 0,
+        my_cartels: [],
+        taken: [],
+        winners: []
+      },
+      transactions: [],
       walletConfig: {
         depositMinimum: 100,
         withdrawMinimum: 100,
-        telebirrName: 'Esraeal',
-        telebirrNumber: '0949196145',
         depositInstructions: 'Telebirr ስም: Esraeal\nቁጥር: 0949196145'
-      },
-      round: null,
-      serverClockOffset: 0,
-      walletHistory: []
+      }
     };
 
     try {
-      const savedSound = localStorage.getItem('bingo_sound');
-      if (savedSound === 'off') state.soundEnabled = false;
+      if (localStorage.getItem('betsebe_sound') === 'off') appState.sound = false;
     } catch (_) {}
 
+    /* Audio Engine (Web Audio API + calls.mp3) */
     const CALL_FILE = 'calls.mp3';
     const CALL_MAP = {"1":[0.0,1.47],"2":[1.57,1.48],"3":[3.15,1.49],"4":[4.74,1.49],"5":[6.33,1.51],"6":[7.94,1.56],"7":[9.6,1.6],"8":[11.3,1.42],"9":[12.82,1.35],"10":[14.27,1.4],"11":[15.77,1.51],"12":[17.38,1.43],"13":[18.91,1.57],"14":[20.58,1.65],"15":[22.33,1.63],"16":[24.06,1.76],"17":[25.92,1.81],"18":[27.83,1.8],"19":[29.73,1.61],"20":[31.44,1.32],"21":[32.86,1.6],"22":[34.56,1.54],"23":[36.2,1.61],"24":[37.91,1.63],"25":[39.64,1.54],"26":[41.28,1.71],"27":[43.09,1.64],"28":[44.83,1.61],"29":[46.54,1.52],"30":[48.16,1.47],"31":[49.73,1.5],"32":[51.33,1.93],"33":[53.36,1.87],"34":[55.33,1.85],"35":[57.28,1.73],"36":[59.11,1.73],"37":[60.94,1.85],"38":[62.89,1.88],"39":[64.87,1.67],"40":[66.64,1.4],"41":[68.14,1.65],"42":[69.891,1.85],"43":[71.841,1.7],"44":[73.641,1.64],"45":[75.381,1.66],"46":[77.141,1.95],"47":[79.191,1.7],"48":[80.991,2.15],"49":[83.241,1.58],"50":[84.921,1.38],"51":[86.401,1.55],"52":[88.051,1.84],"53":[89.991,1.54],"54":[91.631,1.87],"55":[93.601,1.66],"56":[95.361,1.58],"57":[97.041,1.74],"58":[98.881,1.79],"59":[100.771,1.65],"60":[102.521,1.42],"61":[104.041,1.52],"62":[105.661,1.8],"63":[107.561,1.42],"64":[109.081,1.69],"65":[110.871,1.43],"66":[112.401,1.65],"67":[114.151,1.74],"68":[115.991,1.61],"69":[117.701,1.48],"70":[119.281,1.25],"71":[120.631,1.86],"72":[122.591,1.66],"73":[124.351,1.51],"74":[125.961,1.64],"75":[127.701,1.5],"bingo":[129.301,1.09]};
-    let audioCtx = null, callBuffer = null, callsLoading = false, currentCall = null;
+    let audioCtx = null, callBuffer = null, loadingCalls = false, activeSource = null;
 
     async function loadCalls() {
-      if (callBuffer || callsLoading) return;
-      callsLoading = true;
+      if (callBuffer || loadingCalls) return;
+      loadingCalls = true;
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const res = await fetch(CALL_FILE);
-        const data = await res.arrayBuffer();
-        callBuffer = await new Promise((ok, fail) => audioCtx.decodeAudioData(data, ok, fail));
+        const resp = await fetch(`${API_BASE}/${CALL_FILE}`.replace('//', '/'));
+        const arr = await resp.arrayBuffer();
+        callBuffer = await new Promise((res, rej) => audioCtx.decodeAudioData(arr, res, rej));
       } catch (_) {}
-      finally { callsLoading = false; }
+      finally { loadingCalls = false; }
     }
 
     function unlockAudio() {
@@ -1443,601 +930,436 @@
       document.addEventListener(ev, unlockAudio, { passive: true })
     );
 
+    function stopCall() {
+      if (activeSource) {
+        try { activeSource.stop(); } catch (_) {}
+        activeSource = null;
+      }
+    }
+
     function playCall(key) {
-      if (!state.soundEnabled || !callBuffer || !audioCtx) return;
+      if (!appState.sound || !callBuffer || !audioCtx) return;
       const slot = CALL_MAP[String(key)];
       if (!slot) return;
       try {
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        if (currentCall) { try { currentCall.stop(); } catch (_) {} currentCall = null; }
+        stopCall();
         const src = audioCtx.createBufferSource();
         src.buffer = callBuffer;
         src.connect(audioCtx.destination);
         src.start(0, slot[0], slot[1]);
-        currentCall = src;
-        src.onended = () => { if (currentCall === src) currentCall = null; };
+        activeSource = src;
+        src.onended = () => { if (activeSource === src) activeSource = null; };
       } catch (_) {}
     }
 
-    const matrixCache = {};
+    function applySoundIcon() {
+      const btn = document.getElementById('sound-btn');
+      if (btn) btn.textContent = appState.sound ? '🔊' : '🔇';
+    }
+
+    function toggleSound() {
+      appState.sound = !appState.sound;
+      try { localStorage.setItem('betsebe_sound', appState.sound ? 'on' : 'off'); } catch (_) {}
+      if (!appState.sound) stopCall();
+      else unlockAudio();
+      applySoundIcon();
+      toast(appState.sound ? 'ድምጽ ተከፍቷል' : 'ድምጽ ተዘግቷል');
+    }
+
+    /* Toast & API */
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove('show'), 2600);
+    }
+
+    async function api(path, options = {}) {
+      const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+      if (initData) headers['X-Telegram-Init-Data'] = initData;
+      const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+      const resp = await fetch(url, Object.assign({}, options, { headers }));
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.message || `Error ${resp.status}`);
+      return data;
+    }
+
+    /* Navigation & Board */
+    function switchPage(page) {
+      appState.page = page;
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const el = document.getElementById(`page-${page}`);
+      if (el) el.classList.add('active');
+
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.p === page);
+      });
+
+      renderPopupCartels();
+      if (page === 'ticket') renderTicketMatrices();
+      if (page === 'wallet') { loadWalletConfig(); loadTransactionHistory(); }
+      if (page === 'rank') fetchAndRenderLeaderboard();
+      if (page === 'profile') { updateUI(); displayUserReferralLink(); }
+    }
+
+    function toggleMasterBoard() {
+      document.getElementById('master-panel').classList.toggle('open');
+    }
+
+    function initGrid() {
+      const grid = document.getElementById('cartel-grid');
+      grid.innerHTML = '';
+      for (let id = 1; id <= 500; id++) {
+        const btn = document.createElement('button');
+        btn.className = 'c-tile';
+        btn.id = `cartel-btn-${id}`;
+        btn.textContent = String(id);
+        btn.onclick = () => toggleCartel(id);
+        grid.appendChild(btn);
+      }
+      paintGrid();
+    }
+
+    function paintGrid() {
+      const mine = new Set((appState.round.my_cartels || []).map(Number));
+      const taken = new Set((appState.round.taken || []).map(Number));
+      for (let id = 1; id <= 500; id++) {
+        const btn = document.getElementById(`cartel-btn-${id}`);
+        if (!btn) continue;
+        btn.className = 'c-tile';
+        btn.disabled = false;
+        if (mine.has(id)) {
+          btn.classList.add('mine');
+        } else if (taken.has(id)) {
+          btn.classList.add('taken');
+          btn.disabled = true;
+        }
+      }
+    }
+
+    function initMasterBoard() {
+      const grid = document.getElementById('master-board-grid');
+      grid.innerHTML = '';
+      for (let n = 1; n <= 75; n++) {
+        const cell = document.createElement('div');
+        cell.className = 'm-cell';
+        cell.id = `master-n-${n}`;
+        cell.textContent = String(n);
+        grid.appendChild(cell);
+      }
+      markMaster(appState.round.drawn || []);
+    }
+
+    function markMaster(drawnList) {
+      const set = new Set((drawnList || []).map(Number));
+      for (let n = 1; n <= 75; n++) {
+        const el = document.getElementById(`master-n-${n}`);
+        if (el) el.classList.toggle('hit', set.has(n));
+      }
+    }
+
+    /* Matrix Generator */
+    const matrixStore = {};
     function seededRandom(seed) {
-      let x = Math.sin(seed) * 10000;
+      const x = Math.sin(seed) * 10000;
       return x - Math.floor(x);
     }
 
     function generateMatrix(ticketId) {
       const id = Number(ticketId);
-      if (matrixCache[id]) return matrixCache[id];
+      if (matrixStore[id]) return matrixStore[id];
       let seed = id * 1573;
-      const matrix = [];
-      for (let col = 0; col < 5; col++) {
-        const numbers = [];
-        const low = col * 15 + 1;
-        while (numbers.length < 5) {
-          const value = low + Math.floor(seededRandom(seed) * 15);
+      const cols = [];
+      for (let c = 0; c < 5; c++) {
+        const colNums = [];
+        const base = c * 15 + 1;
+        while (colNums.length < 5) {
+          const val = base + Math.floor(seededRandom(seed) * 15);
           seed++;
-          if (!numbers.includes(value)) numbers.push(value);
+          if (!colNums.includes(val)) colNums.push(val);
         }
-        matrix.push(numbers);
+        cols.push(colNums);
       }
-      matrixCache[id] = matrix;
-      return matrix;
+      matrixStore[id] = cols;
+      return cols;
     }
 
-    function getLetterForBall(num) {
-      if (num >= 1 && num <= 15) return 'B';
-      if (num >= 16 && num <= 30) return 'I';
-      if (num >= 31 && num <= 45) return 'N';
-      if (num >= 46 && num <= 60) return 'G';
-      if (num >= 61 && num <= 75) return 'O';
-      return '';
-    }
-
-    function showToast(msg) {
-      const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.classList.add('show');
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => el.classList.remove('show'), 2800);
-    }
-
-    async function apiFetch(url, options = {}) {
-      const headers = Object.assign(
-        { 'Content-Type': 'application/json' },
-        options.headers || {}
-      );
-      if (initData) {
-        headers['X-Telegram-Init-Data'] = initData;
+    function hasBingoLine(cols, drawnSet) {
+      const marked = (r, c) => (r === 2 && c === 2) || drawnSet.has(cols[c][r]);
+      for (let i = 0; i < 5; i++) {
+        if ([0, 1, 2, 3, 4].every(c => marked(i, c))) return true;
+        if ([0, 1, 2, 3, 4].every(r => marked(r, i))) return true;
       }
-      const res = await fetch(API_BASE + url, Object.assign({}, options, { headers }));
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.message || `Request failed (${res.status})`);
+      return [0, 1, 2, 3, 4].every(i => marked(i, i)) || [0, 1, 2, 3, 4].every(i => marked(i, 4 - i));
+    }
+
+    function renderTicketMatrices() {
+      const wrap = document.getElementById('ticket-matrices-container');
+      const mine = (appState.round.my_cartels || []).map(Number);
+      const drawnSet = new Set((appState.round.drawn || []).map(Number));
+
+      if (!mine.length) {
+        wrap.innerHTML = `<div class="card" style="text-align:center; color:var(--muted);">ምንም ካርቴል አልመረጡም። Home ላይ ይምረጡ።</div>`;
+        return;
       }
-      return data;
+
+      wrap.innerHTML = mine.map(id => {
+        const cols = generateMatrix(id);
+        const ready = hasBingoLine(cols, drawnSet);
+        let cells = '';
+        for (let r = 0; r < 5; r++) {
+          for (let c = 0; c < 5; c++) {
+            if (r === 2 && c === 2) {
+              cells += `<div class="cell-5x5 free">FREE</div>`;
+            } else {
+              const num = cols[c][r];
+              const hit = drawnSet.has(num);
+              cells += `<div class="cell-5x5 ${hit ? 'marked' : ''}">${num}</div>`;
+            }
+          }
+        }
+        return `
+          <div class="ticket-card ${ready ? 'bingo-ready' : ''}">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:13px; font-weight:800;">
+              <span>Cartel #${id}</span>
+              <span style="color:${ready ? 'var(--gold)' : 'var(--muted)'};">${ready ? '★ BINGO LINE!' : 'Active'}</span>
+            </div>
+            <div class="bingo-cols"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
+            <div class="bingo-5x5">${cells}</div>
+          </div>
+        `;
+      }).join('');
     }
 
-    function goScreen(name) {
-      state.screen = name;
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      const target = document.getElementById(`screen-${name}`);
-      if (target) target.classList.add('active');
-
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      if (name === 'lobby' || name === 'selection' || name === 'live') {
-        document.getElementById('nav-game').classList.add('active');
-      } else if (name === 'history') {
-        document.getElementById('nav-history').classList.add('active');
-        renderHistory();
-      } else if (name === 'wallet') {
-        document.getElementById('nav-wallet').classList.add('active');
-        fetchWalletHistory();
-        renderWallet();
-      } else if (name === 'profile') {
-        document.getElementById('nav-profile').classList.add('active');
-        renderProfile();
+    function renderPopupCartels() {
+      const mine = (appState.round.my_cartels || []).map(Number);
+      const panel = document.getElementById('cartel-popup-panel');
+      if (!mine.length || appState.page === 'ticket') {
+        panel.classList.remove('open');
+        return;
       }
+      panel.classList.add('open');
+      document.getElementById('popup-summary').textContent = `${mine.length}/${MAX_SELECTION} Cartels (${mine.length * TICKET_PRICE} ETB)`;
+      document.getElementById('popup-ids').textContent = `#${mine.join(', #')}`;
     }
 
-    function openRules() {
-      document.getElementById('rules-modal').classList.add('open');
+    function pickErrorText(code) {
+      if (code === 'balance') return 'በቂ ሂሳብ የለዎትም። እባክዎ ዋሌት ይሙሉ።';
+      if (code === 'full') return `እስከ ${MAX_SELECTION} ካርቴል ብቻ መምረጥ ይቻላል።`;
+      if (code === 'taken') return 'ይህ ካርቴል ተይዟል።';
+      return 'ምርጫውን ማጠናቀቅ አልተቻለም።';
     }
 
-    function closeRules() {
-      document.getElementById('rules-modal').classList.remove('open');
-    }
-
-    async function sendRulesToBot() {
+    async function toggleCartel(id) {
+      if (appState.round.phase !== 'selection') {
+        toast('የምርጫ ጊዜ አልቋል');
+        return;
+      }
+      const mine = new Set((appState.round.my_cartels || []).map(Number));
+      const isMine = mine.has(id);
       try {
-        await apiFetch('/api/send-rules', { method: 'POST' });
-        showToast('ህጎች ወደ ቴሌግራም ተልከዋል');
+        const res = await api(isMine ? '/api/round/unpick' : '/api/round/pick', {
+          method: 'POST',
+          body: JSON.stringify({ cartel: id })
+        });
+        if (res.status === 'error') {
+          toast(pickErrorText(res.code));
+        } else {
+          if (res.state) applyRound(res.state);
+          applyUserData(res);
+          toast(isMine ? `ካርቴል #${id} ተሰርዟል` : `ካርቴል #${id} ተመርጧል`);
+        }
       } catch (e) {
-        showToast(e.message);
+        toast(e.message);
       }
     }
 
-    function enterSelection(stake) {
-      state.stake = stake;
-      state.watchingOnly = false;
-      document.getElementById('sel-stake-val').textContent = String(stake);
-      goScreen('selection');
-      syncAll(true);
+    /* User & Round Sync */
+    function applyUserData(d) {
+      if (!d) return;
+      if (typeof d.balance === 'number') appState.user.balance = d.balance;
+      if (typeof d.mainBalance === 'number') appState.user.balance = d.mainBalance;
+      if (typeof d.bonus === 'number') appState.user.bonus = d.bonus;
+      if (typeof d.bonusBalance === 'number') appState.user.bonus = d.bonusBalance;
+      if (d.phone_number) appState.user.phone_number = d.phone_number;
+      if (d.first_name) appState.user.first_name = d.first_name;
+      if (d.id) appState.user.id = String(d.id);
+      if (typeof d.total_games_played === 'number') appState.user.total_games_played = d.total_games_played;
+      if (typeof d.total_winnings === 'number') appState.user.total_winnings = d.total_winnings;
+      updateUI();
     }
 
-    function watchOnlyRoom() {
-      state.watchingOnly = true;
-      goScreen('live');
-      renderLiveRoom();
+    function updateUI() {
+      const u = appState.user;
+      const name = u.first_name || 'Player';
+      document.getElementById('hdr-name').textContent = name;
+      document.getElementById('hdr-phone').textContent = u.phone_number || 'Unverified';
+      document.getElementById('hdr-main').textContent = String(u.balance ?? 0);
+      document.getElementById('hdr-play').textContent = String(u.bonus ?? 0);
+
+      document.getElementById('wal-main').textContent = String(u.balance ?? 0);
+      document.getElementById('wal-play').textContent = String(u.bonus ?? 0);
+
+      document.getElementById('prof-name').textContent = name;
+      document.getElementById('prof-id').textContent = `ID: ${u.id || '---'}`;
+      document.getElementById('prof-played').textContent = String(u.total_games_played ?? 0);
+      document.getElementById('prof-won').textContent = String(u.total_winnings ?? 0);
     }
 
-    function joinLiveRoom() {
-      state.watchingOnly = false;
-      goScreen('live');
-      renderLiveRoom();
-    }
-
-    function leaveLiveRoom() {
-      state.watchingOnly = false;
-      goScreen('lobby');
-    }
-
-    function toggleSound() {
-      state.soundEnabled = !state.soundEnabled;
-      try { localStorage.setItem('bingo_sound', state.soundEnabled ? 'on' : 'off'); } catch (_) {}
-      if (state.soundEnabled) unlockAudio();
-      syncSoundUI();
-      showToast(state.soundEnabled ? 'ድምፅ ተከፍቷል' : 'ድምፅ ተዘግቷል');
-    }
-
-    function toggleSoundFromProfile() {
-      state.soundEnabled = document.getElementById('profile-sound-toggle').checked;
-      try { localStorage.setItem('bingo_sound', state.soundEnabled ? 'on' : 'off'); } catch (_) {}
-      if (state.soundEnabled) unlockAudio();
-      syncSoundUI();
-    }
-
-    function syncSoundUI() {
-      const btn = document.getElementById('live-sound-btn');
-      if (btn) btn.innerHTML = state.soundEnabled ? '&#128266;' : '&#128263;';
-      const pToggle = document.getElementById('profile-sound-toggle');
-      if (pToggle) pToggle.checked = state.soundEnabled;
-    }
-
-    function onAutoMarkChange() {
-      state.autoMark = document.getElementById('auto-mark-toggle').checked;
-      syncAutoUI();
-      renderLiveRoom();
-    }
-
-    function toggleAutoFromBottom() {
-      state.autoMark = !state.autoMark;
-      document.getElementById('auto-mark-toggle').checked = state.autoMark;
-      syncAutoUI();
-      renderLiveRoom();
-    }
-
-    function syncAutoUI() {
-      const bottomBtn = document.getElementById('live-auto-btn');
-      if (bottomBtn) {
-        bottomBtn.className = state.autoMark ? 'btn btn-green' : 'btn btn-gold-muted';
-        bottomBtn.style.padding = '13px';
-      }
-    }
-
-    async function fetchUserData() {
-      const data = await apiFetch('/api/user-data');
-      state.user = Object.assign({}, state.user, data);
-      if (tgUser && tgUser.first_name) {
-        state.user.first_name = tgUser.first_name;
-      }
-      renderBalances();
-      renderProfile();
-      renderHistory();
-    }
-
-    async function fetchWalletConfig() {
-      const data = await apiFetch('/api/wallet/config');
-      state.walletConfig = Object.assign({}, state.walletConfig, data);
-      if (typeof data.mainBalance === 'number') state.user.balance = data.mainBalance;
-      if (typeof data.bonusBalance === 'number') state.user.bonus = data.bonusBalance;
-      renderBalances();
-      renderWallet();
-    }
-
-    async function fetchWalletHistory() {
+    async function refreshUserData() {
       try {
-        const data = await apiFetch('/api/wallet/history');
-        state.walletHistory = Array.isArray(data.transactions) ? data.transactions : [];
-        renderWalletHistory();
+        const d = await api('/api/user-data');
+        applyUserData(d);
       } catch (_) {}
     }
 
-    async function fetchRound() {
-      const data = await apiFetch('/api/round');
-      if (data && data.state) {
-        const prevRoundId = state.round ? state.round.round_id : null;
-        const prevDrawnLen = state.round && Array.isArray(state.round.drawn) ? state.round.drawn.length : 0;
-        const prevPhase = state.round ? state.round.phase : null;
-
-        if (typeof data.state.server_time === 'number') {
-          state.serverClockOffset = data.state.server_time - (Date.now() / 1000);
-        }
-        state.round = data.state;
-
-        if (prevRoundId && data.state.round_id !== prevRoundId) {
-          state.lastSpokenBall = null;
-        }
-
-        const drawn = Array.isArray(state.round.drawn) ? state.round.drawn : [];
-        if (drawn.length > prevDrawnLen && drawn.length > 0) {
-          const latest = drawn[drawn.length - 1];
-          if (latest !== state.lastSpokenBall && (drawn.length - prevDrawnLen) <= 3) {
-            state.lastSpokenBall = latest;
-            playCall(latest);
-          }
-        }
-
-        if (prevPhase !== 'result' && state.round.phase === 'result') {
-          playCall('bingo');
-          fetchUserData().catch(() => {});
-        }
-
-        if (state.round.phase !== 'selection' && state.screen === 'selection') {
-          goScreen('live');
-        }
-
-        renderSelection();
-        renderLiveRoom();
-      }
+    function refreshUserDataSoon() {
+      setTimeout(() => refreshUserData(), 600);
     }
 
-    async function syncAll(notify = false) {
-      try {
-        await Promise.all([fetchUserData(), fetchWalletConfig(), fetchRound()]);
-        if (notify) showToast('ተዘምኗል');
-      } catch (e) {
-        if (notify) showToast(e.message || 'ከሰርቨር ጋር መገናኘት አልተቻለም');
-      }
+    function showBall(num, count, speak) {
+      const badge = document.getElementById('ticket-ball-text');
+      badge.textContent = num ? String(num) : '--';
+      badge.style.animation = 'none';
+      void badge.offsetWidth;
+      badge.style.animation = 'pulseBall 0.35s ease';
+      document.getElementById('ticket-drawn-count').textContent = `Called: ${count}/75`;
+      if (speak && num) playCall(num);
     }
 
-    function renderBalances() {
-      const mainBal = Number(state.user.balance || 0);
-      const playBal = Number(state.user.bonus || 0);
-
-      document.getElementById('sel-main-bal').textContent = String(mainBal);
-      document.getElementById('sel-play-bal').textContent = String(playBal);
-      document.getElementById('wallet-main-bal').textContent = String(mainBal);
-      document.getElementById('wallet-play-bal').textContent = playBal.toFixed(1);
-      document.getElementById('profile-main-bal').textContent = String(mainBal);
-      document.getElementById('profile-play-bal').textContent = String(playBal);
+    function statusText(s) {
+      if (s.phase === 'selection') return 'ካርቴሎችን ይምረጡ (እስከ 4)';
+      if (s.phase === 'locking') return 'ካርቴሎች እየተቆለፉ ነው...';
+      if (s.phase === 'drawing') return 'ቁጥሮች እየወጡ ነው...';
+      if (s.phase === 'result') return 'ዙሩ ተጠናቋል';
+      return 'በመጠባበቅ ላይ...';
     }
 
-    function renderSelection() {
-      const r = state.round || {
-        phase: 'selection',
-        phase_ends_at: null,
-        taken: [],
-        my_cartels: [],
-        pool: 0
-      };
+    function showResult(s) {
+      if (!s.round_id || appState.lastShownWinnerRound === s.round_id) return;
+      appState.lastShownWinnerRound = s.round_id;
+      playCall('bingo');
+      refreshUserDataSoon();
 
-      const takenSet = new Set((r.taken || []).map(Number));
-      const mineList = (r.my_cartels || []).map(Number);
-      const mineSet = new Set(mineList);
-
-      document.getElementById('my-cartel-count').textContent = String(mineList.length);
-      document.getElementById('sel-derash-val').textContent = String(r.pool || 0);
-      document.getElementById('sel-phase-label').textContent = r.phase === 'selection' ? 'Select Time' : r.phase;
-
-      const grid = document.getElementById('cartela-grid');
-      grid.innerHTML = '';
-
-      for (let i = 1; i <= CARTEL_COUNT; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'c-btn';
-        btn.textContent = String(i);
-
-        const isMine = mineSet.has(i);
-        const isTaken = takenSet.has(i) && !isMine;
-
-        if (isMine) btn.classList.add('mine');
-        else if (isTaken) {
-          btn.classList.add('taken');
-          btn.disabled = true;
-        }
-
-        if (state.previewCartel === i) btn.classList.add('previewing');
-
-        btn.onclick = () => onCartelaClick(i, isMine, isTaken);
-        grid.appendChild(btn);
-      }
-
-      renderPreviewCartel();
-      updateTimerDisplay();
-    }
-
-    async function onCartelaClick(cartelNum, isMine, isTaken) {
-      state.previewCartel = cartelNum;
-      renderPreviewCartel();
-
-      if (isTaken) return;
-
-      try {
-        if (isMine) {
-          await apiFetch('/api/round/unpick', {
-            method: 'POST',
-            body: JSON.stringify({ cartel: cartelNum })
-          });
-          showToast(`ካርቴላ #${cartelNum} ተሰርዟል`);
-        } else {
-          const res = await apiFetch('/api/round/pick', {
-            method: 'POST',
-            body: JSON.stringify({ cartel: cartelNum })
-          });
-          if (res.status === 'error') {
-            if (res.code === 'balance') {
-              showToast('በቂ ሂሳብ የለዎትም። እባክዎ Wallet ላይ Deposit ያድርጉ።');
-            } else if (res.code === 'full') {
-              showToast(`በአንድ ዙር እስከ ${MAX_SELECTION} ካርቴላ ብቻ መምረጥ ይችላሉ`);
-            } else if (res.code === 'taken') {
-              showToast('ይህ ካርቴላ በሌላ ተጫዋች ተይዟል');
-            } else {
-              showToast('ካርቴላ መምረጥ አልተቻለም');
-            }
-          } else {
-            showToast(`ካርቴላ #${cartelNum} ተመርጧል`);
-          }
-        }
-        await Promise.all([fetchRound(), fetchUserData()]);
-      } catch (e) {
-        showToast(e.message);
-      }
-    }
-
-    function renderPreviewCartel() {
-      const cNum = state.previewCartel || 1;
-      document.getElementById('preview-title').textContent = `Cartela #${cNum} Preview`;
-      const matrix = generateMatrix(cNum);
-      const drawnSet = new Set((state.round && state.round.drawn) || []);
-      const container = document.getElementById('preview-5x5');
-      container.innerHTML = '';
-
-      for (let row = 0; row < 5; row++) {
-        for (let col = 0; col < 5; col++) {
-          const cell = document.createElement('div');
-          cell.className = 'b-cell';
-          if (row === 2 && col === 2) {
-            cell.classList.add('free');
-            cell.textContent = 'FREE';
-          } else {
-            const val = matrix[col][row];
-            cell.textContent = String(val);
-            if (state.autoMark && drawnSet.has(val)) {
-              cell.classList.add('called');
-            }
-          }
-          container.appendChild(cell);
-        }
-      }
-    }
-
-    function renderLiveRoom() {
-      const r = state.round || {
-        round_id: '---',
-        players: 0,
-        pool: 0,
-        drawn: [],
-        phase: 'selection',
-        my_cartels: [],
-        winners: [],
-        no_winner: false
-      };
-
-      const drawn = Array.isArray(r.drawn) ? r.drawn : [];
-      const drawnSet = new Set(drawn);
-      const mine = Array.isArray(r.my_cartels) ? r.my_cartels : [];
-
-      document.getElementById('live-game-id').textContent = r.round_id || '---';
-      document.getElementById('live-players').textContent = String(r.players || 0);
-      document.getElementById('live-bet').textContent = String(state.stake || 10);
-      document.getElementById('live-derash').textContent = String(r.pool || 0);
-      document.getElementById('live-called').textContent = String(drawn.length);
-
-      const colsEl = document.getElementById('master-cols');
-      colsEl.innerHTML = '';
-      const ranges = [
-        { key: 'b', start: 1, end: 15 },
-        { key: 'i', start: 16, end: 30 },
-        { key: 'n', start: 31, end: 45 },
-        { key: 'g', start: 46, end: 60 },
-        { key: 'o', start: 61, end: 75 }
-      ];
-
-      ranges.forEach(rng => {
-        const colDiv = document.createElement('div');
-        colDiv.className = 'm-col';
-        for (let n = rng.start; n <= rng.end; n++) {
-          const box = document.createElement('div');
-          box.className = 'm-num';
-          box.textContent = String(n);
-          if (drawnSet.has(n)) {
-            box.classList.add(`called-${rng.key}`);
-          }
-          colDiv.appendChild(box);
-        }
-        colsEl.appendChild(colDiv);
-      });
-
-      const recentEl = document.getElementById('recent-calls');
-      recentEl.innerHTML = '';
-      const recent = drawn.slice(-3).reverse();
-      recent.forEach(num => {
-        const pill = document.createElement('div');
-        pill.className = 'r-pill';
-        pill.textContent = `${getLetterForBall(num)}-${num}`;
-        recentEl.appendChild(pill);
-      });
-
-      const disc = document.getElementById('current-ball-disc');
-      if (drawn.length > 0) {
-        const last = drawn[drawn.length - 1];
-        disc.textContent = `${getLetterForBall(last)}-${last}`;
+      const winners = Array.isArray(s.winners) ? s.winners : [];
+      const body = document.getElementById('winner-modal-body');
+      if (!winners.length) {
+        body.innerHTML = `<div style="text-align:center; color:var(--muted);">በዚህ ዙር አሸናፊ አልተገኘም።</div>`;
       } else {
-        disc.textContent = '--';
-      }
-
-      const panel = document.getElementById('live-status-panel');
-      if (r.phase === 'result') {
-        if (Array.isArray(r.winners) && r.winners.length > 0) {
-          const winHtml = r.winners.map(w =>
-            `<div style="background:rgba(22,163,74,0.22); border:1px solid rgba(74,222,128,0.45); border-radius:8px; padding:6px; width:100%; font-size:12px;">
-              <strong>&#127942; ${w.name || 'Player'}</strong> — Cartela #${w.cartel}<br/>
-              Prize: <span style="color:#4ade80; font-weight:800;">${w.prize} ETB</span>
-            </div>`
-          ).join('');
-          panel.innerHTML = `<div class="watch-title" style="color:var(--gold);">BINGO!</div>${winHtml}`;
-        } else {
-          panel.innerHTML = `<div class="watch-title">Round Finished</div><div class="watch-amharic">በዚህ ዙር አሸናፊ አልተገኘም። አዲስ ዙር በቅርቡ ይጀምራል።</div>`;
-        }
-        return;
-      }
-
-      if (state.watchingOnly || mine.length === 0) {
-        panel.innerHTML = `
-          <div class="watch-title">Watching Only</div>
-          <div class="watch-amharic">
-            የአሁኑ ዙር ጨዋታ ተጀምሯል። አዲስ ዙር እስኪጀምር እዚሁ ይጠብቁ።
+        body.innerHTML = winners.map(w => `
+          <div style="background:var(--bg-2); padding:8px 10px; border-radius:10px; margin-bottom:6px;">
+            <strong>${w.name || 'Winner'}</strong> — Cartel #${w.cartel}<br/>
+            Prize: <span style="color:var(--gold); font-weight:800;">${w.prize} ETB</span>
           </div>
-        `;
-        return;
+        `).join('');
+      }
+      document.getElementById('winner-modal').classList.add('open');
+    }
+
+    function closeWinnerModal() {
+      document.getElementById('winner-modal').classList.remove('open');
+    }
+
+    function applyRound(s) {
+      if (!s) return;
+      if (typeof s.server_time === 'number') {
+        appState.clockOffset = s.server_time - (Date.now() / 1000);
       }
 
-      panel.innerHTML = mine.slice(0, 2).map(cNum => {
-        const mat = generateMatrix(cNum);
-        let cellsHtml = '';
-        for (let row = 0; row < 5; row++) {
-          for (let col = 0; col < 5; col++) {
-            if (row === 2 && col === 2) {
-              cellsHtml += `<div class="b-cell free" style="font-size:8px;">FREE</div>`;
-            } else {
-              const val = mat[col][row];
-              const marked = state.autoMark && drawnSet.has(val);
-              cellsHtml += `<div class="b-cell ${marked ? 'called' : ''}" style="font-size:10px;">${val}</div>`;
-            }
-          }
-        }
-        return `
-          <div class="my-mini-card">
-            <div class="my-mini-head">
-              <span>Cartela #${cNum}</span>
-              <span>${state.autoMark ? 'AUTO' : 'MANUAL'}</span>
-            </div>
-            <div class="bingo-5x5" style="gap:2px;">${cellsHtml}</div>
-          </div>
-        `;
-      }).join('');
-    }
+      const prevDrawn = appState.round.drawn || [];
+      const nextDrawn = Array.isArray(s.drawn) ? s.drawn : [];
+      const prevLen = prevDrawn.length;
+      const freshBalls = nextDrawn.slice(prevLen);
 
-    function updateTimerDisplay() {
-      const r = state.round;
-      const el = document.getElementById('sel-timer-val');
-      if (!r || !r.phase_ends_at) {
-        el.textContent = '-- s';
-        return;
-      }
-      const nowServer = (Date.now() / 1000) + state.serverClockOffset;
-      const rem = Math.max(0, Math.ceil(r.phase_ends_at - nowServer));
-      el.textContent = `${rem} s`;
-    }
+      appState.round = Object.assign({}, appState.round, s, { drawn: nextDrawn });
 
-    function renderHistory() {
-      const txs = Array.isArray(state.user.transactions) ? state.user.transactions : [];
-      const playTxs = txs.filter(t => t.type === 'play');
-      const winTxs = txs.filter(t => t.type === 'win' || t.type === 'winnings');
-      const winRoundMap = new Map();
-      winTxs.forEach(w => {
-        if (w.round_id) winRoundMap.set(String(w.round_id), Number(w.amount || 0));
-      });
+      document.getElementById('home-pool').textContent = String(s.pool ?? 0);
+      document.getElementById('home-players').textContent = String(s.players ?? 0);
+      document.getElementById('home-phase-lbl').textContent = String(s.phase || 'selection').toUpperCase();
+      document.getElementById('home-selected-lbl').textContent = `Selected: ${(s.my_cartels || []).length}/${MAX_SELECTION}`;
+      document.getElementById('home-status-note').textContent = statusText(s);
 
-      const totalGames = Number(state.user.total_games_played || playTxs.length || 0);
-      document.getElementById('history-total-games').textContent = String(totalGames);
+      paintGrid();
+      markMaster(nextDrawn);
+      renderPopupCartels();
 
-      const listEl = document.getElementById('history-list');
-      if (playTxs.length === 0) {
-        listEl.innerHTML = `<div class="glass-box" style="text-align:center; color:var(--text-muted);">No recent games yet.</div>`;
-        return;
+      if (freshBalls.length > 0) {
+        const latest = freshBalls[freshBalls.length - 1];
+        const shouldSpeak = latest !== appState.lastSpokenBall && freshBalls.length <= 3;
+        if (shouldSpeak) appState.lastSpokenBall = latest;
+        showBall(latest, nextDrawn.length, shouldSpeak);
+      } else {
+        document.getElementById('ticket-drawn-count').textContent = `Called: ${nextDrawn.length}/75`;
       }
 
-      listEl.innerHTML = playTxs.slice().reverse().slice(0, 30).map(item => {
-        const rid = item.round_id || '---';
-        const wonAmount = winRoundMap.get(String(rid)) || 0;
-        const isWin = wonAmount > 0;
-        const tsStr = item.timestamp ? new Date(item.timestamp).toLocaleString() : '';
-        return `
-          <div class="history-item">
-            <div class="history-top">
-              <div>
-                <div style="font-weight:800; font-size:15px;">Round ${rid}</div>
-                <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">&#128197; ${tsStr}</div>
-              </div>
-              <span class="${isWin ? 'badge-win' : 'badge-lost'}">${isWin ? 'Won' : 'Lost'}</span>
-            </div>
-            <div class="history-metrics">
-              <div><span>Amount</span><strong>${Number(item.amount || 0)}</strong></div>
-              <div><span>Main</span><strong>${Number(item.main_amount || 0)}</strong></div>
-              <div><span>Play/Bonus</span><strong>${Number(item.bonus_amount || 0)}</strong></div>
-              <div><span>Prize</span><strong style="color:${isWin ? '#4ade80' : '#fff'};">${wonAmount}</strong></div>
-            </div>
-          </div>
-        `;
-      }).join('');
+      const mine = s.my_cartels || [];
+      if (s.phase === 'drawing' && mine.length > 0 && appState.autoSwitchedRound !== s.round_id) {
+        appState.autoSwitchedRound = s.round_id;
+        switchPage('ticket');
+      }
+
+      if (appState.page === 'ticket') renderTicketMatrices();
+      if (s.phase === 'result') showResult(s);
+      appState.lastPhase = s.phase;
     }
 
-    function switchWalletSubtab(tab) {
-      document.getElementById('seg-balance-btn').classList.toggle('active', tab === 'balance');
-      document.getElementById('seg-history-btn').classList.toggle('active', tab === 'history');
-      document.getElementById('wallet-balance-view').style.display = tab === 'balance' ? 'block' : 'none';
-      document.getElementById('wallet-history-view').style.display = tab === 'history' ? 'block' : 'none';
-      if (tab === 'history') fetchWalletHistory();
-    }
-
-    function renderWallet() {
-      document.getElementById('wallet-phone').textContent = state.user.phone_number || 'Not Set';
-      document.getElementById('deposit-instructions-box').textContent =
-        state.walletConfig.depositInstructions ||
-        `Telebirr ስም: ${state.walletConfig.telebirrName}\nቁጥር: ${state.walletConfig.telebirrNumber}\nዝቅተኛ ዲፖዚት: ${state.walletConfig.depositMinimum} ETB`;
-      renderBalances();
-    }
-
-    function renderWalletHistory() {
-      const el = document.getElementById('wallet-tx-list');
-      const items = state.walletHistory || [];
-      if (items.length === 0) {
-        el.innerHTML = `<div class="glass-box" style="text-align:center; color:var(--text-muted);">No transactions yet.</div>`;
+    function tickCountdown() {
+      const ends = appState.round.phase_ends_at;
+      const timerEl = document.getElementById('home-timer');
+      const barEl = document.getElementById('timer-bar');
+      if (!ends) {
+        timerEl.textContent = '--:--';
+        barEl.style.width = '0%';
         return;
       }
-      el.innerHTML = items.map(tx => {
-        const badgeClass = tx.status === 'approved' ? 'badge-win' : (tx.status === 'rejected' ? 'badge-lost' : 'badge-pending');
-        return `
-          <div class="history-item">
-            <div class="history-top">
-              <div>
-                <div style="font-weight:800; text-transform:capitalize;">${tx.type} (${tx.wallet || 'main'})</div>
-                <div style="font-size:11px; color:var(--text-muted);">${tx.reference || ''} • ${new Date(tx.timestamp).toLocaleString()}</div>
-              </div>
-              <span class="${badgeClass}">${tx.status || 'approved'}</span>
-            </div>
-            <div style="font-size:16px; font-weight:800;">${Number(tx.amount || 0).toFixed(2)} ETB</div>
-          </div>
-        `;
-      }).join('');
+      const nowServer = (Date.now() / 1000) + appState.clockOffset;
+      const rem = Math.max(0, Math.ceil(ends - nowServer));
+      const m = String(Math.floor(rem / 60)).padStart(2, '0');
+      const sec = String(rem % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${sec}`;
+      barEl.style.width = `${Math.min(100, (rem / 30) * 100)}%`;
     }
 
-    function fileToBase64(file) {
+    async function pollRound() {
+      try {
+        const data = await api('/api/round');
+        if (data && data.state) applyRound(data.state);
+      } catch (_) {}
+    }
+
+    /* Wallet, Promo, Rank & Referral */
+    async function loadWalletConfig() {
+      try {
+        const cfg = await api('/api/wallet/config');
+        appState.walletConfig = Object.assign({}, appState.walletConfig, cfg);
+        document.getElementById('deposit-config-box').textContent =
+          cfg.depositInstructions || `Min Deposit: ${cfg.depositMinimum || 100} ETB`;
+        document.getElementById('withdraw-config-box').textContent =
+          `Min Withdraw: ${cfg.withdrawMinimum || 100} ETB`;
+      } catch (_) {}
+    }
+
+    function triggerDeposit() {
+      loadWalletConfig();
+      switchPage('deposit');
+    }
+
+    function triggerWithdraw() {
+      loadWalletConfig();
+      switchPage('withdraw');
+    }
+
+    function imageAsDataUrl(file) {
       return new Promise((resolve, reject) => {
+        if (file.size > MAX_IMAGE_BYTES) {
+          reject(new Error('የፎቶ መጠን ከ4MB መብለጥ የለበትም'));
+          return;
+        }
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result || ''));
-        reader.onerror = reject;
+        reader.onerror = () => reject(new Error('ፎቶ ማንበብ አልተቻለም'));
         reader.readAsDataURL(file);
       });
     }
@@ -2045,119 +1367,184 @@
     async function submitDeposit() {
       const amount = Number(document.getElementById('dep-amount').value);
       const reference = document.getElementById('dep-ref').value.trim();
-      const fileInput = document.getElementById('dep-file');
-      let imageBase64 = '';
-      if (fileInput.files && fileInput.files[0]) {
-        imageBase64 = await fileToBase64(fileInput.files[0]);
-      }
+      const fileInput = document.getElementById('dep-image');
+      if (!amount || amount <= 0) return toast('ትክክለኛ መጠን ያስገቡ');
+      if (!reference) return toast('የክፍያ ማጣቀሻ ያስገቡ');
 
       try {
-        const res = await apiFetch('/api/wallet/deposit', {
+        let imageBase64 = '';
+        if (fileInput.files && fileInput.files[0]) {
+          imageBase64 = await imageAsDataUrl(fileInput.files[0]);
+        }
+        const res = await api('/api/wallet/deposit', {
           method: 'POST',
           body: JSON.stringify({ amount, reference, imageBase64 })
         });
-        showToast(res.message || 'የዲፖዚት ጥያቄ ተልኳል');
+        toast(res.message || 'ዲፖዚት ጥያቄ ተልኳል');
         document.getElementById('dep-amount').value = '';
         document.getElementById('dep-ref').value = '';
         fileInput.value = '';
-        await fetchWalletHistory();
+        switchPage('wallet');
       } catch (e) {
-        showToast(e.message);
+        toast(e.message);
       }
     }
 
-    async function submitWithdraw() {
+    async function submitWithdrawal() {
       const name = document.getElementById('wd-name').value.trim();
-      const account = document.getElementById('wd-account').value.trim();
+      const phone = document.getElementById('wd-phone').value.trim();
       const amount = Number(document.getElementById('wd-amount').value);
+      if (!name || !phone || !amount) return toast('ሁሉንም መረጃ ያሟሉ');
 
       try {
-        const res = await apiFetch('/api/wallet/withdraw', {
+        const res = await api('/api/wallet/withdraw', {
           method: 'POST',
-          body: JSON.stringify({ name, account, amount })
+          body: JSON.stringify({ name, account: phone, phone, amount })
         });
-        showToast(res.message || 'የወጪ ጥያቄ ተልኳል');
+        toast(res.message || 'የወጪ ጥያቄ ተልኳል');
         document.getElementById('wd-name').value = '';
-        document.getElementById('wd-account').value = '';
+        document.getElementById('wd-phone').value = '';
         document.getElementById('wd-amount').value = '';
-        await Promise.all([fetchUserData(), fetchWalletHistory()]);
+        refreshUserData();
+        switchPage('wallet');
       } catch (e) {
-        showToast(e.message);
+        toast(e.message);
       }
     }
 
-    async function submitPromo() {
+    async function redeemPromoCode() {
       const code = document.getElementById('promo-code-input').value.trim();
+      if (!code) return toast('ፕሮሞ ኮድ ያስገቡ');
       try {
-        const res = await apiFetch('/api/promo/redeem', {
+        const res = await api('/api/promo/redeem', {
           method: 'POST',
           body: JSON.stringify({ code })
         });
-        showToast(`${res.message || 'ተሳክቷል'} (+${res.bonusAdded || 0} ETB)`);
+        toast(res.message || `ቦነስ +${res.bonusAdded || 0} ተጨምሯል`);
         document.getElementById('promo-code-input').value = '';
-        await fetchUserData();
+        refreshUserData();
+        loadTransactionHistory();
       } catch (e) {
-        showToast(e.message);
+        toast(e.message);
       }
     }
 
-    function renderProfile() {
-      const name = state.user.first_name || 'Player';
-      document.getElementById('profile-name').textContent = name;
-      document.getElementById('profile-avatar').textContent = name.charAt(0).toUpperCase() || 'P';
-
-      const txs = Array.isArray(state.user.transactions) ? state.user.transactions : [];
-      const winsCount = txs.filter(t => t.type === 'win' || t.type === 'winnings').length;
-
-      document.getElementById('profile-games-won').textContent = String(winsCount);
-      document.getElementById('profile-invites').textContent = String(state.user.referral_count || 0);
-      document.getElementById('profile-earnings').textContent = String(state.user.total_winnings || 0);
-      renderBalances();
-    }
-
-    async function shareReferral() {
+    async function loadTransactionHistory() {
       try {
-        const data = await apiFetch('/api/referral-link');
-        if (data.url) {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(data.url).catch(() => {});
-          }
-          if (tg && tg.openTelegramLink) {
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(data.url)}&text=${encodeURIComponent('Join Beteseb Bingo!')}`);
-          } else {
-            showToast(`ሊንክ ተቀድቷል: ${data.url}`);
-          }
-        }
-      } catch (e) {
-        showToast(e.message);
-      }
+        const data = await api('/api/wallet/history');
+        appState.transactions = Array.isArray(data.transactions) ? data.transactions : [];
+        renderTransactionHistory(appState.transactions);
+      } catch (_) {}
     }
 
-    async function requestSupport() {
+    function setHistoryFilter(filter) {
+      appState.historyFilter = filter;
+      document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.f === filter));
+      renderTransactionHistory(appState.transactions);
+    }
+
+    function renderTransactionHistory(transactions) {
+      const list = document.getElementById('transaction-history-list');
+      const f = appState.historyFilter;
+      const items = (transactions || []).filter(t => {
+        if (f === 'all') return true;
+        if (f === 'bonus') return t.type === 'bonus' || t.type === 'promo' || t.type === 'win' || t.type === 'winnings';
+        return t.type === f;
+      });
+
+      if (!items.length) {
+        list.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:12px; padding:12px;">ምንም ግብይት የለም</div>`;
+        return;
+      }
+
+      list.innerHTML = items.map(tx => `
+        <div class="tx-item">
+          <div>
+            <div style="font-weight:700; text-transform:capitalize;">${tx.type || 'tx'}</div>
+            <div style="font-size:11px; color:var(--muted);">${tx.status || ''} ${tx.reference ? '• ' + tx.reference : ''}</div>
+          </div>
+          <div style="font-weight:800; color:var(--accent-2);">${Number(tx.amount || 0)} ETB</div>
+        </div>
+      `).join('');
+    }
+
+    async function fetchAndRenderLeaderboard() {
       try {
-        await apiFetch('/api/send-support', { method: 'POST' });
-        showToast('የእርዳታ መረጃ ወደ ቴሌግራም ተልኳል');
-      } catch (e) {
-        showToast(e.message);
+        const data = await api('/api/leaderboard');
+        renderLeaderboardUI(Array.isArray(data.players) ? data.players : (Array.isArray(data) ? data : []));
+      } catch (_) {}
+    }
+
+    function renderLeaderboardUI(players) {
+      const top10 = players.slice(0, 10);
+      const pod = document.getElementById('rank-podium');
+      const list = document.getElementById('rank-list');
+
+      pod.innerHTML = [0, 1, 2].map(idx => {
+        const p = top10[idx];
+        const label = idx === 0 ? '🥇 1st' : (idx === 1 ? '🥈 2nd' : '🥉 3rd');
+        return `
+          <div class="pod-card ${idx === 0 ? 'first' : ''}">
+            <div style="font-size:11px; color:var(--gold); font-weight:800;">${label}</div>
+            <div style="font-size:13px; font-weight:700; margin:4px 0;">${p ? (p.name || p.first_name || 'Player') : '---'}</div>
+            <div style="font-size:12px; color:var(--accent-2); font-weight:800;">${p ? (p.total_winnings ?? p.score ?? 0) : 0}</div>
+          </div>
+        `;
+      }).join('');
+
+      list.innerHTML = top10.map((p, i) => `
+        <div class="rank-row">
+          <span><strong>#${i + 1}</strong> ${p.name || p.first_name || 'Player'}</span>
+          <span style="font-weight:800; color:var(--gold);">${p.total_winnings ?? p.score ?? 0} ETB</span>
+        </div>
+      `).join('');
+    }
+
+    async function displayUserReferralLink() {
+      try {
+        const data = await api('/api/referral-link');
+        if (data.url) document.getElementById('referral-link-input').value = data.url;
+      } catch (_) {}
+    }
+
+    async function copyReferralLink() {
+      const inp = document.getElementById('referral-link-input');
+      if (!inp.value) await displayUserReferralLink();
+      if (!inp.value) return;
+      try {
+        await navigator.clipboard.writeText(inp.value);
+        toast('የመጋበዣ ሊንክ ተቀድቷል');
+      } catch (_) {
+        inp.select();
+        document.execCommand('copy');
+        toast('ተቀድቷል');
       }
     }
 
-    syncSoundUI();
-    syncAutoUI();
+    async function sendBotAction(path, okMsg) {
+      try {
+        await api(path, { method: 'POST' });
+        toast(okMsg);
+        if (tg && tg.close) setTimeout(() => tg.close(), 400);
+      } catch (e) {
+        toast(e.message);
+      }
+    }
+
+    /* Boot */
+    applySoundIcon();
+    initGrid();
+    initMasterBoard();
+    updateUI();
     loadCalls();
+    refreshUserData();
+    pollRound();
 
-    setInterval(updateTimerDisplay, 500);
-    setInterval(() => {
-      fetchRound().catch(() => {});
-    }, 1000);
-
+    setInterval(tickCountdown, 250);
+    setInterval(pollRound, 1000);
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        fetchRound().catch(() => {});
-      }
+      if (!document.hidden) pollRound();
     });
-
-    syncAll(false);
   </script>
 </body>
 </html>
