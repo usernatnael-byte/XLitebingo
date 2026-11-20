@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Home Lobby — Instagram Light</title>
+  <title>Keno • Aviator • Bingo — Server Room</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <style>
@@ -11,9 +11,6 @@
       --ig-grad: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
       --ig-soft: rgba(220, 39, 67, 0.08);
       --ig-rose: #dc2743;
-      --ig-magenta: #bc1888;
-      --ig-amber: #f09433;
-
       --bg-page: #ffffff;
       --bg-panel: #fafafa;
       --bg-card: #ffffff;
@@ -23,12 +20,7 @@
       --muted: #737373;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     body {
       background: var(--bg-page);
@@ -44,572 +36,382 @@
       max-width: 440px;
       background: var(--bg-page);
       min-height: 100vh;
-      padding-bottom: 84px;
-      position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
-    .top-grad-strip {
-      height: 3px;
-      width: 100%;
-      background: var(--ig-grad);
-    }
+    .top-bar { height: 3px; width: 100%; background: var(--ig-grad); }
 
-    /* Header & Wallet Strip */
-    .top-header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
+    header {
+      position: sticky; top: 0; z-index: 30;
       background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--line);
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .brand-mark {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: var(--ig-grad);
-      padding: 2px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .brand-mark-inner {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: var(--bg-card);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 900;
-      color: var(--ig-rose);
-    }
-
-    .balance-pill {
-      flex: 1;
-      background: var(--bg-panel);
-      border: 1px solid var(--line-mid);
-      border-radius: 10px;
-      padding: 6px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .balance-val { color: var(--ink); font-weight: 900; }
-    .balance-cur { color: var(--ig-rose); font-size: 11px; margin-left: 2px; }
-
-    .sync-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 800;
-      cursor: pointer;
-      padding: 0 4px;
-    }
-
-    .deposit-btn {
-      background: var(--ig-grad);
-      color: #ffffff;
-      border: none;
-      border-radius: 10px;
-      padding: 8px 11px;
-      font-size: 11px;
-      font-weight: 900;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-
-    .section { padding: 10px 12px 4px; }
-
-    /* Promo Banner */
-    .promo-banner {
-      border-radius: 12px;
-      background: linear-gradient(120deg, rgba(240, 148, 51, 0.14), rgba(220, 39, 67, 0.12), rgba(188, 24, 136, 0.14));
-      border: 1px solid var(--line-mid);
-      padding: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .promo-title { font-size: 13px; font-weight: 900; color: var(--ink); }
-    .promo-sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 600; }
-
-    .server-badge {
-      font-size: 10px;
-      font-weight: 900;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--line-mid);
-      background: var(--bg-card);
-      color: var(--muted);
-      white-space: nowrap;
-    }
-    .server-badge.live {
-      border-color: var(--ig-rose);
-      color: var(--ig-rose);
-      background: var(--ig-soft);
-    }
-
-    /* Section Headings */
-    .sec-head {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      font-weight: 900;
-      color: var(--ink);
-      margin-bottom: 2px;
-    }
-
-    .live-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--ig-rose);
-      display: inline-block;
-    }
-
-    .sec-desc {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 10px;
-      line-height: 1.35;
-    }
-
-    /* Top Winners Horizontal Row */
-    .winners-row {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding-bottom: 4px;
-    }
-    .winners-row::-webkit-scrollbar { display: none; }
-
-    .winner-card {
-      min-width: 126px;
-      background: var(--bg-panel);
-      border: 1px solid var(--line-mid);
-      border-radius: 10px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .winner-top {
-      height: 58px;
-      background: linear-gradient(135deg, rgba(240, 148, 51, 0.16), rgba(220, 39, 67, 0.14));
-      padding: 6px;
-      display: flex;
-      align-items: flex-start;
-      justify-content: flex-end;
-    }
-
-    .mult-tag {
-      background: var(--ig-grad);
-      color: #ffffff;
-      font-size: 10px;
-      font-weight: 900;
-      padding: 2px 6px;
-      border-radius: 6px;
-    }
-
-    .winner-body {
-      padding: 7px 8px;
-      background: var(--bg-card);
-    }
-
-    .w-game { font-size: 11px; font-weight: 800; color: var(--ink); }
-    .w-amt { font-size: 12px; font-weight: 900; color: var(--ig-rose); margin-top: 2px; }
-    .w-phone { font-size: 10px; color: var(--muted); margin-top: 2px; }
-
-    /* Featured Games 3-Column Grid */
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .game-tile {
-      position: relative;
-      aspect-ratio: 0.88;
-      border-radius: 12px;
-      border: 1px solid var(--line-mid);
-      background: var(--bg-panel);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 8px;
-      cursor: pointer;
-      transition: transform 0.1s ease, border-color 0.15s ease;
-    }
-
-    .game-tile:active { transform: scale(0.97); }
-    .game-tile:hover { border-color: var(--ig-rose); }
-
-    .game-tile.keno-tile {
-      background: linear-gradient(160deg, rgba(240, 148, 51, 0.18), rgba(255, 255, 255, 0.95));
-    }
-    .game-tile.aviator-tile {
-      background: linear-gradient(160deg, rgba(220, 39, 67, 0.18), rgba(255, 255, 255, 0.95));
-    }
-    .game-tile.bingo-tile {
-      background: linear-gradient(160deg, rgba(188, 24, 136, 0.18), rgba(255, 255, 255, 0.95));
-    }
-
-    .fav-star {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
-      background: var(--bg-card);
-      border: 1px solid var(--line-mid);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      color: var(--ig-amber);
-    }
-
-    .tile-badge {
-      font-size: 9px;
-      font-weight: 900;
-      color: var(--ig-rose);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .tile-name {
-      font-size: 13px;
-      font-weight: 900;
-      color: var(--ink);
-      line-height: 1.15;
-      margin-top: 2px;
-    }
-
-    .tile-sub {
-      font-size: 10px;
-      color: var(--muted);
-      font-weight: 700;
-      margin-top: 2px;
-    }
-
-    /* Offline Notice Box */
-    .offline-banner {
-      background: var(--ig-soft);
-      border: 1px solid var(--ig-rose);
-      border-radius: 10px;
       padding: 10px 12px;
-      margin-bottom: 10px;
-      font-size: 11px;
-      color: var(--ink);
-      font-weight: 700;
-      display: none;
-    }
-    .offline-banner.show { display: block; }
-
-    /* Bottom Dock Navigation */
-    .bottom-dock {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 440px;
-      background: rgba(255, 255, 255, 0.97);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid var(--line);
-      padding: 6px 8px;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 4px;
-      z-index: 50;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
 
-    .dock-item {
-      background: none;
-      border: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      font-size: 10px;
-      font-weight: 800;
-      color: var(--muted);
-      cursor: pointer;
-      padding: 4px 2px;
-      border-radius: 8px;
-    }
-
-    .dock-item.active { color: var(--ink); }
-    .dock-item .d-ico { font-size: 14px; }
-
-    .dock-deposit {
+    .brand { font-size: 14px; font-weight: 900; }
+    .brand span {
       background: var(--ig-grad);
-      color: #ffffff;
-      border: none;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1px;
-      font-size: 10px;
-      font-weight: 900;
-      cursor: pointer;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
+
+    .bal-box {
+      background: var(--bg-panel); border: 1px solid var(--line-mid);
+      border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 800;
+    }
+    .bal-box b { color: var(--ig-rose); font-weight: 900; }
+
+    .status-tag {
+      font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 999px;
+      border: 1px solid var(--line-mid); background: var(--bg-panel); color: var(--muted);
+    }
+    .status-tag.online { border-color: var(--ig-rose); color: var(--ig-rose); background: var(--ig-soft); }
+
+    .room-nav {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+      padding: 8px 12px; background: var(--bg-panel); border-bottom: 1px solid var(--line);
+    }
+
+    .r-btn {
+      background: var(--bg-card); border: 1px solid var(--line-mid); border-radius: 8px;
+      padding: 8px 6px; font-size: 11px; font-weight: 800; color: var(--muted); cursor: pointer;
+    }
+    .r-btn.active { background: var(--ig-grad); border-color: transparent; color: #ffffff; }
+
+    .main { padding: 12px; flex: 1; }
+
+    .offline-card {
+      background: var(--bg-panel); border: 1px solid var(--line-mid); border-radius: 12px;
+      padding: 18px 14px; text-align: center; margin-top: 12px;
+    }
+    .offline-card h2 { font-size: 15px; font-weight: 900; margin-bottom: 6px; }
+    .offline-card p { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+
+    .btn-grad {
+      background: var(--ig-grad); color: #ffffff; border: none; border-radius: 8px;
+      padding: 9px 14px; font-size: 12px; font-weight: 900; cursor: pointer;
+    }
+    .btn-grad:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-sec {
+      background: var(--bg-panel); color: var(--ink); border: 1px solid var(--line-mid);
+      border-radius: 8px; padding: 9px 12px; font-size: 12px; font-weight: 800; cursor: pointer;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .info-box {
+      background: var(--bg-panel); border: 1px solid var(--line-mid); border-radius: 10px;
+      padding: 10px 12px; margin-bottom: 10px; font-size: 12px;
+    }
+    .info-box .line {
+      display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 700;
+    }
+    .info-box .line:last-child { margin-bottom: 0; }
+    .info-box .k { color: var(--muted); }
+    .info-box .v { color: var(--ink); font-weight: 900; }
+
+    .keno-nums {
+      display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin-bottom: 10px;
+    }
+    .k-num {
+      aspect-ratio: 1; background: var(--bg-panel); border: 1px solid var(--line-mid);
+      border-radius: 6px; font-size: 11px; font-weight: 700; color: var(--ink); cursor: pointer;
+    }
+    .k-num.sel { background: var(--ig-grad); border-color: transparent; color: #ffffff; font-weight: 900; }
+
+    .row-actions { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .num-input {
+      width: 100px; height: 38px; background: var(--bg-panel); border: 1px solid var(--line-mid);
+      border-radius: 8px; padding: 0 8px; font-size: 13px; font-weight: 800; color: var(--ink);
+    }
+
+    .mult-screen {
+      background: var(--bg-panel); border: 1px solid var(--line-mid); border-radius: 12px;
+      padding: 20px 12px; text-align: center; margin-bottom: 10px;
+    }
+    .mult-num {
+      font-size: 32px; font-weight: 900;
+      background: var(--ig-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .bingo-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 10px;
+    }
+    .b-cell {
+      aspect-ratio: 1.1; background: var(--bg-panel); border: 1px solid var(--line-mid);
+      border-radius: 7px; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: var(--ink);
+    }
+    .b-cell.called { background: var(--ig-grad); border-color: transparent; color: #ffffff; }
 
     .toast {
-      position: fixed;
-      top: 64px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--bg-card);
-      border: 1px solid var(--ig-rose);
-      color: var(--ink);
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 800;
-      z-index: 95;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s;
-      white-space: nowrap;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      position: fixed; top: 64px; left: 50%; transform: translateX(-50%);
+      background: var(--bg-card); border: 1px solid var(--ig-rose); color: var(--ink);
+      padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 800;
+      z-index: 95; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+      white-space: nowrap; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
     }
     .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
   <div class="app">
-    <div class="top-grad-strip"></div>
-
-    <!-- Top Header with Single Shared Server Balance -->
-    <header class="top-header">
-      <div class="brand-mark">
-        <div class="brand-mark-inner">G</div>
-      </div>
-
-      <div class="balance-pill">
-        <div>
-          <span class="balance-val" id="balanceVal">--</span>
-          <span class="balance-cur">ETB</span>
-        </div>
-        <button class="sync-btn" onclick="syncFromServer()" title="Sync Balance">↻</button>
-      </div>
-
-      <button class="deposit-btn" onclick="openDepositInfo()">+ ገንዘብ አስገባ</button>
+    <div class="top-bar"></div>
+    <header>
+      <div class="brand">ROOM <span>HUB</span></div>
+      <div class="bal-box"><span id="balanceVal">--</span> <b>ETB</b></div>
+      <div class="status-tag" id="statusTag">OFFLINE</div>
     </header>
 
-    <div class="section">
-      <div class="offline-banner" id="offlineBanner">
-        ሰርቨር አልተገናኘም — ጨዋታ ለመጀመር የSocket.IO / Node ሰርቨሩን ያስነሱ (ያለ ሰርቨር ጨዋታ አይሰራም)።
-      </div>
-
-      <div class="promo-banner">
-        <div>
-          <div class="promo-title">አንድ ባላንስ • የተለያዩ ጨዋታዎች</div>
-          <div class="promo-sub">Keno • Aviator • Bingo በሰርቨር ሩም ይተዳደራሉ</div>
-        </div>
-        <span class="server-badge" id="serverBadge">OFFLINE</span>
-      </div>
+    <div class="room-nav">
+      <button class="r-btn active" data-tab="keno" onclick="switchRoom('keno', this)">FAST KENO</button>
+      <button class="r-btn" data-tab="aviator" onclick="switchRoom('aviator', this)">AVIATOR</button>
+      <button class="r-btn" data-tab="bingo" onclick="switchRoom('bingo', this)">BINGO</button>
     </div>
 
-    <!-- ምርጥ አሸናፊዎች -->
-    <section class="section">
-      <div class="sec-head">
-        <span>🏆 ምርጥ አሸናፊዎች</span>
-        <span class="live-dot"></span>
+    <div class="main">
+      <div class="offline-card" id="offlineBox">
+        <h2>ሰርቨር አልተገናኘም</h2>
+        <p>ይህ ገጽ ያለ ሰርቨር ግንኙነት አይሰራም። የNode + Socket.IO ሰርቨሩን ያስነሱ እና በድጋሚ ያገናኙ።</p>
+        <button class="btn-grad" onclick="connectServer()">Reconnect Server</button>
       </div>
-      <div class="sec-desc">በተለያዩ ጨዋታዎች ያሸነፉትን ይመልከቱ — ቀጣዩ እርስዎ ሊሆኑ ይችላሉ።</div>
 
-      <div class="winners-row" id="winnersRow">
-        <div class="winner-card">
-          <div class="winner-top"><span class="mult-tag">x--</span></div>
-          <div class="winner-body">
-            <div class="w-game">Fast Keno</div>
-            <div class="w-amt">-- ETB</div>
-            <div class="w-phone">Server Sync</div>
+      <div id="roomsContainer" style="display:none;">
+        <!-- KENO ROOM -->
+        <div class="panel active" id="panel-keno">
+          <div class="info-box">
+            <div class="line"><span class="k">Room</span><span class="v">Fast Keno Room</span></div>
+            <div class="line"><span class="k">Round</span><span class="v" id="kenoRound">--</span></div>
+            <div class="line"><span class="k">Phase</span><span class="v" id="kenoPhase">--</span></div>
+          </div>
+          <div class="keno-nums" id="kenoGrid"></div>
+          <div class="row-actions">
+            <input type="number" id="kenoBetAmt" class="num-input" value="10" min="1" />
+            <button class="btn-grad" style="flex:1" id="kenoBetBtn" onclick="sendKenoBet()">Bet Keno</button>
           </div>
         </div>
+
+        <!-- AVIATOR ROOM -->
+        <div class="panel" id="panel-aviator">
+          <div class="info-box">
+            <div class="line"><span class="k">Room</span><span class="v">Aviator Room</span></div>
+            <div class="line"><span class="k">Round</span><span class="v" id="avRound">--</span></div>
+            <div class="line"><span class="k">Phase</span><span class="v" id="avPhase">--</span></div>
+          </div>
+          <div class="mult-screen">
+            <div class="mult-num" id="avMult">1.00x</div>
+          </div>
+          <div class="row-actions">
+            <input type="number" id="avBetAmt" class="num-input" value="10" min="1" />
+            <button class="btn-grad" style="flex:1" id="avBetBtn" onclick="sendAviatorBet()">Bet Flight</button>
+            <button class="btn-sec" id="avCashBtn" onclick="sendAviatorCashout()">Cash Out</button>
+          </div>
+        </div>
+
+        <!-- BINGO ROOM -->
+        <div class="panel" id="panel-bingo">
+          <div class="info-box">
+            <div class="line"><span class="k">Room</span><span class="v">Bingo Room</span></div>
+            <div class="line"><span class="k">Round</span><span class="v" id="bgRound">--</span></div>
+            <div class="line"><span class="k">Phase</span><span class="v" id="bgPhase">--</span></div>
+          </div>
+          <div class="row-actions">
+            <input type="number" id="bgCartela" class="num-input" value="7" min="1" max="500" />
+            <input type="number" id="bgBetAmt" class="num-input" value="10" min="1" />
+            <button class="btn-grad" style="flex:1" id="bgJoinBtn" onclick="sendBingoJoin()">Join Card</button>
+          </div>
+          <div class="bingo-grid" id="bingoCardGrid"></div>
+        </div>
       </div>
-    </section>
-
-    <!-- የተመረጡ ጨዋታዎች -->
-    <section class="section">
-      <div class="sec-head">🎮 የተመረጡ ጨዋታዎች</div>
-      <div class="sec-desc">ከፍተኛ ደረጃ የተሰጣቸው ጨዋታዎችን ይመልከቱ።</div>
-
-      <div class="games-grid">
-        <div class="game-tile keno-tile" onclick="openGameRoom('keno')">
-          <div class="fav-star">★</div>
-          <div class="tile-badge">LIVE ROOM</div>
-          <div class="tile-name">FAST KENO</div>
-          <div class="tile-sub">1–80 • 20 Balls</div>
-        </div>
-
-        <div class="game-tile aviator-tile" onclick="openGameRoom('aviator')">
-          <div class="fav-star">★</div>
-          <div class="tile-badge">ROOM LOGIC</div>
-          <div class="tile-name">AVIATOR</div>
-          <div class="tile-sub">Multiplier Room</div>
-        </div>
-
-        <div class="game-tile bingo-tile" onclick="openGameRoom('bingo')">
-          <div class="fav-star">★</div>
-          <div class="tile-badge">ROOM LOGIC</div>
-          <div class="tile-name">BINGO</div>
-          <div class="tile-sub">Cartela Room</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Bottom Dock -->
-    <nav class="bottom-dock">
-      <button class="dock-item active" onclick="showToast('የመረጃዎች ሰሌዳ')">
-        <span class="d-ico">📊</span>
-        <span>የመረጃዎች ሰሌዳ</span>
-      </button>
-      <button class="dock-item" onclick="showToast('ፕሮሞ')">
-        <span class="d-ico">🎁</span>
-        <span>ፕሮሞ</span>
-      </button>
-      <button class="dock-item" onclick="showToast('ድጋፍ')">
-        <span class="d-ico">🎧</span>
-        <span>ድጋፍ</span>
-      </button>
-      <button class="dock-item" onclick="showToast('ፕሮፋይል')">
-        <span class="d-ico">👤</span>
-        <span>ፕሮፋይል</span>
-      </button>
-      <button class="dock-deposit" onclick="openDepositInfo()">
-        <span>+</span>
-        <span>ገንዘብ አስገባ</span>
-      </button>
-    </nav>
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
 
   <script>
     let socket = null;
-    let isConnected = false;
-    let activeRooms = [];
+    let connected = false;
+    let currentRoom = 'keno';
+    let kenoPicks = new Set();
+    let platformState = null;
 
-    function resolvePlayerId() {
+    function getPlayerId() {
       const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
       if (tgUser && tgUser.id) return String(tgUser.id);
-      const params = new URLSearchParams(window.location.search);
-      return params.get('playerId') || '';
+      const q = new URLSearchParams(window.location.search).get('playerId');
+      return q ? String(q) : '';
     }
 
-    const playerId = resolvePlayerId();
+    const playerId = getPlayerId();
 
     function showToast(msg) {
-      const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.classList.add('show');
-      clearTimeout(window._toastTimer);
-      window._toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(window._tt);
+      window._tt = setTimeout(() => t.classList.remove('show'), 2200);
     }
 
-    function setConnectedUI(connected) {
-      isConnected = Boolean(connected);
-      const badge = document.getElementById('serverBadge');
-      const banner = document.getElementById('offlineBanner');
+    function setOnlineUI(isOnline) {
+      connected = Boolean(isOnline);
+      const tag = document.getElementById('statusTag');
+      const off = document.getElementById('offlineBox');
+      const area = document.getElementById('roomsContainer');
 
-      if (isConnected) {
-        badge.textContent = 'LIVE SERVER';
-        badge.classList.add('live');
-        banner.classList.remove('show');
+      if (connected) {
+        tag.textContent = 'CONNECTED';
+        tag.classList.add('online');
+        off.style.display = 'none';
+        area.style.display = 'block';
       } else {
-        badge.textContent = 'OFFLINE';
-        badge.classList.remove('live');
-        banner.classList.add('show');
+        tag.textContent = 'OFFLINE';
+        tag.classList.remove('online');
+        off.style.display = 'block';
+        area.style.display = 'none';
         document.getElementById('balanceVal').textContent = '--';
       }
     }
 
-    function renderLeaders(leaders) {
-      if (!Array.isArray(leaders) || leaders.length === 0) return;
-      document.getElementById('winnersRow').innerHTML = leaders.slice(0, 6).map((item) => `
-        <div class="winner-card">
-          <div class="winner-top"><span class="mult-tag">#${item.rank}</span></div>
-          <div class="winner-body">
-            <div class="w-game">Round #${item.roundId || '-'}</div>
-            <div class="w-amt">${item.win}</div>
-            <div class="w-phone">${item.id}</div>
-          </div>
-        </div>
-      `).join('');
+    function switchRoom(roomKey, btn) {
+      currentRoom = roomKey;
+      document.querySelectorAll('.r-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      document.getElementById(`panel-${roomKey}`).classList.add('active');
     }
 
-    function openGameRoom(roomKey) {
-      if (!isConnected) {
-        showToast('ሰርቨር አልተገናኘም — ጨዋታ አይከፈትም');
-        return;
-      }
-      if (roomKey === 'keno') {
-        window.location.href = `/keno.html?playerId=${encodeURIComponent(playerId)}`;
-        return;
-      }
-      if (activeRooms.includes(roomKey)) {
-        window.location.href = `/${roomKey}.html?playerId=${encodeURIComponent(playerId)}`;
-      } else {
-        showToast(`${roomKey.toUpperCase()} room is not registered on server yet`);
+    function renderKenoGrid() {
+      const g = document.getElementById('kenoGrid');
+      g.innerHTML = '';
+      for (let i = 1; i <= 80; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'k-num' + (kenoPicks.has(i) ? ' sel' : '');
+        b.textContent = i;
+        b.onclick = () => {
+          if (!connected) return showToast('Server connection required');
+          if (kenoPicks.has(i)) kenoPicks.delete(i);
+          else {
+            if (kenoPicks.size >= 10) return showToast('Max 10 numbers');
+            kenoPicks.add(i);
+          }
+          renderKenoGrid();
+        };
+        g.appendChild(b);
       }
     }
 
-    function openDepositInfo() {
-      if (!isConnected) {
-        showToast('ሰርቨር ሲገናኝ ባላንስ ይታያል');
-        return;
-      }
-      showToast('ባላንስ በቀጥታ ከሰርቨር ይመጣል');
+    function renderBingoCard(card, calledNumbers = []) {
+      const el = document.getElementById('bingoCardGrid');
+      const nums = card?.numbers || Array.from({ length: 25 }, (_, i) => (i === 12 ? 'FREE' : i + 1));
+      const calledSet = new Set(calledNumbers);
+      el.innerHTML = nums.map((n) => {
+        const isFree = n === 0 || n === 'FREE';
+        const hit = isFree || calledSet.has(n);
+        return `<div class="b-cell ${hit ? 'called' : ''}">${isFree ? 'FREE' : n}</div>`;
+      }).join('');
     }
 
-    async function syncFromServer() {
+    function applyPlatformState(st) {
+      if (!st) return;
+      platformState = st;
+      if (st.player && typeof st.player.balance === 'number') {
+        document.getElementById('balanceVal').textContent = st.player.balance.toFixed(2);
+      }
+
+      const k = st.rooms?.keno;
+      if (k) {
+        document.getElementById('kenoRound').textContent = `#${k.roundId}`;
+        document.getElementById('kenoPhase').textContent = `${k.phase} (${k.timeLeft}s)`;
+        document.getElementById('kenoBetBtn').disabled = k.phase !== 'BETTING_OPEN';
+      }
+
+      const a = st.rooms?.aviator;
+      if (a) {
+        document.getElementById('avRound').textContent = `#${a.roundId}`;
+        document.getElementById('avPhase').textContent = `${a.phase} (${a.timeLeft}s)`;
+        document.getElementById('avMult').textContent = `${Number(a.multiplier || 1).toFixed(2)}x`;
+        document.getElementById('avBetBtn').disabled = a.phase !== 'BETTING';
+      }
+
+      const b = st.rooms?.bingo;
+      if (b) {
+        document.getElementById('bgRound').textContent = `#${b.roundId}`;
+        document.getElementById('bgPhase').textContent = `${b.phase} (${b.timeLeft}s)`;
+        document.getElementById('bgJoinBtn').disabled = b.phase !== 'LOBBY';
+        renderBingoCard(b.myCard, b.calledNumbers);
+      }
+    }
+
+    function emitAction(payload, onDone) {
+      if (!connected || !socket || !socket.connected) {
+        return showToast('Not connected to server');
+      }
+      socket.emit('room:action', payload, (res) => {
+        if (!res || !res.ok) {
+          showToast(res?.error || 'Action rejected');
+          return;
+        }
+        if (onDone) onDone(res);
+      });
+    }
+
+    function sendKenoBet() {
+      if (kenoPicks.size === 0) return showToast('Select Keno numbers');
+      const betAmount = Number(document.getElementById('kenoBetAmt').value);
+      emitAction({
+        game: 'keno',
+        type: 'bet',
+        picks: Array.from(kenoPicks),
+        betAmount
+      }, () => {
+        kenoPicks.clear();
+        renderKenoGrid();
+        showToast('Keno bet accepted');
+      });
+    }
+
+    function sendAviatorBet() {
+      const betAmount = Number(document.getElementById('avBetAmt').value);
+      emitAction({ game: 'aviator', type: 'bet', betAmount }, () => {
+        showToast('Aviator bet placed');
+      });
+    }
+
+    function sendAviatorCashout() {
+      emitAction({ game: 'aviator', type: 'cashout' }, (res) => {
+        showToast(`Cashed out: +${Number(res.winAmount || 0).toFixed(2)} ETB`);
+      });
+    }
+
+    function sendBingoJoin() {
+      const cartelaNum = Number(document.getElementById('bgCartela').value);
+      const betAmount = Number(document.getElementById('bgBetAmt').value);
+      emitAction({ game: 'bingo', type: 'join', cartelaNum, betAmount }, (res) => {
+        renderBingoCard(res.card, []);
+        showToast(`Joined Bingo Cartela #${cartelaNum}`);
+      });
+    }
+
+    async function connectServer() {
       if (!playerId) {
-        setConnectedUI(false);
-        showToast('playerId is required');
-        return;
+        setOnlineUI(false);
+        return showToast('playerId required');
       }
 
       try {
-        const resp = await fetch(`/api/unified/state?playerId=${encodeURIComponent(playerId)}`);
-        if (!resp.ok) throw new Error('Server state failed');
-        const data = await resp.json();
-        setConnectedUI(true);
-        if (data.player && typeof data.player.balance === 'number') {
-          document.getElementById('balanceVal').textContent = data.player.balance.toFixed(2);
-        }
-        if (data.rooms) {
-          activeRooms = Object.keys(data.rooms).filter((k) => Boolean(data.rooms[k]));
-          if (data.rooms.keno && Array.isArray(data.rooms.keno.leaders)) {
-            renderLeaders(data.rooms.keno.leaders);
-          }
-        }
+        const r = await fetch(`/api/platform/state?playerId=${encodeURIComponent(playerId)}`);
+        if (!r.ok) throw new Error('Offline');
+        const data = await r.json();
+        setOnlineUI(true);
+        applyPlatformState(data);
       } catch (_) {
-        setConnectedUI(false);
+        setOnlineUI(false);
       }
 
       if (typeof io === 'function') {
@@ -617,40 +419,47 @@
         socket = io({ auth: { playerId }, query: { playerId } });
 
         socket.on('connect', () => {
-          setConnectedUI(true);
-          socket.emit('unified:sync');
+          setOnlineUI(true);
+          socket.emit('platform:sync');
         });
 
-        socket.on('disconnect', () => {
-          setConnectedUI(false);
+        socket.on('disconnect', () => setOnlineUI(false));
+        socket.on('connect_error', () => setOnlineUI(false));
+
+        socket.on('platform:state', (st) => {
+          setOnlineUI(true);
+          applyPlatformState(st);
         });
 
-        socket.on('connect_error', () => {
-          setConnectedUI(false);
-        });
-
-        socket.on('unified:state', (snap) => {
-          setConnectedUI(true);
-          if (snap?.player && typeof snap.player.balance === 'number') {
-            document.getElementById('balanceVal').textContent = snap.player.balance.toFixed(2);
-          }
-          if (snap?.rooms) {
-            activeRooms = Object.keys(snap.rooms).filter((k) => Boolean(snap.rooms[k]));
-            if (snap.rooms.keno && Array.isArray(snap.rooms.keno.leaders)) {
-              renderLeaders(snap.rooms.keno.leaders);
-            }
+        socket.on('balance:update', (d) => {
+          if (typeof d?.balance === 'number') {
+            document.getElementById('balanceVal').textContent = d.balance.toFixed(2);
           }
         });
 
-        socket.on('balance:update', (data) => {
-          if (typeof data?.balance === 'number') {
-            document.getElementById('balanceVal').textContent = data.balance.toFixed(2);
+        socket.on('aviator:tick', (t) => {
+          document.getElementById('avMult').textContent = `${Number(t.multiplier || 1).toFixed(2)}x`;
+          document.getElementById('avPhase').textContent = t.phase;
+        });
+
+        socket.on('aviator:state', () => socket.emit('platform:sync'));
+
+        socket.on('bingo:call', (ev) => {
+          if (platformState?.rooms?.bingo) {
+            platformState.rooms.bingo.calledNumbers = ev.calledNumbers || [];
+            renderBingoCard(platformState.rooms.bingo.myCard, ev.calledNumbers || []);
           }
         });
+
+        socket.on('bingo:state', () => socket.emit('platform:sync'));
+        socket.on('round:open', () => socket.emit('platform:sync'));
+        socket.on('round:settled', () => socket.emit('platform:sync'));
       }
     }
 
-    syncFromServer();
+    renderKenoGrid();
+    renderBingoCard(null, []);
+    connectServer();
   </script>
 </body>
 </html>
